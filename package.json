@@ -1,0 +1,14 @@
+{
+  "name": "faiwer-react",
+  "version": "0.0.1",
+  "description": "A hobby project",
+  "main": "dest/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Stepan Zubashev",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
