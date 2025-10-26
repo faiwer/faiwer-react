@@ -12,8 +12,18 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "lint-staged": "^16.2.6",
     "oxlint": "^1.16.0",
     "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx,md}": [
+      "prettier --write"
+    ],
+    "**/*.{ts,tsx}": [
+      "oxlint --deny-warnings"
+    ]
   }
 }

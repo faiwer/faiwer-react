@@ -4,9 +4,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["es2024", "dom", "dom.iterable"],
-    "baseUrl": ".",
+    "baseUrl": "./src",
     "strict": true,
-    "allowImportingTsExtensions": true,
     "noEmit": true,
+    "paths": {
+      "~/*": ["*"],
+    }
   }
 }
