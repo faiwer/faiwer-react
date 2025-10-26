@@ -4,12 +4,16 @@
   "description": "A hobby project",
   "main": "dest/index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "lint": "oxlint .",
+    "prettify": "npx prettier --write 'src/**/*.{ts,tsx,md}'"
   },
   "author": "Stepan Zubashev",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "jest": "^30.2.0",
+    "oxlint": "^1.16.0",
     "prettier": "^3.6.2"
   }
 }
