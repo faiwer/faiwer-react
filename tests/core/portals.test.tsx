@@ -1,8 +1,8 @@
 import { createContext, useContext } from '~/hooks/useContext';
 import {
   createPortal,
-  ReactComponent,
   useState,
+  type ReactComponent,
   type ReactNode,
   type StateSetter,
 } from '~/index';
