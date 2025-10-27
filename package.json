@@ -3,6 +3,20 @@
   "version": "0.0.1",
   "description": "A hobby project",
   "main": "dest/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "default": "./dist/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "default": "./dist/jsx-dev-runtime.js"
+    }
+  },
   "scripts": {
     "test": "jest",
     "lint": "oxlint .",
@@ -11,9 +25,12 @@
   "author": "Stepan Zubashev",
   "license": "ISC",
   "devDependencies": {
+    "@swc/core": "^1.13.5",
+    "@swc/jest": "^0.2.39",
     "@types/jest": "^30.0.0",
     "husky": "^9.1.7",
     "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^16.2.6",
     "oxlint": "^1.16.0",
     "prettier": "^3.6.2"

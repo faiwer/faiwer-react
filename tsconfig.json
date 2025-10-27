@@ -4,11 +4,18 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "lib": ["es2024", "dom", "dom.iterable"],
-    "baseUrl": "./src",
     "strict": true,
     "noEmit": true,
+    "baseUrl": ".",
     "paths": {
-      "~/*": ["*"],
-    }
-  }
+      "faiwer-react": ["./src/index.ts"],
+      "faiwer-react/*": ["./src/*"],
+      "faiwer-react/jsx-runtime": ["./src/jsx-runtime.ts"],
+      "faiwer-react/jsx-dev-runtime": ["./src/jsx-dev-runtime.ts"],
+      "~/*": ["./src/*"]
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "faiwer-react",
+  },
+  "include": ["src", "tests"]
 }
