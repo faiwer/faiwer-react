@@ -1,5 +1,5 @@
 import { mount as reactMount } from '~/core/reconcile';
-import { type ReactNode } from '~/index';
+import { useState, type ReactNode } from '~/index';
 
 export const mount = (node: ReactNode): HTMLElement => {
   const root = document.createElement('root');
@@ -47,4 +47,9 @@ export const waitFor = async (
   }
 
   fn();
+};
+
+export const useRerender = () => {
+  const [, setState] = useState<object>({});
+  return () => setState({});
 };
