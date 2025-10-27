@@ -1,5 +1,5 @@
 import { useState, createContext, useContext, type StateSetter } from '~/index';
-import { expectHtml, mount } from '../helpers';
+import { createToggler, expectHtml, mount } from '../helpers';
 import { act } from '~/testing';
 
 describe('Hooks: useContext', () => {
@@ -85,7 +85,7 @@ describe('Hooks: useContext', () => {
   });
 
   it('providers can be (un)mounted dynamically', async () => {
-    const provider: Partial<Record<'show' | 'hide', () => void>> = {};
+    const provider = createToggler();
     const Comp = () => {
       const [mounted, setMounted] = useState(true);
       provider.show = () => setMounted(true);

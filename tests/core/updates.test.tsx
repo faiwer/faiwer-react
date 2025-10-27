@@ -6,7 +6,7 @@ import {
   type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
-import { expectHtml, mount, useRerender } from '../helpers';
+import { createToggler, expectHtml, mount, useRerender } from '../helpers';
 import { waitFor } from '../helpers';
 import { Fragment } from 'faiwer-react/jsx-runtime';
 
@@ -398,7 +398,7 @@ describe('Updates', () => {
   });
 
   it("doesn't run dead nested sub-components", async () => {
-    let father: Record<'show' | 'hide', () => void>;
+    const father = createToggler();
     let updateChildState: StateSetter<number>;
     const child = {
       rendered: 0,
@@ -424,7 +424,8 @@ describe('Updates', () => {
 
     const Grandfather = () => {
       const [mounted, setMounted] = useState(true);
-      father = { show: () => setMounted(true), hide: () => setMounted(false) };
+      father.show = () => setMounted(true);
+      father.hide = () => setMounted(false);
       return mounted && <Father />;
     };
 
@@ -439,7 +440,7 @@ describe('Updates', () => {
     );
 
     await act(() => {
-      father.hide();
+      father.hide!();
       updateChildState(43);
     });
 
@@ -451,7 +452,7 @@ describe('Updates', () => {
     });
 
     await act(() => {
-      father.show();
+      father.show!();
     });
 
     await waitFor(() => {

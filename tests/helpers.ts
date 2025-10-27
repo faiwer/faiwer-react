@@ -53,3 +53,10 @@ export const useRerender = () => {
   const [, setState] = useState<object>({});
   return () => setState({});
 };
+
+// @example
+// toggler.show = () => setState(true);
+// toggler.hide = () => setState(false);
+export const createToggler = (): Partial<
+  Record<'hide' | 'show', () => void>
+> => ({});
