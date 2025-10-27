@@ -192,6 +192,12 @@ describe('Mounting: Components & fragments', () => {
     expectHtml(root).toBe('1');
   });
 
+  it(`mounts self-referencing components`, () => {
+    const Comp = ({ depth }: { depth: number }) =>
+      depth > 2 ? 'stop' : [depth, '|', <Comp depth={depth + 1} />];
+    expectHtml(mount(<Comp depth={0} />)).toBe('0|1|2|stop');
+  });
+
   it('mounts sub-fragments', () => {
     const root = mount(['1', [[['2']]], '3']);
     expectHtml(root).toBe('123');
