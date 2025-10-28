@@ -27,7 +27,7 @@ describe('Hooks: refs', () => {
   });
 
   it('sets the ref', async () => {
-    let ref: Ref<HTMLDivElement>;
+    let ref: Ref<HTMLDivElement | undefined>;
     const div = createToggler();
 
     const Comp = () => {
