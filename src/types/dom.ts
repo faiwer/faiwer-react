@@ -11,7 +11,7 @@ type EventKeys<T extends HTMLElement> = {
 
 /**
  * Each HTMLElement contains a ton of properties. Most of them shouldn't be used
- * in JSX-tag-nodes. This type matches most of inapplicable generic properties.
+ * in JSX-tag-nodes. This type matches most inapplicable generic properties.
  */
 type GeneralRemove =
   | `DOCUMENT_${string}`
@@ -35,8 +35,8 @@ type GeneralRemove =
   | 'shadowRoot';
 
 /**
- * Returns a list of tag-based properties that are probably applicable to be set
- * via a JSX-tag-node.
+ * Returns a list of tag-based properties that can probably be set via a JSX tag
+ * node.
  **/
 // prettier-ignore
 type PropertiesOnly<T extends HTMLElement> = {
@@ -91,8 +91,8 @@ export type SvgRootProps = TagProps<HTMLElement> & {
 
 /**
  * It's a whole world of non-implemented types :(. I haven't found any simple
- * way to get it from the default DOM types, so left a fallback that at least
- * doesn't blocking svg-tags
+ * way to get it from the default DOM types, so I left a fallback that at least
+ * doesn't block svg-tags.
  */
 // prettier-ignore
 export type SvgTagProps =
