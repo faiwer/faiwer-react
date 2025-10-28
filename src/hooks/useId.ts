@@ -4,7 +4,7 @@ let idx = 0;
 
 export function useId(): string {
   const ref = useRef<number | null>(null);
-  if (ref.current === null) {
+  if (ref.current === undefined) {
     ref.current = ++idx;
   }
 
