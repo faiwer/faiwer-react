@@ -15,10 +15,10 @@ import { wait, waitFor } from '../helpers';
 
 describe('createElement', () => {
   it('createElement creates an element', () => {
-    const node = (<div class="test">content</div>) as ElementNode;
+    const node = (<div className="test">content</div>) as ElementNode;
     expect(node).toEqual({
       type: 'div',
-      props: { class: 'test' },
+      props: { className: 'test' },
       children: ['content'],
     });
   });
@@ -120,7 +120,7 @@ describe('Mounting: tags', () => {
 
   itRenders(
     'sets html-attributes',
-    <div class="cls">Content</div>,
+    <div className="cls">Content</div>,
     `<div class="cls">Content</div>`,
   );
 

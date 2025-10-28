@@ -158,7 +158,7 @@ describe('Updates', () => {
     for (const container of ['tag', 'fragment']) {
       it(`can reorder nodes in a ${container}, inlined: ${inlined}`, async () => {
         const Wrapper = ({ children }: { children: ReactNode }) => {
-          return <div class="root">before!{children}!after</div>;
+          return <div className="root">before!{children}!after</div>;
         };
 
         const wrapContent = (html: string): string => {
