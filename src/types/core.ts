@@ -1,4 +1,5 @@
 import type { ReactComponent } from './component';
+import type { ReactContextProvider } from './context';
 
 /**
  * Any unique string or number that can help the React engine to identify the
@@ -6,6 +7,14 @@ import type { ReactComponent } from './component';
  * recreate the given node by purpose.
  */
 export type ReactKey = string | number;
+
+/**
+ * Generic type to reflect props that can be used for both <tag/>s and
+ * <Component/>s.
+ */
+export type UnknownProps = Record<PropertyKey, unknown> & {
+  key?: ReactKey | null;
+};
 
 /**
  * The 1st arguments of `createElement` function. Basically, this type reflects
@@ -24,6 +33,8 @@ export type ScalarNode = string | number | boolean | null | undefined;
  * have `FiberNode` for it.
  */
 export type ElementNode = {
+  type: ElementType | ReactContextProvider | HTMLElement;
+  props: UnknownProps;
   children: JsxElement[];
 };
 
