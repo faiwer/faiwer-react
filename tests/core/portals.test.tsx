@@ -2,7 +2,7 @@ import { createContext, useContext } from '~/hooks/useContext';
 import {
   createPortal,
   useState,
-  type ReactComponent,
+  type ReactComponentWithChildren,
   type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
@@ -182,8 +182,7 @@ describe('Portals', () => {
 
   for (const { element: node, name, html } of nodes) {
     it(`can render ${name} directly`, () => {
-      const Container: ReactComponent<{
-        children: JSX.Element;
+      const Container: ReactComponentWithChildren<{
         target: HTMLElement;
       }> = ({ children, target }) => (
         <Fragment>

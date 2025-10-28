@@ -1,7 +1,7 @@
 import {
   useEffect,
   useState,
-  type ReactComponent,
+  type ReactComponentWithChildren,
   type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
@@ -63,8 +63,7 @@ describe('Updates', () => {
         it(`it inserts a new ${childType}-child into a ${containerType} at: ${pos}`, async () => {
           let setContentInserted: StateSetter<boolean>;
 
-          const Child: ReactComponent<{ children: JSX.Element }> = (props) =>
-            props.children;
+          const Child: ReactComponentWithChildren = (props) => props.children;
 
           const Comp = () => {
             const [inserted, setInserted] = useState(false);
@@ -156,7 +155,7 @@ describe('Updates', () => {
   for (const inlined of [true, false]) {
     for (const container of ['tag', 'fragment']) {
       it(`can reorder nodes in a ${container}, inlined: ${inlined}`, async () => {
-        const Wrapper = ({ children }: { children: JSX.Element }) => {
+        const Wrapper: ReactComponentWithChildren = ({ children }) => {
           return <div className="root">before!{children}!after</div>;
         };
 

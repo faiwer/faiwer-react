@@ -7,6 +7,7 @@ import {
   ElementNode,
   Fragment,
   createContext,
+  type ReactComponentWithChildren,
 } from '~/index';
 import { act } from '~/testing';
 import { expectHtml, mount } from '../helpers';
@@ -163,7 +164,7 @@ describe('Mounting: Components & fragments', () => {
 
   for (const asProp of [true, false]) {
     it(`mounts a component with children provided ${asProp ? 'as a prop' : 'as content'}`, () => {
-      const Comp = ({ children }: { children: JSX.Element }) => (
+      const Comp: ReactComponentWithChildren = ({ children }) => (
         <div>{children}</div>
       );
       const root = mount(
