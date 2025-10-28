@@ -119,6 +119,14 @@ describe('Mounting: tags', () => {
   itRenders('mounts a simple <div/>', <div>Content</div>, '<div>Content</div>');
 
   itRenders(
+    `moutns an SVG`,
+    <svg xmlns="http://www.w3.org/2000/svg" width={64} height={64}>
+      <circle cx={30} cy="30" r="30" fill="black" />
+    </svg>,
+    `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="30" cy="30" r="30" fill="black"></circle></svg>`,
+  );
+
+  itRenders(
     'sets html-attributes',
     <div className="cls">Content</div>,
     `<div class="cls">Content</div>`,

@@ -81,3 +81,20 @@ export type TagProps<T extends HTMLElement = HTMLElement> =
   & { ref?: HtmlRef<T> | RefSetter<T> }
   & Record<`data-${string}`, ScalarNode | null>
   & { children?: JSX.Element };
+
+export type SvgRootProps = TagProps<HTMLElement> & {
+  xmlns?: string;
+  width?: number;
+  height?: number;
+  viewBox?: string;
+};
+
+/**
+ * It's a whole world of non-implemented types :(. I haven't found any simple
+ * way to get it from the default DOM types, so left a fallback that at least
+ * doesn't blocking svg-tags
+ */
+// prettier-ignore
+export type SvgTagProps =
+  & { [K in string]?: unknown; }
+  & { children?: JSX.Element; }

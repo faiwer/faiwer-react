@@ -6,7 +6,6 @@
     "lib": ["es2024", "dom", "dom.iterable"],
     "strict": true,
     "noEmit": true,
-    "baseUrl": ".",
     "paths": {
       "faiwer-react": ["./src/index.ts"],
       "faiwer-react/*": ["./src/*"],
@@ -16,6 +15,7 @@
     },
     "jsx": "react-jsx",
     "jsxImportSource": "faiwer-react",
+    "skipLibCheck": true,
   },
   "include": ["src", "tests"]
 }
