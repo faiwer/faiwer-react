@@ -55,3 +55,18 @@ export type JsxElement =
   | ScalarNode
   // <Fragment/> & []-fragment
   | JsxElement[];
+
+/**
+ * Available !--comment types.
+ * E.g. <!--r:null:14-->
+ */
+export type CommentMode =
+  // JSX: null, undefined, false
+  | 'null'
+  // JSX: a fragment with 2+ child-nodes
+  | 'begin'
+  | 'end'
+  // createPortal()
+  | 'portal'
+  // JSX: a fragment with 0 child-nodes
+  | 'empty';

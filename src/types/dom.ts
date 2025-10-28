@@ -4,6 +4,17 @@ import type { HtmlRef, RefSetter } from './refs';
 /** The list of possible DOM tree node types. */
 export type DomNode = Element | Text | Comment;
 
+export type TagAttrValue =
+  // Next scalar values will be stingified
+  | string
+  | number
+  | boolean
+  // Absent attributes
+  | null
+  | undefined
+  // Event handlers
+  | Function;
+
 // 'onclick' | 'onmousedown' | …
 type EventKeys<T extends HTMLElement> = {
   [K in keyof T]: K extends `on${string}` ? K : never;
