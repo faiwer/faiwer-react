@@ -1,4 +1,4 @@
-import { useState, Fragment, ReactNode, ReactComponent } from '~/index';
+import { useState, Fragment, ReactComponent } from '~/index';
 import { act } from '~/testing';
 import { expectHtmlFull, mount } from '../helpers';
 
@@ -6,14 +6,14 @@ describe('Compact rendering', () => {
   for (const mode of ['fragment', 'component']) {
     it(`doesn't render !--brackets for a ${mode} with only one child`, () => {
       const Comp = () => 'child';
-      const middle: ReactNode = mode === 'fragment' ? ['child'] : <Comp />;
+      const middle: JSX.Element = mode === 'fragment' ? ['child'] : <Comp />;
       const root = mount(['before|', middle, '|after']);
       expectHtmlFull(root).toBe('before|child|after');
     });
 
     it(`renders !--brackets for a ${mode} with multiple children`, () => {
-      const Comp = (): ReactNode => ['a', 'b'];
-      const middle: ReactNode = mode === 'fragment' ? ['a', 'b'] : <Comp />;
+      const Comp = (): JSX.Element => ['a', 'b'];
+      const middle: JSX.Element = mode === 'fragment' ? ['a', 'b'] : <Comp />;
       const root = mount(['before|', middle, '|after']);
       expectHtmlFull(root).toBe(
         'before|<!--r:begin:1-->ab<!--r:end:1-->|after',
@@ -22,13 +22,13 @@ describe('Compact rendering', () => {
 
     for (const pos of ['last', 'only']) {
       it(`recovers !--:empty html-comment for a ${mode} when the ${pos} child is gone`, async () => {
-        const content: ReactNode = pos === 'last' ? ['a', 'b'] : 'only';
+        const content: JSX.Element = pos === 'last' ? ['a', 'b'] : 'only';
         const Comp: ReactComponent<{ empty: boolean }> = ({ empty }) =>
           empty ? [] : content;
 
-        const middle: ReactNode =
+        const middle: JSX.Element =
           mode === 'fragment' ? [content].flat() : <Comp empty={false} />;
-        const middleEmpty: ReactNode =
+        const middleEmpty: JSX.Element =
           mode === 'fragment' ? [] : <Comp empty={true} />;
 
         let showContent: () => void;

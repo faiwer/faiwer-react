@@ -2,7 +2,6 @@ import {
   useEffect,
   useState,
   type ReactComponent,
-  type ReactNode,
   type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
@@ -24,8 +23,8 @@ describe('Updates', () => {
           hide = () => setRemoved(true);
           show = () => setRemoved(false);
 
-          const content: ReactNode[] = items.map(
-            (el): ReactNode => (removed && el === pos ? null : el),
+          const content: JSX.Element[] = items.map(
+            (el): JSX.Element => (removed && el === pos ? null : el),
           );
 
           return mode === 'fragment' ? content : <div>{content}</div>;
@@ -64,14 +63,14 @@ describe('Updates', () => {
         it(`it inserts a new ${childType}-child into a ${containerType} at: ${pos}`, async () => {
           let setContentInserted: StateSetter<boolean>;
 
-          const Child: ReactComponent<{ children: ReactNode }> = (props) =>
+          const Child: ReactComponent<{ children: JSX.Element }> = (props) =>
             props.children;
 
           const Comp = () => {
             const [inserted, setInserted] = useState(false);
             setContentInserted = setInserted;
 
-            const content: ReactNode[] =
+            const content: JSX.Element[] =
               childType === 'text'
                 ? ['1', '2']
                 : childType === 'tag'
@@ -157,7 +156,7 @@ describe('Updates', () => {
   for (const inlined of [true, false]) {
     for (const container of ['tag', 'fragment']) {
       it(`can reorder nodes in a ${container}, inlined: ${inlined}`, async () => {
-        const Wrapper = ({ children }: { children: ReactNode }) => {
+        const Wrapper = ({ children }: { children: JSX.Element }) => {
           return <div className="root">before!{children}!after</div>;
         };
 
@@ -175,7 +174,7 @@ describe('Updates', () => {
           const [reversed, setReversed] = useState(false);
           setContentReversed = setReversed;
 
-          const content: ReactNode[] = (
+          const content: JSX.Element[] = (
             reversed ? [...items].reverse() : items
           ).map((n) => <div key={n}>{n}</div>);
 

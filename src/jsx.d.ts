@@ -1,6 +1,5 @@
 import {
-  type ElementNode,
-  type ScalarNode,
+  type JsxElement,
   type TagProps,
   type SvgTagProps,
   type SvgRootProps,
@@ -10,13 +9,7 @@ export {};
 
 declare global {
   namespace JSX {
-    type Element =
-      // <div/> & <Component/>. Also it's the output type of `createElement`.
-      | ElementNode
-      // null, undefined, boolean, string, number
-      | ScalarNode
-      // <Fragment/> & []-fragment
-      | Element[];
+    type Element = JsxElement;
 
     interface IntrinsicElements {
       // Document structure

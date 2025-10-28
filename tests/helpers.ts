@@ -1,9 +1,9 @@
 import { mount as reactMount } from '~/core/reconcile';
-import { useState, type ReactNode } from '~/index';
+import { useState } from '~/index';
 
-export const mount = (node: ReactNode): HTMLElement => {
+export const mount = (element: JSX.Element): HTMLElement => {
   const root = document.createElement('root');
-  reactMount(root, node, { testMode: true });
+  reactMount(root, element, { testMode: true });
   return root;
 };
 

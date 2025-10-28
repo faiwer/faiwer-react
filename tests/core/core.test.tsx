@@ -3,7 +3,6 @@ import {
   useState,
   mount as reactMount,
   type StateSetter,
-  type ReactNode,
   useEffect,
   ElementNode,
   Fragment,
@@ -85,9 +84,9 @@ describe('createElement', () => {
   });
 });
 
-const itRenders = (name: string, node: JSX.Element, html: string) =>
+const itRenders = (name: string, element: JSX.Element, html: string) =>
   it(name, () => {
-    const root = mount(node);
+    const root = mount(element);
     expectHtml(root).toBe(html);
   });
 
@@ -164,7 +163,7 @@ describe('Mounting: Components & fragments', () => {
 
   for (const asProp of [true, false]) {
     it(`mounts a component with children provided ${asProp ? 'as a prop' : 'as content'}`, () => {
-      const Comp = ({ children }: { children: ReactNode }) => (
+      const Comp = ({ children }: { children: JSX.Element }) => (
         <div>{children}</div>
       );
       const root = mount(
@@ -191,7 +190,7 @@ describe('Mounting: Components & fragments', () => {
   }
 
   it('mounts subcomponents', () => {
-    type Props = { v: ReactNode };
+    type Props = { v: JSX.Element };
     const Child = ({ v }: Props) => v;
     const Father = ({ v }: Props) => <Child v={v} />;
     const Grandfather = () => <Father v={1} />;

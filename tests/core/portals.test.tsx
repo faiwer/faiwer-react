@@ -3,7 +3,6 @@ import {
   createPortal,
   useState,
   type ReactComponent,
-  type ReactNode,
   type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
@@ -149,11 +148,11 @@ describe('Portals', () => {
   const CtxChild = () => useContext(ctx);
   const Comp = () => 'component';
 
-  const nodes: Array<{ name: string; node: ReactNode; html: string }> = [
-    { name: 'an array-fragment', node: ['1', '2'], html: '12' },
+  const nodes: Array<{ name: string; element: JSX.Element; html: string }> = [
+    { name: 'an array-fragment', element: ['1', '2'], html: '12' },
     {
       name: 'a <Fragment/>',
-      node: (
+      element: (
         <Fragment>
           {1}
           {2}
@@ -161,18 +160,18 @@ describe('Portals', () => {
       ),
       html: '12',
     },
-    { name: 'a tag', node: <div>tag</div>, html: '<div>tag</div>' },
-    { name: 'a component', node: <Comp />, html: 'component' },
-    { name: 'a string', node: 'string', html: 'string' },
-    { name: 'an empty string', node: '', html: '' },
-    { name: 'null', node: null, html: '' },
-    { name: 'false', node: false, html: '' },
-    { name: 'undefined', node: undefined, html: '' },
-    { name: 'a number', node: 42, html: '42' },
-    { name: '0', node: 0, html: '0' },
+    { name: 'a tag', element: <div>tag</div>, html: '<div>tag</div>' },
+    { name: 'a component', element: <Comp />, html: 'component' },
+    { name: 'a string', element: 'string', html: 'string' },
+    { name: 'an empty string', element: '', html: '' },
+    { name: 'null', element: null, html: '' },
+    { name: 'false', element: false, html: '' },
+    { name: 'undefined', element: undefined, html: '' },
+    { name: 'a number', element: 42, html: '42' },
+    { name: '0', element: 0, html: '0' },
     {
       name: 'a context provider',
-      node: (
+      element: (
         <ctx.Provider value={42}>
           <CtxChild />
         </ctx.Provider>
@@ -181,10 +180,10 @@ describe('Portals', () => {
     },
   ];
 
-  for (const { node, name, html } of nodes) {
+  for (const { element: node, name, html } of nodes) {
     it(`can render ${name} directly`, () => {
       const Container: ReactComponent<{
-        children: ReactNode;
+        children: JSX.Element;
         target: HTMLElement;
       }> = ({ children, target }) => (
         <Fragment>
