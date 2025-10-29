@@ -1,7 +1,6 @@
 import {
   createRoot,
   useState,
-  mount as reactMount,
   type StateSetter,
   useEffect,
   ElementNode,
@@ -113,7 +112,7 @@ describe('Mounting: tags', () => {
   it('cleans the root before mounting', () => {
     const root = document.createElement('root');
     root.innerHTML = 'before';
-    reactMount(root, <div>Content</div>, { testMode: true });
+    createRoot(root, { testMode: true }).render(<div>Content</div>);
     expect(root.innerHTML).toBe('<div>Content</div>');
   });
 

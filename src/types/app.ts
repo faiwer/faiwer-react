@@ -70,3 +70,8 @@ export type AppOptions = {
    **/
   testMode?: boolean;
 };
+
+export type AppRoot = {
+  render: (element: JSX.Element) => void;
+  unmount: () => void;
+};
