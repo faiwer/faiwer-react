@@ -33,6 +33,7 @@ export type ScalarNode = string | number | boolean | null | undefined;
 export type ElementNode = {
   type: ElementType | ReactContextProvider | HTMLElement;
   props: UnknownProps;
+  key: ReactKey | null | undefined;
   children: JsxElement[];
 };
 
