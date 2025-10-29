@@ -21,6 +21,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## TODO
 
+- Support tag-`style` attribute
 - Events:
   - "capture"-kind of events
   - camelCase events
@@ -37,9 +38,9 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 - Class Components
 - Synthetic events
 - Portals:
-  - Event bubling from portals
+  - Event bubbling from portals
   - Rendering multiple portals in the same DOM node
-- `memo` (becase components are memoized by default)
+- `memo` (because components are memoized by default)
 - Some less popular tools
   - `useInsertionEffect`
   - `useOptimistic` (could be polyfilled)
@@ -58,7 +59,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## Major differences
 
-- It renders HTML-comment for nullable nodes and some fragments. Why? It helps a lot to keep the reconcilation algorithm simple. Took this idea from Angular.
+- It renders HTML-comment for nullable nodes and some fragments. Why? It helps a lot to keep the reconciliation algorithm simple. Took this idea from Angular.
 - No synthetic events. I don't see any reason to implement them.
 - All components are memoized by default. Why not?
 - No custom DOM-related code. This library is supposed to be simple and silly. Whereas React-DOM lib is huge.

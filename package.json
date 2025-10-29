@@ -20,7 +20,9 @@
   "scripts": {
     "test": "jest",
     "lint": "oxlint .",
-    "prettify": "npx prettier --write 'src/**/*.{ts,tsx,md}'"
+    "type-check": "npx tsgo --noEmit -p tsconfig.json",
+    "type-check-watch": "find ./src -type f ! -path '*/node_modules/*' | entr -r sh -c 'printf \"\\033c\"; npx tsgo --noEmit -p tsconfig.json'",
+    "prettify": "npx prettier --write '{src,tests}/**/*.{ts,tsx,md}'"
   },
   "author": "Stepan Zubashev",
   "license": "ISC",
