@@ -380,10 +380,10 @@ describe('Updates', () => {
       const [v, setV] = useState(1);
       setParentState = setV;
       return (
-        <Fragment>
+        <>
           {v}
           <Child />
-        </Fragment>
+        </>
       );
     };
 

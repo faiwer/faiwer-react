@@ -7,18 +7,17 @@ import {
 } from '~/index';
 import { act } from '~/testing';
 import { expectHtml, mount } from '../helpers';
-import { Fragment } from 'faiwer-react/jsx-runtime';
 
 describe('Portals', () => {
   it('renders into the given node', () => {
     const target = document.createElement('target');
     const Comp = () => {
       return (
-        <Fragment>
+        <>
           before!
           {createPortal('portal', target)}
           !after
-        </Fragment>
+        </>
       );
     };
 
@@ -40,11 +39,11 @@ describe('Portals', () => {
       showPortal = () => setShow(true);
       hidePortal = () => setShow(false);
       return (
-        <Fragment>
+        <>
           before!
           {show && createPortal('portal', target)}
           !after
-        </Fragment>
+        </>
       );
     };
 
@@ -89,11 +88,11 @@ describe('Portals', () => {
       );
 
       return (
-        <Fragment>
+        <>
           before!
           {portal}
           !after
-        </Fragment>
+        </>
       );
     };
 
@@ -125,11 +124,11 @@ describe('Portals', () => {
       updateTag = setTag;
       const Tag = tag === 'div' ? 'div' : 'span';
       return (
-        <Fragment>
+        <>
           before!
           {createPortal(<Tag />, target)}
           !after
-        </Fragment>
+        </>
       );
     };
 
@@ -153,10 +152,10 @@ describe('Portals', () => {
     {
       name: 'a <Fragment/>',
       element: (
-        <Fragment>
+        <>
           {1}
           {2}
-        </Fragment>
+        </>
       ),
       html: '12',
     },
@@ -185,11 +184,11 @@ describe('Portals', () => {
       const Container: ReactComponentWithChildren<{
         target: HTMLElement;
       }> = ({ children, target }) => (
-        <Fragment>
+        <>
           before!
           {createPortal(children, target)}
           !after
-        </Fragment>
+        </>
       );
 
       const target = document.createElement('target');

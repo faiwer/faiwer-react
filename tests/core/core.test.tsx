@@ -173,10 +173,10 @@ describe('Mounting: Components & fragments', () => {
         mode === 'array' ? (
           ['1', '2']
         ) : (
-          <Fragment>
+          <>
             {'1'}
             {'2'}
-          </Fragment>
+          </>
         );
       const root = mount(<div>before{content}after</div>);
       expectHtml(root).toBe('<div>before12after</div>');

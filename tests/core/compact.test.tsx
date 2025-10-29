@@ -97,14 +97,14 @@ describe('Compact rendering', () => {
     expectHtmlFull(
       mount(
         <div>
-          <Fragment>content</Fragment>
+          <>content</>
         </div>,
       ),
     ).toBe(`<div>content</div>`);
   });
 
   it(`doesn't render !-- brackets for a fragment with a single child in a component`, () => {
-    const Comp = () => <Fragment>content</Fragment>;
+    const Comp = () => <>content</>;
     expectHtmlFull(mount(<Comp />)).toBe(`content`);
   });
 });
