@@ -98,8 +98,9 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         updateChildEffectDep = setState;
 
         useEffect(
-          (signal) => {
+          async (signal) => {
             signals.push(signal);
+            await Promise.resolve();
             signal.addEventListener('abort', () => ++aborted, { once: true });
             expect(signal.aborted).toBe(false);
           },
