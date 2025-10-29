@@ -87,13 +87,13 @@ describe('Hooks: refs', () => {
   });
 
   it('reassigns ref when the ref handlers are changed', async () => {
-    type State = [RefSetter<HTMLDivElement>, Ref<HTMLDivElement>];
+    type State = [RefSetter<HTMLDivElement | null>, Ref<HTMLDivElement | null>];
     let updateOnRefs: StateSetter<State>;
 
     const toStr = (v: HTMLDivElement | null): string => v?.tagName ?? 'null';
 
     const logsFn: string[][] = [];
-    const genOnRef = (): RefSetter<HTMLDivElement> => {
+    const genOnRef = (): RefSetter<HTMLDivElement | null> => {
       const arr: string[] = [];
       logsFn.push(arr);
       return (v: HTMLDivElement | null): void => {
@@ -102,7 +102,7 @@ describe('Hooks: refs', () => {
     };
 
     const logsRefs: string[][] = [];
-    const genRef = () => {
+    const genRef = (): Ref<HTMLDivElement | null> => {
       const arr: string[] = [];
       logsRefs.push(arr);
       return {

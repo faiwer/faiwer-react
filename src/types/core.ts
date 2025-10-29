@@ -12,9 +12,7 @@ export type ReactKey = string | number;
  * Generic type to reflect props that can be used for both <tag/>s and
  * <Component/>s.
  */
-export type UnknownProps = Record<PropertyKey, unknown> & {
-  key?: ReactKey | null;
-};
+export type UnknownProps = Record<PropertyKey, unknown> & ElementCommonAttrs;
 
 /**
  * The 1st arguments of `createElement` function. Basically, this type reflects
@@ -29,7 +27,7 @@ export type ElementType = string /* tag name */ | ReactComponent;
 export type ScalarNode = string | number | boolean | null | undefined;
 
 /**
- * The result type of thw `createElement` function. It's not used internally. We
+ * The result type of the `createElement` function. It's not used internally. We
  * have `FiberNode` for it.
  */
 export type ElementNode = {

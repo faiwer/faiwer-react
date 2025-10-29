@@ -53,7 +53,6 @@ type GeneralRemove =
 type PropertiesOnly<T extends HTMLElement> = {
   [K in keyof T]:
       T[K] extends (...args: any[]) => any ? never
-    : K extends `on${string}` ? never
     : ChildNode extends T[K] ? never
     : Element extends T[K] ? never
     : HTMLElement extends T[K] ? never
@@ -61,12 +60,9 @@ type PropertiesOnly<T extends HTMLElement> = {
 }[keyof T];
 
 // prettier-ignore
-type TagNativeProps<
-  T extends HTMLElement,
-  E extends EventKeys<T> = EventKeys<T>,
-> =
+type TagNativeProps<T extends HTMLElement> =
   & Partial<Omit<Pick<T, PropertiesOnly<T>>, GeneralRemove>>
-  & { [K in E]?: DomEventHandlerX<K> };
+  & { [K in EventKeys<T>]?: DomEventHandlerX<K> };
 
 type EventHandler<E extends Event> = (event: E) => boolean | void;
 
@@ -89,8 +85,8 @@ type DomEventHandlerX<E extends string> =
 export type TagProps<T extends HTMLElement = HTMLElement> =
   & TagNativeProps<T>
   & ElementCommonAttrs
-  & { ref?: HtmlRef<T> | RefSetter<T> }
-  & Record<`data-${string}`, ScalarNode | null>
+  & { ref?: HtmlRef<T> | RefSetter<T | null> }
+  & Record<`data-${string}`, ScalarNode>
   & { children?: JSX.Element };
 
 export type SvgRootProps = TagProps<HTMLElement> & {
