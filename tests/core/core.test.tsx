@@ -19,6 +19,7 @@ describe('createElement', () => {
     expect(node).toEqual({
       type: 'div',
       props: { className: 'test' },
+      key: null,
       children: ['content'],
     });
   });
@@ -28,19 +29,7 @@ describe('createElement', () => {
     expect(node).toEqual({
       type: 'div',
       props: {},
-      children: ['content'],
-    });
-  });
-
-  it('createElement inlines the only <Fragment/> child', () => {
-    const node = (
-      <div>
-        <Fragment>content</Fragment>
-      </div>
-    ) as ElementNode;
-    expect(node).toEqual({
-      type: 'div',
-      props: {},
+      key: null,
       children: ['content'],
     });
   });
@@ -54,10 +43,12 @@ describe('createElement', () => {
     expect(node).toEqual({
       type: 'div',
       props: {},
+      key: null,
       children: [
         {
           type: expect.any(String),
-          props: { key: 'custom' },
+          props: {},
+          key: 'custom',
           children: ['content'],
         },
       ],
@@ -74,10 +65,12 @@ describe('createElement', () => {
     expect(node).toEqual({
       type: 'div',
       props: {},
+      key: null,
       children: [
         {
           type: expect.any(Object),
           props: { value: 123 },
+          key: null,
           children: [null],
         },
       ],
