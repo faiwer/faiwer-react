@@ -8,6 +8,7 @@ import {
   Fragment,
   createContext,
   type ReactComponentWithChildren,
+  type ReactComponent,
 } from '~/index';
 import { act } from '~/testing';
 import { expectHtml, mount } from '../helpers';
@@ -215,6 +216,12 @@ describe('Mounting: Components & fragments', () => {
     const Comp = () => ['content'];
     const root = mount(<Comp />);
     expectHtml(root).toBe('content');
+  });
+
+  it(`supports components with non-JSX children`, () => {
+    const Custom: ReactComponent<{ children: (v: number) => number }> =
+      ({ children }) => children(3); // prettier-ignore
+    expectHtml(mount(<Custom>{(v) => v ** 2}</Custom>)).toBe('9');
   });
 });
 

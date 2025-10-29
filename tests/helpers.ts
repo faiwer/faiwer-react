@@ -1,10 +1,9 @@
-import { mount as reactMount } from '~/core/reconcile';
-import { useState } from '~/index';
+import { createRoot, useState } from '~/index';
 
 export const mount = (element: JSX.Element): HTMLElement => {
-  const root = document.createElement('root');
-  reactMount(root, element, { testMode: true });
-  return root;
+  const rootDomNode = document.createElement('root');
+  createRoot(rootDomNode, { testMode: true }).render(element);
+  return rootDomNode;
 };
 
 export const expectHtml = (node: HTMLElement) =>

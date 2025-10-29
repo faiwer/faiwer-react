@@ -39,7 +39,7 @@ export type ElementNode = {
 /**
  * Common props for <tag/>s and <Component/>s.
  */
-export type ElementCommonAttrs = { key?: ReactKey };
+export type ElementCommonAttrs = { key?: ReactKey | null };
 
 /**
  * An implementation for `JSX.Element`. For some reason in real React it's

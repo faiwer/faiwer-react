@@ -63,4 +63,33 @@ describe('Compact rendering', () => {
       expectHtmlFull(root).toBe('before!<!--r:empty:1-->!after');
     });
   }
+
+  it(`doesn't render !--brackets for a tag with an array as children`, () => {
+    expectHtmlFull(
+      mount(
+        <div>
+          {[1, 2, 3].map((v) => (
+            <span>{v}</span>
+          ))}
+        </div>,
+      ),
+    ).toBe('<div><span>1</span><span>2</span><span>3</span></div>');
+  });
+
+  it(`does render !--brackets for a tag with an array as children`, () => {
+    expectHtmlFull(
+      mount(
+        <div>
+          before!
+          {[1, 2]}
+          !after
+        </div>,
+      ),
+    ).toBe('<div>before!<!--r:begin:1-->12<!--r:end:1-->!after</div>');
+  });
+
+  it(`doesn't render !--brackets for a regular component`, () => {
+    const Comp = () => <div>test</div>;
+    expectHtmlFull(mount(<Comp />)).toBe('<div>test</div>');
+  });
 });
