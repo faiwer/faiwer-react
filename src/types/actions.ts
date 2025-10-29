@@ -23,7 +23,7 @@ type SetAttr = CommonAction & {
   name: string;
   value: TagAttrValue;
 };
-type SetRef = CommonAction & {
+export type SetRef = CommonAction & {
   type: 'SetRef';
   ref: Ref<unknown> | RefSetter<unknown> | null;
   // We shouldn't empty refs on the 1st render.
