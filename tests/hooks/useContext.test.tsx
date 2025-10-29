@@ -110,4 +110,30 @@ describe('Hooks: useContext', () => {
     await act(() => provider.show!());
     expectHtml(root).toBe('11');
   });
+
+  it('multiple providers & consumers coexists', () => {
+    const ctx2 = createContext('');
+
+    const Child = () => useContext(ctx);
+
+    const Parent = () => [useContext(ctx2), '|', <Child />];
+
+    const GrandParent = () => [
+      useContext(ctx2),
+      '-',
+      useContext(ctx),
+      '|',
+      <Parent />,
+    ];
+
+    const root = mount(
+      <ctx.Provider value={42}>
+        <ctx2.Provider value="hey">
+          <GrandParent />
+        </ctx2.Provider>
+      </ctx.Provider>,
+    );
+
+    expectHtml(root).toBe('hey-42|hey|42');
+  });
 });
