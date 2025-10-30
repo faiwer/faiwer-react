@@ -21,6 +21,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## TODO
 
+- `RunComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
 - Support tag-`style` attribute
 - Events:
   - "capture"-kind of events
