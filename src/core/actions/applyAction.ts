@@ -1,15 +1,15 @@
-import type { FiberNode } from "faiwer-react/types";
-import type { Action } from "faiwer-react/types/actions";
-import { createTagAction } from "./createTag.action";
-import { createTextAction } from "./createText.action";
-import { createCommentAction } from "./createComment.action";
-import { setPropsAction } from "./setProps.action";
-import { setRefAction } from "./setRef.action";
-import { setAttrAction } from "./setAttr.action";
-import { setTextAction } from "./setText.action";
-import { removeAction } from "./remove.action";
-import { replaceAction } from "./replace.action";
-import { relayoutAction } from "./relayout.action";
+import type { FiberNode } from 'faiwer-react/types';
+import type { Action } from 'faiwer-react/types/actions';
+import { createTagAction } from './createTag.action';
+import { createTextAction } from './createText.action';
+import { createCommentAction } from './createComment.action';
+import { setPropsAction } from './setProps.action';
+import { setRefAction } from './setRef.action';
+import { setAttrAction } from './setAttr.action';
+import { setTextAction } from './setText.action';
+import { removeAction } from './remove.action';
+import { replaceAction } from './replace.action';
+import { relayoutAction } from './relayout.action';
 
 /**
  * The commit phase of the rendering process contains two parts:
