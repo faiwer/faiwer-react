@@ -8,46 +8,53 @@ type CommonAction = {
 };
 
 // Create actions
-type CreateTag = CommonAction & { type: 'CreateTag' };
-type CreateText = CommonAction & { type: 'CreateText' };
-type CreateComment = CommonAction & {
+type CreateTagAction = CommonAction & { type: 'CreateTag' };
+type CreateTextAction = CommonAction & { type: 'CreateText' };
+export type CreateCommentAction = CommonAction & {
   type: 'CreateComment';
   mode: CommentMode;
 };
-type CreateAction = CreateTag | CreateText | CreateComment;
+type CreateAction = CreateTagAction | CreateTextAction | CreateCommentAction;
 
 // Update actions
-type SetText = CommonAction & { type: 'SetText'; text: string };
-type SetAttr = CommonAction & {
+export type SetTextAction = CommonAction & { type: 'SetText'; text: string };
+export type SetAttrAction = CommonAction & {
   type: 'SetAttr';
   name: string;
   value: TagAttrValue;
 };
-export type SetRef = CommonAction & {
+export type SetRefAction = CommonAction & {
   type: 'SetRef';
   ref: Ref<unknown> | RefSetter<unknown> | null;
   // We shouldn't empty refs on the 1st render.
   dontUnsetRef?: boolean;
 };
-type SetProps = CommonAction & { type: 'SetProps'; props: UnknownProps };
-type UpdateAction = SetText | SetAttr | SetProps | SetRef;
+export type SetPropsAction = CommonAction & {
+  type: 'SetProps';
+  props: UnknownProps;
+};
+type UpdateAction =
+  | SetTextAction
+  | SetAttrAction
+  | SetPropsAction
+  | SetRefAction;
 
 // Remove actions
-type Remove = CommonAction & {
+export type RemoveAction = CommonAction & {
   type: 'Remove';
   // `true` when the node removed in the "Replace" action. It causes a slightly
   // different behavior. E.g., it means that the parent won't be removed.
   replaced?: boolean;
 };
-type Relayout = CommonAction & {
+export type RelayoutAction = CommonAction & {
   type: 'Relayout';
   before: FiberMap;
   after: FiberMap;
 };
-type Replace = CommonAction & {
+export type ReplaceAction = CommonAction & {
   type: 'Replace';
   newFiber: FiberNode;
 };
-type LayoutAction = Remove | Relayout | Replace;
+type LayoutAction = RemoveAction | RelayoutAction | ReplaceAction;
 
 export type Action = CreateAction | UpdateAction | LayoutAction;

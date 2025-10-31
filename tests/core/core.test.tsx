@@ -134,6 +134,52 @@ describe('Mounting: tags', () => {
     expect(onclick).toHaveBeenCalledWith(event);
   });
 
+  it('unsets tag event handlers', async () => {
+    const onclick = jest.fn();
+    let updateListen: StateSetter<boolean>;
+
+    const Component = () => {
+      const [listen, setListen] = useState(true);
+      updateListen = setListen;
+
+      return <div onclick={listen ? onclick : undefined}>Content</div>;
+    };
+
+    const root = mount(<Component />);
+    const event = new CustomEvent('click');
+    root.querySelector('div')?.dispatchEvent(event);
+    expect(onclick).toHaveBeenCalledTimes(1);
+
+    await act(() => updateListen(false));
+    root.querySelector('div')?.dispatchEvent(event);
+    expect(onclick).toHaveBeenCalledTimes(1); // Wasn't called.
+
+    await act(() => updateListen(true));
+    root.querySelector('div')?.dispatchEvent(event);
+    expect(onclick).toHaveBeenCalledTimes(2); // Was called again.
+  });
+
+  it('unsets tag attributes', async () => {
+    let updateWithAttr: StateSetter<boolean>;
+
+    const Component = () => {
+      const [withAttr, setWithAttr] = useState(true);
+      updateWithAttr = setWithAttr;
+
+      return <div tabIndex={withAttr ? 42 : undefined}>Content</div>;
+    };
+
+    const root = mount(<Component />);
+    const tag = root.querySelector('div');
+    expect(tag?.getAttribute('tabIndex')).toBe('42');
+
+    await act(() => updateWithAttr(false));
+    expect(tag?.hasAttribute('tabIndex')).toBe(false);
+
+    await act(() => updateWithAttr(true));
+    expect(tag?.getAttribute('tabIndex')).toBe('42');
+  });
+
   itRenders(
     'mounts a tree of tags',
     <div>

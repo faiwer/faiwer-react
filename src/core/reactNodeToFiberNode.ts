@@ -29,7 +29,7 @@ export const jsxElementToFiberNode = (
   /** Each fiber node but the root must have a parent fiber node. */
   parent: FiberNode,
   /** Pass `true` on the 1st render for the given node to run internal
-   * components recursively. By deault it doesn't run any components. */
+   * components recursively. By default it doesn't run any components. */
   unwrapComponents: boolean,
 ): FiberNode => {
   // []-based version of a fragment. Not a <Fragment/>.
