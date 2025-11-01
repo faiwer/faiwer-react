@@ -65,4 +65,10 @@ export type EffectHandler = (
   signal: AbortSignal,
 ) => void | Promise<void> | (() => void);
 
-export type EffectMode = 'layout' | 'normal';
+export type EffectMode =
+  // <div ref={onRef}/>
+  | 'refs'
+  // useLayoutEffect(fn);
+  | 'layout'
+  // useEffect();
+  | 'normal';

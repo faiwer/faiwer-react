@@ -38,7 +38,8 @@ export function setRefAction(
         ref.current = element;
       }
     },
-    'layout',
+    // React calls ref handlers even before it runs layout effects.
+    'refs',
   );
 
   fiber.ref = ref as typeof fiber.ref;
