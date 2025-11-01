@@ -167,7 +167,7 @@ describe('Hooks: refs', () => {
     });
   });
 
-  for (const mode of ['remove node', 'remove ref']) {
+  for (const mode of ['remove node', 'remove ref', 'empty node']) {
     it(`runs ref-handlers before running layout effects. Mode: ${mode}`, async () => {
       const onRef = jest.fn();
       const onLayoutEffect = jest.fn();
@@ -180,6 +180,8 @@ describe('Hooks: refs', () => {
         useLayoutEffect(onLayoutEffect);
         return mode === 'remove ref' || show ? (
           <div ref={show ? onRef : undefined} />
+        ) : mode === 'empty node' ? (
+          []
         ) : null;
       };
 

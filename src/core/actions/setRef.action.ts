@@ -8,6 +8,8 @@ import { unsetRef } from './helpers';
  * - A ref of a ref handler for the given node was:
  *   - set up
  *   - or replaced
+ *
+ * Removing node with a ref handler is handled in remove and replace actions.
  */
 export function setRefAction(
   fiber: FiberNode,
