@@ -1,4 +1,4 @@
-import { useState, Fragment, ReactComponent } from '~/index';
+import { useState, Fragment, ReactComponent, type StateSetter } from '~/index';
 import { act } from '~/testing';
 import { expectHtmlFull, mount } from '../helpers';
 
@@ -106,5 +106,61 @@ describe('Compact rendering', () => {
   it(`doesn't render !-- brackets for a fragment with a single child in a component`, () => {
     const Comp = () => <>content</>;
     expectHtmlFull(mount(<Comp />)).toBe(`content`);
+  });
+
+  it('correctly inserts more nodes to a fragment', async () => {
+    let updateSolo: StateSetter<boolean>;
+    const Child = () => null;
+
+    const Parent = () => {
+      const [solo, setSolo] = useState<boolean>(true);
+      updateSolo = setSolo;
+
+      return solo ? (
+        <Fragment key="fragment">
+          <Child key="1" />
+        </Fragment>
+      ) : (
+        <Fragment key="fragment">
+          <Child key="1" />
+          <Child key="2" />
+        </Fragment>
+      );
+    };
+
+    const root = mount(<Parent />);
+    expectHtmlFull(root).toBe(`<!--r:null:1-->`);
+
+    await act(() => updateSolo(false));
+    expectHtmlFull(root).toBe(
+      `<!--r:begin:1-->` + // Parent
+        `<!--r:begin:2-->` + // Fragment
+        // Content
+        `<!--r:null:3--><!--r:null:4-->` +
+        `<!--r:end:2-->` + // Fragment
+        `<!--r:end:1-->`, // Parent
+    );
+  });
+
+  it('recursively re-compacts parent nodes when the only child is replaced', async () => {
+    let updateKey: StateSetter<number>;
+    const Child: ReactComponent<{ v: number }> = ({ v }) => v;
+
+    const Parent = () => {
+      const [key, setKey] = useState<number>(1);
+      updateKey = setKey;
+
+      return (
+        <Fragment key="fragment">
+          <Child key={key} v={key} />
+        </Fragment>
+      );
+    };
+
+    const root = mount(<Parent />);
+    expectHtmlFull(root).toBe(`1`);
+
+    await act(() => updateKey(2));
+    expectHtmlFull(root).toBe('2');
   });
 });
