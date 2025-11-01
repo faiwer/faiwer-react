@@ -167,36 +167,40 @@ describe('Hooks: refs', () => {
     });
   });
 
-  it('runs ref-handlers before running layout effects', async () => {
-    const onRef = jest.fn();
-    const onLayoutEffect = jest.fn();
-    let updateShow: StateSetter<boolean>;
+  for (const mode of ['remove node', 'remove ref']) {
+    it(`runs ref-handlers before running layout effects. Mode: ${mode}`, async () => {
+      const onRef = jest.fn();
+      const onLayoutEffect = jest.fn();
+      let updateShow: StateSetter<boolean>;
 
-    const Comp = () => {
-      const [show, setShow] = useState(true);
-      updateShow = setShow;
+      const Comp = () => {
+        const [show, setShow] = useState(true);
+        updateShow = setShow;
 
-      useLayoutEffect(onLayoutEffect);
-      return show && <div ref={onRef} />;
-    };
+        useLayoutEffect(onLayoutEffect);
+        return mode === 'remove ref' || show ? (
+          <div ref={show ? onRef : undefined} />
+        ) : null;
+      };
 
-    mount(<Comp />);
+      mount(<Comp />);
 
-    const check = (idx: number, tagName: string | null) => {
-      expect(onLayoutEffect).toHaveBeenCalledTimes(idx);
-      expect(onRef).toHaveBeenCalledTimes(idx);
-      expect(onRef.mock.invocationCallOrder[idx - 1]).toBeLessThan(
-        onLayoutEffect.mock.invocationCallOrder[idx - 1],
-      );
-      expect(onRef.mock.lastCall[0]?.tagName ?? null).toBe(tagName);
-    };
+      const check = (idx: number, tagName: string | null) => {
+        expect(onLayoutEffect).toHaveBeenCalledTimes(idx);
+        expect(onRef).toHaveBeenCalledTimes(idx);
+        expect(onRef.mock.invocationCallOrder[idx - 1]).toBeLessThan(
+          onLayoutEffect.mock.invocationCallOrder[idx - 1],
+        );
+        expect(onRef.mock.lastCall[0]?.tagName ?? null).toBe(tagName);
+      };
 
-    check(1, 'DIV');
+      check(1, 'DIV');
 
-    await act(() => updateShow(false));
-    check(2, null);
+      await act(() => updateShow(false));
+      check(2, null);
 
-    await act(() => updateShow(true));
-    check(3, 'DIV');
-  });
+      await act(() => updateShow(true));
+      check(3, 'DIV');
+    });
+  }
 });
