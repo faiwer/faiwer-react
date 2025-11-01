@@ -1,7 +1,11 @@
-import type { FiberNode, TagFiberNode } from 'faiwer-react/types';
+import type {
+  ComponentFiberNode,
+  FiberNode,
+  TagFiberNode,
+} from 'faiwer-react/types';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
-import { getFiberDomNodes, unsetRef } from './helpers';
+import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
 import { applyAction } from './applyAction';
 
 /**
@@ -15,6 +19,40 @@ export function removeAction(fiber: FiberNode, { replaced }: RemoveAction) {
     // effects before removing parent nodes and parent components.
     applyAction({ type: 'Remove', fiber: child });
   }
+
+  if (fiber.type === 'component') {
+    destroyHooks(fiber);
+  } else if (fiber.role === 'context' && fiber.data.consumers.size > 0) {
+    throw new Error(`One of the context consumers wasn't unmounted`);
+  } else if (fiber.type === 'tag' && fiber.role !== 'portal') {
+    unlistenTagEvents(fiber);
+  }
+
+  if (!replaced && isCompactSingleChild(fiber.parent)) {
+    // Can't remove `fiber` when its parent doesn't have its own direct DOM
+    // node. Thus, we need to unwrap the compact-fiber (create <!--begin|end-->
+    // wrappers). We shouldn't do it in the "replace" mode because the replace
+    // action handles this case separately.
+    unwrapCompactFiber(fiber.parent);
+  }
+
+  for (const n of getFiberDomNodes(fiber)) {
+    if (n.childNodes.length > 0) {
+      throw new Error(`Remove: Node is not empty`);
+    }
+    n.remove();
+  }
+
+  if (fiber.ref && !replaced) {
+    unsetRef(fiber.ref);
+  }
+
+  // Help to gc.
+  emptyFiberNode(
+    fiber,
+    // Preserve `parent`, because in the replace mode this node will be reused.
+    replaced,
+  );
 }
 
 /**
@@ -30,4 +68,16 @@ const unlistenTagEvents = (fiber: TagFiberNode): void => {
       (fiber.element as HTMLElement).removeEventListener(name, record.wrapper);
     }
   }
+};
+
+/**
+ * Some component hooks might have destructors. We have to run them before we
+ * destroy the component.
+ */
+const destroyHooks = (fiber: ComponentFiberNode): void => {
+  for (const item of fiber.data.hooks ?? [])
+    if ('destructor' in item) {
+      item.destructor?.();
+      item.destructor = null;
+    }
 };
