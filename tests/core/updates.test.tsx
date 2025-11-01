@@ -462,4 +462,85 @@ describe('Updates', () => {
       });
     });
   });
+
+  it('updates fiber props during replacing', async () => {
+    const bRendered = jest.fn();
+
+    const A = ({ v }: { v: number }) => v ** 2;
+    const B = ({ v }: { v: number }) => {
+      bRendered();
+      return v * 3;
+    };
+
+    let updateV: StateSetter<number>;
+    let updateComp: StateSetter<typeof A>;
+    let rerenderParent: () => void;
+
+    const Parent = () => {
+      const [v, setV] = useState(2);
+      updateV = setV;
+
+      const [Comp, setComp] = useState<typeof A>(() => A);
+      updateComp = setComp;
+
+      rerenderParent = useRerender();
+
+      return <Comp v={v} />;
+    };
+
+    const root = mount(<Parent />);
+    expectHtml(root).toBe('4');
+
+    await act(() => {
+      updateV!(4);
+      updateComp!(() => B);
+    });
+    expectHtml(root).toBe('12');
+    expect(bRendered).toHaveBeenCalledTimes(1);
+
+    await act(() => rerenderParent());
+    // We haven't changed the `props` of `<B/>` so it shouldn't be rerendered.
+    expect(bRendered).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates fiber refs during replacing', async () => {
+    const onRef = {
+      A: jest.fn(),
+      B: jest.fn(),
+      C: jest.fn(),
+    };
+    let updateMode: StateSetter<'A' | 'B' | 'C'>;
+
+    const Parent = () => {
+      const [Tag, setTag] = useState<'A' | 'B' | 'C'>('A');
+      updateMode = setTag;
+
+      return <Tag ref={onRef[Tag]}>{Tag}</Tag>;
+    };
+
+    const root = mount(<Parent />);
+    expectHtml(root).toBe('<a>A</a>');
+    expect(onRef.A).toHaveBeenCalledTimes(1);
+    expect(onRef.A.mock.lastCall[0]?.textContent).toBe('A');
+    expect(onRef.B).toHaveBeenCalledTimes(0);
+
+    await act(() => {
+      updateMode!('B');
+    });
+    expectHtml(root).toBe('<b>B</b>');
+    expect(onRef.A).toHaveBeenCalledTimes(2);
+    expect(onRef.A.mock.lastCall[0]?.textContent).toBe(undefined);
+    expect(onRef.B).toHaveBeenCalledTimes(1);
+    expect(onRef.B.mock.lastCall[0]?.textContent).toBe('B');
+
+    await act(() => {
+      updateMode!('C');
+    });
+    expectHtml(root).toBe('<c>C</c>');
+    // If refs weren't updated during A->B render the following two lines will fail.
+    expect(onRef.B).toHaveBeenCalledTimes(2);
+    expect(onRef.B.mock.lastCall[0]?.textContent).toBe(undefined);
+    expect(onRef.C).toHaveBeenCalledTimes(1);
+    expect(onRef.C.mock.lastCall[0]?.textContent).toBe('C');
+  });
 });

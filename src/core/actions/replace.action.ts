@@ -5,6 +5,20 @@ import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { nullthrows } from 'faiwer-react/utils';
 import { applyAction } from './applyAction';
 
+/**
+ * Handles fiber replacement when a component with the same key renders a
+ * completely different node. This happens when the `type`, `tag`, or
+ * `component` fields change between renders.
+ *
+ * It's not called when the same node chnages its `key`. In such a cause we get:
+ * - "create*" for the new fiber
+ * - "remove" for the previous fiber
+ * - "relayout" for the parent fiber
+ *
+ * The process involves removing the old fiber's DOM & fiber nodes and subnodes
+ * and inserting the new fiber's DOM nodes in the same position, while
+ * preserving the original fiber object (keeping the same ID).
+ */
 export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
   if (fiber.ref) {
     // The previous fiber had a ref handler. Since we're removing it we have to
@@ -43,6 +57,7 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
   before.type = after.type;
   before.role = after.role;
   before.data = after.data;
+
   before.children = after.children;
   for (const child of before.children) {
     // after's dom nodes were in a <x-container/>. We moved them to the right
@@ -53,4 +68,7 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
   before.component = after.component;
   before.element = after.element;
   before.tag = after.tag;
+
+  before.props = after.props;
+  before.ref = after.ref;
 };
