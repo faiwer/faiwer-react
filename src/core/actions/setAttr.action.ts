@@ -46,7 +46,7 @@ const setEventHandler = (
 
   // Event handler was added before but now it's removed.
   if (value == null || value === false) {
-    events[name] = null;
+    events[name]!.handler = null;
     return;
   }
 
@@ -61,14 +61,17 @@ const setEventHandler = (
   // Instead of adding and removing event handlers on every renders we can add a
   // wrapper that calls `events[eventName]`, and update only the internal
   // function when it changes.
-  if (!(name in events)) {
-    events[name] = value;
-    element.addEventListener(eventName, (event) => {
-      // Original React doesn't support stopping propagation on `false return.
-      events[name]?.(event);
-    });
+  if (!events[name]) {
+    events[name] = {
+      handler: value,
+      wrapper: (event: Event) => {
+        // Original React doesn't support stopping propagation on `false return.
+        events[name]!.handler?.(event);
+      },
+    };
+    element.addEventListener(eventName, events[name].wrapper);
   } else {
     // The tag is already listening this event. Just update the internal ref.
-    events[name] = value;
+    events[name].handler = value;
   }
 };

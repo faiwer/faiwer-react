@@ -152,15 +152,15 @@ describe('Mounting: tags', () => {
 
       const root = mount(<Component />);
       const event = new CustomEvent('click');
-      root.querySelector('div')?.dispatchEvent(event);
+      root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(1);
 
       await act(() => updateListen(false));
-      root.querySelector('div')?.dispatchEvent(event);
+      root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(1); // Wasn't called.
 
       await act(() => updateListen(true));
-      root.querySelector('div')?.dispatchEvent(event);
+      root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(2); // Was called again.
     });
 
@@ -187,6 +187,44 @@ describe('Mounting: tags', () => {
 
       await act(() => updateWithAttr(true));
       expect(tag?.getAttribute('tabIndex')).toBe('42');
+    });
+  }
+
+  for (const mode of ['replace tag', 'remove tag']) {
+    it('removes event handlers on tag removal', async () => {
+      const onclick = jest.fn();
+      let updateShow: StateSetter<boolean>;
+
+      const Comp = () => {
+        const [show, setShow] = useState(true);
+        updateShow = setShow;
+
+        return show ? (
+          <div onclick={onclick}>div</div>
+        ) : mode === 'replace tag' ? (
+          <span />
+        ) : (
+          []
+        );
+      };
+
+      let eventHandler: EventListenerOrEventListenerObject;
+      jest
+        .spyOn(Element.prototype, 'addEventListener')
+        .mockImplementationOnce((type, listener) => {
+          expect(type).toBe('click');
+          expect(typeof listener).toBe('function');
+          eventHandler = listener;
+        });
+
+      const root = mount(<Comp />);
+      const div = root.querySelector('div')!;
+      const removeSpy = jest.spyOn(div, 'removeEventListener');
+      expectHtml(div).toBe('div');
+
+      await act(() => updateShow(false));
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith('onclick', eventHandler!);
     });
   }
 

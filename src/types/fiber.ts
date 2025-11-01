@@ -157,7 +157,9 @@ export type TagState = {
    * event handlers and put the methods in this map. `null` mean the 1st render,
    * when the event handler is not yet set up but is presented in JSX.
    */
-  events: Record<string, Function | null>;
+  events: Partial<
+    Record<string, { wrapper: EventListener; handler: Function | null }>
+  >;
 };
 
 /**
