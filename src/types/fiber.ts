@@ -170,7 +170,7 @@ export type TagFiberNode<T = Element> = CommonFiber & {
   element: T | null;
   data: TagState;
   ref: RefSetter<T | null> | Ref<T | null> | null;
-  props: object;
+  props: Record<PropertyKey, unknown>;
   // Unused fields:
   role: null;
   component: null;
@@ -180,5 +180,8 @@ export type TagFiberNode<T = Element> = CommonFiber & {
  * A wrapper over a Fiber used to compare fibers with their position within the
  * same parent fiber node.
  */
-export type AuxFiber = { order: number | null; fiber: FiberNode };
+export type AuxFiber<T extends FiberNode = FiberNode> = {
+  order: number | null;
+  fiber: T;
+};
 export type FiberMap = Map<ReactKey, AuxFiber>;
