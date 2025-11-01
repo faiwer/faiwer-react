@@ -21,15 +21,18 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## TODO
 
-- `RunComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
-- Support tag-`style` attribute
-- Events:
-  - "capture"-kind of events
-  - camelCase events
-  - custom `onChange` like in ReactDOM
-- Error handling
-- Direct component refs, `forwardRef`, `useImperativeHandle`
-- More default hooks:
+- 1st line
+  - Support tag-`style` attribute
+  - Events:
+    - "capture"-kind of events
+    - camelCase events
+    - custom `onChange` like in ReactDOM
+  - Error handling
+  - Direct component refs, `forwardRef`, `useImperativeHandle`
+- 2nd line
+  - prepare an NPM-package
+- 3rd line
+  - `RunComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
   - `useReducer`
 
 ## It does NOT support
