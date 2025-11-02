@@ -1,6 +1,6 @@
 import type { Action, SetRefAction } from 'faiwer-react/types/actions';
 import { type FiberNode } from '../../../types';
-import { assertsTagAttrValue } from '../../helpers';
+import { assertsTagAttrValue } from '../typeGuards';
 
 /**
  * Prepares a list of actions allowing to create the given fiber node in DOM.

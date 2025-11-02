@@ -2,14 +2,11 @@ import type { App, FiberNode } from 'faiwer-react/types';
 import type { Action } from 'faiwer-react/types/actions';
 import { getAppByFiber } from '../app';
 import { collectActionsFromFiberPair } from './fromFiberPair';
-import {
-  areFiberNodesEq,
-  createFakeFiberContainer,
-  getChildrenMap,
-  isContainerFiber,
-} from '../../helpers';
 import { runFiberComponents } from '../runFiberComponents';
 import { collectActionsFromNewFiber } from 'faiwer-react/core/reconciliation/collect/fromNewFiber';
+import { createFakeFiberContainer, getChildrenMap } from '../fibers';
+import { areFiberNodesEq } from '../compare/areFiberNodesEq';
+import { isContainerFiber } from '../typeGuards';
 
 /**
  * Returns a list of actions needed to convert `before` to `after`, where
@@ -50,7 +47,7 @@ export const collectActionsFromChildrenPair = (
       // 1. There was no node with this key before. Create a new one.
       // 2. There was one, but it was very different. Replace it.
       relayoutNeeded = true;
-      actions.push(...createFiberActions(r.fiber));
+      actions.push(...createFiberActions(app, r.fiber));
 
       if (l) {
         // Don't run component from the removing node even if they were invalidated
@@ -99,7 +96,7 @@ const uninvalidateFiberSubTree = (app: App, fiberNode: FiberNode): void => {
  * Returns a list of actions to create from scratch the DOM nodes of the given
  * fiber node.
  */
-const createFiberActions = (fiber: FiberNode): Action[] => {
+const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
   const fakeParent = createFakeFiberContainer(fiber.parent);
   fakeParent.parent = fiber.parent;
   // Wrap the given node with a fake <x-container/> node to force `applyActions`
@@ -110,7 +107,7 @@ const createFiberActions = (fiber: FiberNode): Action[] => {
 
   if (isContainerFiber(fiber)) {
     // Since all inner components are also new we need to run them.
-    runFiberComponents(fiber);
+    runFiberComponents(app, fiber);
   }
 
   // Reuse the same tooling we use for mounting the app.

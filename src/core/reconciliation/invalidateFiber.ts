@@ -17,6 +17,7 @@ export const invalidateFiber = (fiber: FiberNode): void => {
   switch (app.state) {
     case 'idle':
       app.invalidatedComponents.add(fiber);
+      app.state = 'scheduled';
       queueMicrotask(() => reactRender(app));
       break;
 

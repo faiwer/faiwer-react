@@ -1,5 +1,5 @@
-import { FRAGMENT_TAG } from './core/helpers';
 import { createElement } from '~/index';
+import { FRAGMENT_TAG } from './core/reconciliation/fibers';
 
 /**
  * This file is used to get `jsx`, `jsxs` & `Fragment` to be used by the JSX | TSX

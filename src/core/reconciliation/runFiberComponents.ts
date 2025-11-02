@@ -1,7 +1,7 @@
 import type { App, FiberNode } from 'faiwer-react/types';
 import { runComponent } from '../components';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
-import { FAKE_CONTAINER_TAG, toFiberChildren } from '../helpers';
+import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 
 /**
  * By default we don't run all components. We run only those that were manually

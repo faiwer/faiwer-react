@@ -3,7 +3,7 @@ import type { Action } from 'faiwer-react/types/actions';
 import { runComponent } from '../../components';
 import { jsxElementToFiberNode } from '../../reactNodeToFiberNode';
 import { collectActionsFromChildrenPair } from './fromChildrenPair';
-import { toFiberChildren } from '../../helpers';
+import { toFiberChildren } from '../fibers';
 
 /**
  * 1. Runs a component

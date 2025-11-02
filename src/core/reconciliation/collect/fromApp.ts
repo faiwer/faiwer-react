@@ -1,7 +1,7 @@
 import type { App } from 'faiwer-react/types';
 import type { Action } from 'faiwer-react/types/actions';
-import { getFiberLevel } from '../../helpers';
 import { collectActionsFromComponent } from './fromComponent';
+import { getFiberLevel } from '../fibers';
 
 /**
  * Goes through the list of invalidated components, run them, find the diff, and

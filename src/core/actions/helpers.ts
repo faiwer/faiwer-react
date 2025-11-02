@@ -1,7 +1,8 @@
 import type { DomNode, FiberNode, Ref, RefSetter } from 'faiwer-react/types';
-import { buildCommentText, NULL_FIBER } from '../helpers';
 import { nullthrows } from 'faiwer-react/utils';
 import { isBeginOf, isCompactNone, isCompactSingleChild } from '../compact';
+import { NULL_FIBER } from '../reconciliation/fibers';
+import { buildCommentText } from '../reconciliation/comments';
 
 /**
  * Determines if a prop name represents an event handler by checking if it

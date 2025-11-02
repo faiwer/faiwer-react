@@ -15,9 +15,9 @@ import { runComponent } from './components';
 import {
   createFiberNode,
   FRAGMENT_TAG,
-  isContextProvider,
   toFiberChildren,
-} from './helpers';
+} from './reconciliation/fibers';
+import { isContextProvider } from './reconciliation/typeGuards';
 
 /**
  * Converts any possible JSX.Element to a FiberNode, that is used by the engine

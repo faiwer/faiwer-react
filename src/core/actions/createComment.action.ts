@@ -1,8 +1,8 @@
 import type { FiberNode } from 'faiwer-react/types';
 import type { CreateCommentAction } from 'faiwer-react/types/actions';
-import { buildComment } from '../helpers';
 import { getParentElement } from './helpers';
 import { tryToCompactNode } from '../compact';
+import { buildComment } from '../reconciliation/comments';
 
 /**
  * Creates a new comment DOM-node (<!--r:${mode}:${fiber.id}).

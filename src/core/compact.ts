@@ -1,5 +1,5 @@
 import { type DomNode, type FiberNode } from '../types';
-import { buildComment, buildCommentText } from './helpers';
+import { buildComment, buildCommentText } from './reconciliation/comments';
 
 /**
  * Returns true if domNode is <!--r:begin:ID--> where ID is fiber.id

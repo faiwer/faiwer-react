@@ -7,9 +7,9 @@ import type {
   UnknownProps,
 } from 'faiwer-react/types';
 import type { Action, SetRefAction } from 'faiwer-react/types/actions';
-import { areFiberPropsEq } from '../../helpers';
 import { collectActionsFromChildrenPair } from './fromChildrenPair';
 import { collectActionsFromComponent } from './fromComponent';
+import { areFiberPropsEq } from '../compare/areFiberPropsEq';
 
 /**
  * `l` & `r` are the same node. But `r` may have some updates. This method
