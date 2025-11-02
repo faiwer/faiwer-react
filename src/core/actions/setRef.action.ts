@@ -2,7 +2,7 @@ import type { FiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
 import type { SetRefAction } from 'faiwer-react/types/actions';
 import { unsetRef } from './helpers';
-import { invalidateEffect } from '../reconciliation/effects';
+import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
 
 /**
@@ -31,7 +31,7 @@ export function setRefAction(
   }
 
   // Run effects only when the DOMNode is already mounted to a real DOMnode.
-  invalidateEffect(
+  scheduleEffect(
     getAppByFiber(fiber),
     () => {
       const element = nullthrows(fiber.element) as HTMLElement;

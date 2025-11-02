@@ -5,7 +5,7 @@ import {
   type UseEffectItem,
 } from '../types';
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
-import { invalidateEffect } from 'faiwer-react/core/reconciliation/effects';
+import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
 
 function useBaseEffect(mode: EffectMode, fn: EffectHandler, deps?: unknown[]) {
   const item = getNextHookOrCreate('effect', (): UseEffectItem => {
@@ -16,14 +16,14 @@ function useBaseEffect(mode: EffectMode, fn: EffectHandler, deps?: unknown[]) {
       destructor: null,
       deps: deps ? saveDeps(deps) : null,
     };
-    invalidateEffect(getCurrentApp(), () => runEffect(item), mode);
+    scheduleEffect(getCurrentApp(), () => runEffect(item), mode);
     return item;
   });
 
   item.fn = fn;
 
   if (!isFirstFiberRender() && (!deps || !checkDeps(item.deps!, deps))) {
-    invalidateEffect(getCurrentApp(), () => runEffect(item), mode);
+    scheduleEffect(getCurrentApp(), () => runEffect(item), mode);
     item.deps = deps ? saveDeps(deps) : null;
   }
 }
