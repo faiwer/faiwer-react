@@ -1,0 +1,45 @@
+import type { App, FiberNode } from 'faiwer-react/types';
+import { runComponent } from '../components';
+import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
+import { FAKE_CONTAINER_TAG, toFiberChildren } from '../helpers';
+
+/**
+ * By default we don't run all components. We run only those that were manually
+ * invalidated. As if they all wrapped with `memo()`. So `.children` node of
+ * such fibers is empty. This method recursively goes through all of the given
+ * fiber-DOM subtree nodes and run all found components to fill their
+ * `.children`. Should be used only for not-yet-mounted component fiber nodes.
+ */
+export const runFiberComponents = (app: App, fiber: FiberNode): void => {
+  if (app.testMode) checkParents(fiber);
+
+  switch (fiber.type) {
+    case 'fragment':
+    case 'tag':
+      for (const child of fiber.children) {
+        runFiberComponents(app, child);
+      }
+      break;
+
+    case 'component': {
+      const newChildren: JSX.Element = runComponent(fiber, null);
+      const child: FiberNode = jsxElementToFiberNode(
+        newChildren,
+        fiber,
+        true /* run children-components recursively */,
+      );
+      fiber.children = toFiberChildren(child);
+      break;
+    }
+  }
+};
+
+const checkParents = (fiber: FiberNode): void => {
+  let parent = fiber.parent;
+  while (parent && parent.tag !== FAKE_CONTAINER_TAG) parent = parent.parent;
+  if (!parent) {
+    throw new Error(
+      `runFiberComponents shouldn't be called for alread mounted fiber nodes`,
+    );
+  }
+};
