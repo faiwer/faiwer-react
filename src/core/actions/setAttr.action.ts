@@ -1,7 +1,7 @@
 import type { FiberNode, TagAttrValue, TagFiberNode } from 'faiwer-react/types';
 import type { SetAttrAction } from 'faiwer-react/types/actions';
 import { nullthrows } from 'faiwer-react/utils';
-import { isEventHandler } from './helpers';
+import { isEventName } from './helpers';
 
 /**
  * It's applicable only to DOM Tag nodes and handles the following scenarios:
@@ -22,7 +22,7 @@ export function setAttrAction(
 
   const element = nullthrows(fiber.element);
 
-  if (isEventHandler(name, value) || name in fiber.data.events) {
+  if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);
   } else if (value == null) {
     element.removeAttribute(name);
@@ -44,9 +44,11 @@ const setEventHandler = (
 ): void => {
   const { events } = fiber.data;
 
-  // Event handler was added before but now it's removed.
   if (value == null || value === false) {
-    events[name]!.handler = null;
+    if (events[name]) {
+      // Event handler was added before but now it's removed.
+      events[name].handler = null;
+    }
     return;
   }
 

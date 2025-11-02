@@ -3,11 +3,18 @@ import { buildCommentText, NULL_FIBER } from '../helpers';
 import { nullthrows } from 'faiwer-react/utils';
 import { isBeginOf, isCompactNone, isCompactSingleChild } from '../compact';
 
-export const isEventHandler = (
-  name: string,
-  value: unknown,
-): value is null | ((event: Event) => void) =>
-  name.startsWith('on') && (typeof value === 'function' || !value);
+/**
+ * Determines if a prop name represents an event handler by checking if it
+ * starts with "on". This follows React's convention where any prop beginning
+ * with "on" is treated as an event listener rather than a regular DOM
+ * attribute.
+ *
+ * While HTML technically allows non-event attributes starting with "on", no
+ * such attributes could be found in practice. React filters out all "on*" props
+ * as event handlers, and this implementation follows the same pattern for
+ * consistency.
+ */
+export const isEventName = (name: string): boolean => name.startsWith('on');
 
 /**
  * Returns a DOM-container for the given fiber node. It's not always the direct
@@ -76,8 +83,7 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
 
   if (fiber.type === 'component' || fiber.type === 'fragment') {
     if (isCompactSingleChild(fiber)) {
-      // The fiber's `element` refers to its only DOM-child.
-      return [fiber.element.parentElement!, fiber.element];
+      throw new Error(`Solo-compact fibers cannot be used as an anchor`);
     }
 
     if (isCompactNone(fiber)) {

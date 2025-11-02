@@ -188,4 +188,24 @@ describe('Compact rendering', () => {
       '<!--r:begin:1--><!--r:begin:2-->bc<!--r:end:2--><!--r:end:1-->',
     );
   });
+
+  it('can replace one !--empty fragment with another', async () => {
+    let updateShow: StateSetter<string>;
+
+    const Comp = () => {
+      const [key, setKey] = useState('first');
+      updateShow = setKey;
+      return (
+        <div>
+          <Fragment key={key} />
+        </div>
+      );
+    };
+
+    const root = mount(<Comp />);
+    expectHtmlFull(root).toBe('<div><!--r:empty:1--></div>');
+
+    await act(() => updateShow!('second'));
+    expectHtmlFull(root).toBe('<div><!--r:empty:1--></div>');
+  });
 });

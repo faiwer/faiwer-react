@@ -266,6 +266,13 @@ describe('Mounting: tags', () => {
     expectHtml(root).toBe('<div tabindex="24"></div>');
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('can render a tag with empty event handler', () => {
+    const spy = jest.spyOn(HTMLElement.prototype, 'setAttribute');
+    mount(<div tabIndex={1} onclick={undefined} />);
+    // onclick shouldn't be handler via `setAttribute`.
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Mounting: Components & fragments', () => {
