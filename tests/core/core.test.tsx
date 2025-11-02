@@ -381,6 +381,17 @@ describe('createRoot', () => {
     expect(onRef).toHaveBeenCalledTimes(3);
   });
 
+  it('double mount() calls unmounts the 1st app', () => {
+    const rootDomNode = document.createElement('root');
+    const appRoot = createRoot(rootDomNode);
+    appRoot.render(42);
+
+    const spy = jest.spyOn(appRoot, 'unmount');
+    appRoot.render(24);
+    expectHtml(rootDomNode).toBe('24');
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
+
   it('supports multiple apps simultaneously', async () => {
     type App = 'app1' | 'app2';
     const called: Record<App, number> = { app1: 0, app2: 0 };
