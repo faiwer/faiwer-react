@@ -3,7 +3,6 @@ import type {
   FiberNode,
   TagFiberNode,
 } from 'faiwer-react/types';
-import type { RemoveAction } from 'faiwer-react/types/actions';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
 import { applyAction } from './applyAction';
@@ -12,7 +11,7 @@ import { applyAction } from './applyAction';
  * This action can be called directly (<div/> -> []), or indirectly (<div/> ->
  * false) from the replace action. `replaced` is `true` in the 2nd scenario.
  */
-export function removeAction(fiber: FiberNode, { replaced }: RemoveAction) {
+export function removeAction(fiber: FiberNode) {
   for (const child of fiber.children) {
     // Recursively remove all children before we remove the parent node. It's
     // especially critical because components may have effects. We should run
@@ -28,7 +27,7 @@ export function removeAction(fiber: FiberNode, { replaced }: RemoveAction) {
     unlistenTagEvents(fiber);
   }
 
-  if (!replaced && isCompactSingleChild(fiber.parent)) {
+  if (isCompactSingleChild(fiber.parent)) {
     // Can't remove `fiber` when its parent doesn't have its own direct DOM
     // node. Thus, we need to unwrap the compact-fiber (create <!--begin|end-->
     // wrappers). We shouldn't do it in the "replace" mode because the replace
@@ -43,16 +42,11 @@ export function removeAction(fiber: FiberNode, { replaced }: RemoveAction) {
     n.remove();
   }
 
-  if (fiber.ref && !replaced) {
+  if (fiber.ref) {
     unsetRef(fiber.ref);
   }
 
-  // Help to gc.
-  emptyFiberNode(
-    fiber,
-    // Preserve `parent`, because in the replace mode this node will be reused.
-    replaced,
-  );
+  emptyFiberNode(fiber); // Help to gc.
 }
 
 /**

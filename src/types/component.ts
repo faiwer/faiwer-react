@@ -1,4 +1,4 @@
-import type { UnknownProps } from './core';
+import type { ElementCommonAttrs, UnknownProps } from './core';
 import type { HookStore } from './hooks';
 
 export type ComponentState = {
@@ -6,7 +6,7 @@ export type ComponentState = {
 };
 
 export type ReactComponent<TProps extends UnknownProps = UnknownProps> = (
-  props: TProps,
+  props: TProps & ElementCommonAttrs,
 ) => JSX.Element;
 
 export type PropsWithChildren<TProps extends UnknownProps = UnknownProps> =

@@ -40,12 +40,7 @@ type UpdateAction =
   | SetRefAction;
 
 // Remove actions
-export type RemoveAction = CommonAction & {
-  type: 'Remove';
-  // `true` when the node removed in the "Replace" action. It causes a slightly
-  // different behavior. E.g., it means that the parent won't be removed.
-  replaced?: boolean;
-};
+export type RemoveAction = CommonAction & { type: 'Remove' };
 export type RelayoutAction = CommonAction & {
   type: 'Relayout';
   before: FiberMap;
