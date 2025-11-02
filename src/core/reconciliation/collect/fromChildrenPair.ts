@@ -43,7 +43,7 @@ export const collectActionsFromChildrenPair = (
   for (const [key, r] of right.entries()) {
     const l = left.get(key);
 
-    if (!l || !areFiberNodesEq(l, r)) {
+    if (!l || !areFiberNodesEq(l.fiber, r.fiber)) {
       // 1. There was no node with this key before. Create a new one.
       // 2. There was one, but it was very different. Replace it.
       relayoutNeeded = true;
