@@ -1,4 +1,9 @@
-import type { App, AppOptions, FiberNode } from 'faiwer-react/types';
+import type {
+  App,
+  AppOptions,
+  FiberNode,
+  TagFiberNode,
+} from 'faiwer-react/types';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { collectActionsFromNewFiber } from './collect/fromNewFiber';
 import { validateTree } from './validateTree';
@@ -6,7 +11,7 @@ import { applyActions } from './applyActions';
 import { postCommit } from './postCommit';
 import { removeApp, registerApp } from './app';
 import type { Action } from 'faiwer-react/types/actions';
-import { createRootFiber, toFiberChildren } from './fibers';
+import { createFiberNode, toFiberChildren } from './fibers';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM-node (`container`). Returns
@@ -51,3 +56,16 @@ export const mount = (
     removeApp(app.id);
   };
 };
+
+/**
+ * A special fiber node. The only one that doesn't have a real parent fiber.
+ * Used as the root of the Fiber-tree.
+ */
+const createRootFiber = (appId: number): TagFiberNode => ({
+  ...createFiberNode({ appId } as unknown as FiberNode),
+  type: 'tag',
+  tag: 'root',
+  level: 0,
+  data: { events: {} },
+  props: {},
+});
