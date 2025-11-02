@@ -8,13 +8,7 @@ import { getFiberLevel } from '../fibers';
  * returns the list of actions to convert the previous fiber tree to the new
  * one.
  */
-export const collectActionsFromApp = (app: App, depth = 0): Action[] => {
-  if (depth > 100) {
-    throw new Error(
-      `Render phase is cycled because invalidatedComponents is never empty`,
-    );
-  }
-
+export const collectActionsFromApp = (app: App): Action[] => {
   const actions: Action[] = [];
 
   // Sort invalidated components by their level in the fiber tree to run the
@@ -46,7 +40,7 @@ export const collectActionsFromApp = (app: App, depth = 0): Action[] => {
       }
     }
 
-    actions.push(...collectActionsFromApp(app, depth + 1));
+    actions.push(...collectActionsFromApp(app));
   }
 
   return actions;

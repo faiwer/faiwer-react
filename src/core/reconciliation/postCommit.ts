@@ -10,7 +10,7 @@ import { runEffects } from './effects';
  *   state)
  * - or move the app to the idle stage
  */
-export function postCommit(app: App) {
+export function postCommit(app: App, depth: number) {
   app.tempContext.clear();
 
   // Run "ref" and "layout" effects. They have to be run in the same micro-queue
@@ -30,7 +30,7 @@ export function postCommit(app: App) {
       }
 
       app.state = 'scheduled';
-      queueMicrotask(() => reactRender(app));
+      queueMicrotask(() => reactRender(app, depth + 1));
       return;
     }
   }

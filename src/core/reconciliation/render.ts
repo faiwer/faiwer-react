@@ -12,7 +12,11 @@ import { applyActions } from './applyActions';
  * 2. applying actions to the DOM- and Fiber-trees
  * 3. running scheduled effects, updating ref-handlers (postCommit)
  */
-export function reactRender(app: App) {
+export function reactRender(app: App, depth = 0) {
+  if (depth > MAX_DEPTH) {
+    throw new Error(`Maximum update depth exceeded`);
+  }
+
   if (app.state === 'killed') {
     return;
   }
@@ -26,5 +30,7 @@ export function reactRender(app: App) {
   applyActions(app, actions);
   if (app.testMode) validateTree(app.root);
 
-  postCommit(app);
+  postCommit(app, depth);
 }
+
+const MAX_DEPTH = 50; // Like in React.

@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useState,
   type ReactComponentWithChildren,
   type StateSetter,
@@ -542,5 +543,30 @@ describe('Updates', () => {
     expect(onRef.B.mock.lastCall[0]?.textContent).toBe(undefined);
     expect(onRef.C).toHaveBeenCalledTimes(1);
     expect(onRef.C.mock.lastCall[0]?.textContent).toBe('C');
+  });
+
+  it(`throws after 100th render iteration`, async () => {
+    const Comp = () => {
+      const [v, setV] = useState(0);
+      useLayoutEffect(() => {
+        if (v < 100) {
+          setV((v) => v + 1);
+        }
+      });
+
+      return v;
+    };
+
+    mount(<Comp />);
+
+    const onError = jest.fn();
+    jest.spyOn(window.console, 'error').mockImplementationOnce(() => {});
+    window.addEventListener('error', onError, { once: true });
+
+    await waitFor(() => {
+      expect(onError).toHaveBeenCalledTimes(1);
+      const error = onError.mock.lastCall[0];
+      expect(String(error?.message)).toContain('Maximum update depth exceeded');
+    });
   });
 });

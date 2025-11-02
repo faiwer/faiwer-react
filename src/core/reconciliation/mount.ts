@@ -43,7 +43,7 @@ export const mount = (
   applyActions(app, actions);
   if (app.testMode) validateTree(app.root);
 
-  postCommit(app);
+  postCommit(app, 0);
 
   return function destroyApp() {
     app.invalidatedComponents.clear();
