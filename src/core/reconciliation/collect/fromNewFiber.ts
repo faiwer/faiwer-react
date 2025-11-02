@@ -1,17 +1,17 @@
 import type { Action, SetRefAction } from 'faiwer-react/types/actions';
-import { type FiberNode } from '../types';
-import { assertsTagAttrValue } from './helpers';
+import { type FiberNode } from '../../../types';
+import { assertsTagAttrValue } from '../../helpers';
 
 /**
  * Prepares a list of actions allowing to create the given fiber node in DOM.
  */
-export const createFromFiber = (fiber: FiberNode): Action[] => {
+export const collectActionsFromNewFiber = (fiber: FiberNode): Action[] => {
   switch (fiber.type) {
     case 'component':
     case 'fragment':
       return [
         { type: 'CreateComment', fiber, mode: 'begin' },
-        ...fiber.children.map((f) => createFromFiber(f)).flat(),
+        ...fiber.children.map((f) => collectActionsFromNewFiber(f)).flat(),
         { type: 'CreateComment', fiber, mode: 'end' },
       ];
 
@@ -44,7 +44,7 @@ export const createFromFiber = (fiber: FiberNode): Action[] => {
       }
 
       for (const child of fiber.children) {
-        actions.push(...createFromFiber(child));
+        actions.push(...collectActionsFromNewFiber(child));
       }
 
       return actions;

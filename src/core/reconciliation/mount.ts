@@ -1,7 +1,7 @@
 import type { App, AppOptions, FiberNode } from 'faiwer-react/types';
 import { createRootFiber, toFiberChildren } from '../helpers';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
-import { createFromFiber } from '../createFromFiber';
+import { collectActionsFromNewFiber } from './collect/fromNewFiber';
 import { validateTree } from './validateTree';
 import { applyActions } from './applyActions';
 import { postCommit } from './postCommit';
@@ -33,7 +33,7 @@ export const mount = (
   app.root.children = toFiberChildren(content);
   app.root.element = container;
 
-  const actions: Action[] = createFromFiber(app.root).flat();
+  const actions: Action[] = collectActionsFromNewFiber(app.root).flat();
 
   applyActions(app, actions);
   if (app.testMode) validateTree(app.root);
