@@ -10,13 +10,13 @@ import { useRerender, wait, waitFor } from '../helpers';
 import { expectHtml, mount, stripComments } from '../helpers';
 
 for (const mode of ['normal', 'layout'] as EffectMode[]) {
-  const useEffect = mode === 'layout' ? useLayoutEffect : useNormalEffect;
+  const useModeEffect = mode === 'layout' ? useLayoutEffect : useNormalEffect;
 
   describe(`Hooks: useEffect, mode: ${mode}`, () => {
     it('runs a simple effect', async () => {
       let count = 0;
       const Comp = () => {
-        useEffect(() => {
+        useModeEffect(() => {
           ++count;
         }, []);
         return null;
@@ -35,7 +35,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
 
       const Comp = () => {
         rerender = useRerender();
-        useEffect(() => {
+        useModeEffect(() => {
           onMountEffect();
           return onUnmountEffect;
         });
@@ -69,7 +69,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
       let hide: () => void;
 
       const Child = () => {
-        useEffect(() => onEffectUnmount);
+        useModeEffect(() => onEffectUnmount);
         return null;
       };
 
@@ -97,7 +97,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         const [state, setState] = useState(0);
         updateChildEffectDep = setState;
 
-        useEffect(
+        useModeEffect(
           async (signal) => {
             signals.push(signal);
             await Promise.resolve();
@@ -151,7 +151,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
 
       const Comp = () => {
         rerender = useRerender();
-        useEffect(() => {
+        useModeEffect(() => {
           onEffectMount();
           return onEffectUnmount;
         });
@@ -186,7 +186,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
       const Child = () => {
         renderChild = useRerender();
 
-        useEffect(() => {
+        useModeEffect(() => {
           onEffectMount();
           return onEffectUnmount;
         }, []);
@@ -278,7 +278,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
           // pseudo-layout effect. Just to be able to re-run the layout effect
           // for the 2nd time only after all normal effects are called too.
           // Otherwise, it'll be inconsistent.
-          useEffect(() => {
+          useNormalEffect(() => {
             onNormalEffectMount();
             setState2(`${state1}!`);
           }, [state1, state2]);
@@ -288,19 +288,27 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         };
 
         let after1st: string = '';
-        queueMicrotask(() => (after1st = stripComments(root.innerHTML)));
+        queueMicrotask(() => {
+          expect(onLayoutEffectMount).toHaveBeenCalledTimes(1);
+          expect(onNormalEffectMount).toHaveBeenCalledTimes(1);
+          after1st = stripComments(root.innerHTML);
+        });
 
         const root = mount(<Comp />);
         expect(rendered.join(' ')).toBe('1:0!');
 
         let after2nd: string = '';
-        queueMicrotask(() => (after2nd = stripComments(root.innerHTML)));
+        queueMicrotask(() => {
+          expect(onLayoutEffectMount).toHaveBeenCalledTimes(2);
+          expect(onNormalEffectMount).toHaveBeenCalledTimes(2);
+          after2nd = stripComments(root.innerHTML);
+        });
 
         await wait(0);
 
         expect(after1st).toBe('1:0!');
         expect(after2nd).toBe('2:1!');
-        expectHtml(root).toBe('3:3!');
+        expectHtml(root).toBe('3:2!');
         await waitFor(() => {
           expect(rendered.join(' ')).toBe(`1:0! 2:1! 3:2! 3:3!`);
           expect(onLayoutEffectMount).toHaveBeenCalledTimes(3);
