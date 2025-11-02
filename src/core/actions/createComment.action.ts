@@ -4,6 +4,9 @@ import { buildComment } from '../helpers';
 import { getParentElement } from './helpers';
 import { tryToCompactNode } from '../compact';
 
+/**
+ * Creates a new comment DOM-node (<!--r:${mode}:${fiber.id}).
+ */
 export function createCommentAction(
   fiber: FiberNode,
   { mode }: CreateCommentAction,

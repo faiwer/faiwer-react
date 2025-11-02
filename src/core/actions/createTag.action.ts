@@ -2,6 +2,14 @@ import type { FiberNode } from 'faiwer-react/types';
 import { getParentElement } from './helpers';
 import { applyAction } from './applyAction';
 
+/**
+ * It handles two scenarios:
+ * - Creates a <!--r:portal:id--> comment for a portal fiber
+ * - Creates a new tag DOM-node for a tag fiber
+ *
+ * It doesn't create childern nodes and doesn't set any attributes or event
+ * handlers.
+ */
 export function createTagAction(fiber: FiberNode): void {
   if (fiber.type !== 'tag') {
     throw new Error(`createTagAction supports only tag-fiber-nodes.`);
