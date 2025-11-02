@@ -1,11 +1,11 @@
 import { getCurrentApp, isFirstFiberRender } from '~/core/components';
-import { invalidateEffect } from '~/core/reconcile';
 import {
   type EffectMode,
   type EffectHandler,
   type UseEffectItem,
 } from '../types';
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
+import { invalidateEffect } from 'faiwer-react/core/reconcile/effects';
 
 function useBaseEffect(mode: EffectMode, fn: EffectHandler, deps?: unknown[]) {
   const item = getNextHookOrCreate('effect', (): UseEffectItem => {

@@ -6,7 +6,7 @@ import {
   type App,
   type ComponentFiberNode,
 } from '../types';
-import { getAppByFiber } from './reconcile';
+import { getAppByFiber } from './reconcile/app';
 
 /** Component that is rendered right now. */
 let currentFiber: ComponentFiberNode | null;
