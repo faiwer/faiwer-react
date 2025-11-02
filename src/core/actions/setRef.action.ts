@@ -2,8 +2,8 @@ import type { FiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
 import type { SetRefAction } from 'faiwer-react/types/actions';
 import { unsetRef } from './helpers';
-import { invalidateEffect } from '../reconcile/effects';
-import { getAppByFiber } from '../reconcile/app';
+import { invalidateEffect } from '../reconciliation/effects';
+import { getAppByFiber } from '../reconciliation/app';
 
 /**
  * - A ref of a ref handler for the given node was:

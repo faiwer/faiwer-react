@@ -1,4 +1,4 @@
-import { invalidateFiber } from 'faiwer-react/core/reconcile/invalidateFiber';
+import { invalidateFiber } from 'faiwer-react/core/reconciliation/invalidateFiber';
 import { type StateSetter, type UseStateItem } from '../types';
 import { getNextHookOrCreate } from './helpers';
 

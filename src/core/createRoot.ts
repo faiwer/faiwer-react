@@ -1,5 +1,5 @@
 import type { AppOptions, AppRoot } from 'faiwer-react/types';
-import { mount } from './reconcile/mount';
+import { mount } from './reconciliation/mount';
 
 /**
  * Creates a new React app. The signature is the same as in React 18+.

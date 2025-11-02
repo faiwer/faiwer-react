@@ -5,7 +5,7 @@ import {
   type UseEffectItem,
 } from '../types';
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
-import { invalidateEffect } from 'faiwer-react/core/reconcile/effects';
+import { invalidateEffect } from 'faiwer-react/core/reconciliation/effects';
 
 function useBaseEffect(mode: EffectMode, fn: EffectHandler, deps?: unknown[]) {
   const item = getNextHookOrCreate('effect', (): UseEffectItem => {

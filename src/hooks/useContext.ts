@@ -1,4 +1,4 @@
-import { getAppByFiber } from 'faiwer-react/core/reconcile/app';
+import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 import {
   type FiberNode,
   type ReactContext,
