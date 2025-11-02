@@ -5,6 +5,7 @@ module.exports = {
     '^.+\\.(t|j)sx?$': [
       '@swc/jest',
       {
+        sourceMaps: true,
         jsc: {
           parser: { syntax: 'typescript', tsx: true },
           transform: {
@@ -31,4 +32,10 @@ module.exports = {
   },
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
   roots: ['<rootDir>/tests', '<rootDir>/src'],
+  // code coverage
+  coverageProvider: 'v8',
+  collectCoverage: false,
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts'],
+  coverageReporters: ['text', 'lcov', 'html'],
+  coverageDirectory: '<rootDir>/coverage',
 };
