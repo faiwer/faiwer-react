@@ -31,7 +31,7 @@ export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
     unwrapCompactFiber(fiber);
   }
 
-  if (fiber.element === fiber.parent.element) {
+  if (isCompactSingleChild(fiber.parent)) {
     // The node we're replacing is the only node of its parent, so the parent is
     // in the compact mode. We should unwrap it before removing this node.
     // Otherwise it'll be disconnected from the DOM tree.
@@ -54,6 +54,7 @@ export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
 
 /** Override `before` fiber fields with the `after` fiber fields. */
 const displaceFiber = (before: FiberNode, after: FiberNode): void => {
+  before.id = after.id;
   before.type = after.type;
   before.role = after.role;
   before.data = after.data;

@@ -163,4 +163,29 @@ describe('Compact rendering', () => {
     await act(() => updateKey(2));
     expectHtmlFull(root).toBe('2');
   });
+
+  // There was a bug when the order of the !--wrappers was wrong because
+  // `displaceFiber` didn't update the `fiber.id`. Thus `isEndOf` didn't work
+  // because the fiber's `id` and !--IDs were different.
+  it('properly handles replacing the only child with a fragment', async () => {
+    let updateIdx: StateSetter<number>;
+
+    const Child1 = () => 'a';
+    const Child2 = () => ['b', 'c'];
+
+    const Comp = () => {
+      const [idx, setIdx] = useState(1);
+      updateIdx = setIdx;
+
+      return idx === 1 ? <Child1 /> : <Child2 />;
+    };
+    const root = mount(<Comp />);
+    expectHtmlFull(root).toBe('a');
+
+    await act(() => updateIdx(2));
+
+    expectHtmlFull(root).toBe(
+      '<!--r:begin:1--><!--r:begin:2-->bc<!--r:end:2--><!--r:end:1-->',
+    );
+  });
 });
