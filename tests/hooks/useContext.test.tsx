@@ -4,9 +4,11 @@ import {
   useContext,
   type StateSetter,
   type ReactComponentWithChildren,
+  useLayoutEffect,
 } from '~/index';
 import { createToggler, expectHtml, mount } from '../helpers';
 import { act } from '~/testing';
+import { Fragment } from 'faiwer-react/jsx-runtime';
 
 describe('Hooks: useContext', () => {
   const ctx = createContext(0);
@@ -173,4 +175,49 @@ describe('Hooks: useContext', () => {
       expectHtml(root).toBe('99');
     });
   }
+
+  it('properly switches between different kinds of context nodes', async () => {
+    const childCreated = jest.fn();
+    const Child = () => {
+      useLayoutEffect(() => {
+        childCreated();
+      }, []);
+      return useContext(ctx);
+    };
+
+    let updateMode: StateSetter<'fragment' | 'context'>;
+    let updateV: StateSetter<number>;
+
+    const Comp = () => {
+      const [mode, setMode] = useState<'fragment' | 'context'>('fragment');
+      const [v, setV] = useState<number>(24);
+      updateMode = setMode;
+      updateV = setV;
+
+      return mode === 'fragment' ? (
+        <Fragment key="1">1</Fragment>
+      ) : (
+        <ctx.Provider key="1" value={v}>
+          <Child />
+        </ctx.Provider>
+      );
+    };
+
+    // At first render a regular fragment without a role.
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('1');
+
+    // Switch to the coontext (also a fragment)
+    await act(() => updateMode('context'));
+    expectHtml(root).toBe('24');
+    expect(childCreated).toHaveBeenCalledTimes(1);
+
+    // Try to update the context's value. If the 'role' is lost it either won't
+    // get an update, or will remount the <Child/>.
+    await act(() => {
+      updateV!(42);
+    });
+    expectHtml(root).toBe('42');
+    expect(childCreated).toHaveBeenCalledTimes(1);
+  });
 });
