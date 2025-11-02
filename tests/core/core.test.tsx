@@ -241,6 +241,31 @@ describe('Mounting: tags', () => {
     <div key="key">Content</div>,
     '<div>Content</div>',
   );
+
+  // It's can be critical when assinging a value causes some effects.
+  it(`doesn't reassign an attribute when its stringified value is intact`, async () => {
+    let updateTabIndex: StateSetter<string | number>;
+
+    const Comp = () => {
+      const [tabIndex, setTabIndex] = useState<string | number>(42);
+      updateTabIndex = setTabIndex;
+      return <div tabIndex={tabIndex as number} />;
+    };
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('<div tabindex="42"></div>');
+
+    const div = root.querySelector('div')!;
+    const spy = jest.spyOn(div, 'setAttribute');
+
+    await act(() => updateTabIndex('42'));
+    expectHtml(root).toBe('<div tabindex="42"></div>');
+    expect(spy).toHaveBeenCalledTimes(0);
+
+    await act(() => updateTabIndex(24));
+    expectHtml(root).toBe('<div tabindex="24"></div>');
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Mounting: Components & fragments', () => {
