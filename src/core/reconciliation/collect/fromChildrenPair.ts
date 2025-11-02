@@ -1,10 +1,17 @@
-import type { App, FiberNode } from 'faiwer-react/types';
+import type {
+  App,
+  AuxFiber,
+  FiberMap,
+  FiberNode,
+  ReactKey,
+  TagFiberNode,
+} from 'faiwer-react/types';
 import type { Action } from 'faiwer-react/types/actions';
 import { getAppByFiber } from '../app';
 import { collectActionsFromFiberPair } from './fromFiberPair';
 import { runFiberComponents } from '../runFiberComponents';
 import { collectActionsFromNewFiber } from 'faiwer-react/core/reconciliation/collect/fromNewFiber';
-import { createFakeFiberContainer, getChildrenMap } from '../fibers';
+import { createFiberNode, FAKE_CONTAINER_TAG } from '../fibers';
 import { areFiberNodesEq } from '../compare/areFiberNodesEq';
 import { isContainerFiber } from '../typeGuards';
 
@@ -112,4 +119,34 @@ const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
 
   // Reuse the same tooling we use for mounting the app.
   return collectActionsFromNewFiber(fiber);
+};
+
+/**
+ * Create an <x-container/> DOM node, that is not mount to the real DOM-tree.
+ * It'll be used to store new DOM-nodes until the Relayout store will reposition
+ * them into their real parent.
+ */
+const createFakeFiberContainer = (fiber: FiberNode): TagFiberNode => ({
+  ...createFiberNode(fiber),
+  type: 'tag',
+  element: document.createElement('x-container'),
+  tag: FAKE_CONTAINER_TAG,
+  data: { events: {} },
+  props: {},
+});
+
+/**
+ * Converts FiberNode[] to Map<key, { order, fiber }>.
+ */
+const getChildrenMap = (fibers: FiberNode[]): FiberMap => {
+  let unnamedPos = -1;
+  return new Map<ReactKey, AuxFiber>(
+    fibers.map((fiber, idx): [ReactKey, AuxFiber] => {
+      if (fiber.key == null) ++unnamedPos;
+      return [
+        fiber.key ?? `auto:${unnamedPos}`,
+        { order: idx, fiber },
+      ] as const;
+    }),
+  );
 };
