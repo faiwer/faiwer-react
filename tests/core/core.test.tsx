@@ -352,27 +352,33 @@ describe('createRoot', () => {
 
   it('can unmount an app', async () => {
     const rootDomNode = document.createElement('root');
+    const onRef = jest.fn();
 
     const effect = jest.fn().mockImplementation(() => null);
     const Comp = () => {
       useEffect(effect, []);
-      return 42;
+      return <div ref={onRef}>42</div>;
     };
     const appRoot = createRoot(rootDomNode);
 
     appRoot.render(<Comp />);
-    expectHtml(rootDomNode).toBe('42');
+    expectHtml(rootDomNode).toBe('<div>42</div>');
 
     appRoot.unmount();
     expectHtml(rootDomNode).toBe('');
+    expect(onRef).toHaveBeenCalledTimes(2);
+    const [[call1], [call2]] = onRef.mock.calls;
+    expect(call1?.tagName).toBe('DIV');
+    expect(call2).toBe(null);
 
     await wait(5);
     // It should synchronously drop all pending effects.
     expect(effect).toHaveBeenCalledTimes(0);
 
     appRoot.render(<Comp />);
-    expectHtml(rootDomNode).toBe('42');
+    expectHtml(rootDomNode).toBe('<div>42</div>');
     await waitFor(() => expect(effect).toHaveBeenCalledTimes(1));
+    expect(onRef).toHaveBeenCalledTimes(3);
   });
 
   it('supports multiple apps simultaneously', async () => {
