@@ -12,4 +12,4 @@ export function memo<T>(Comp: T, isEq: unknown): T {
 }
 
 /** <Fragment/> */
-export { FRAGMENT_TAG as Fragment } from '~/core/helpers';
+export { FRAGMENT_TAG as Fragment } from '~/core/reconciliation/fibers';

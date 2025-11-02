@@ -1,5 +1,5 @@
-import { FRAGMENT_TAG } from './core/helpers';
 import { createElement } from '~/index';
+import { FRAGMENT_TAG } from './core/reconciliation/fibers';
 
 export const jsx = createElement;
 export const jsxDEV = createElement;
