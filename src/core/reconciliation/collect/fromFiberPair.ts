@@ -77,6 +77,7 @@ export const collectActionsFromFiberPair = (
       }
       actions.push(
         ...collectActionsFromComponent(
+          app,
           l,
           r, // use r's version of props to run the component
         ),

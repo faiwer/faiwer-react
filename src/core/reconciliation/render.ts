@@ -1,6 +1,6 @@
 import type { App } from 'faiwer-react/types';
 import { validateTree } from './validateTree';
-import { getActions } from './getActions';
+import { collectActionsFromApp } from './collect/fromApp';
 import { postCommit } from './postCommit';
 import { applyActions } from './applyActions';
 
@@ -20,7 +20,7 @@ export function reactRender(app: App) {
   if (app.testMode) validateTree(app.root);
 
   app.state = 'render';
-  const actions = getActions(app);
+  const actions = collectActionsFromApp(app);
   if (app.testMode) validateTree(app.root);
 
   applyActions(app, actions);
