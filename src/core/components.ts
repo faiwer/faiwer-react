@@ -1,13 +1,10 @@
 import { nullthrows } from '~/utils';
 import {
   type HookStateItem,
-  type ElementNode,
   type FiberNode,
-  type ReactComponent,
   type HookStore,
   type App,
   type ComponentFiberNode,
-  type UnknownProps,
 } from '../types';
 import { getAppByFiber } from './reconcile';
 
@@ -43,7 +40,7 @@ export const isFirstFiberRender = (): boolean => firstFiberRender;
 export const runComponent = (
   fiber: FiberNode,
   /** Source of `.props`. If not given `fiber.props` are used. */
-  propsSource: ElementNode | FiberNode | null,
+  propsSource: FiberNode | null,
 ): JSX.Element => {
   if (fiber.type !== 'component') {
     throw new Error(`Can't run ${fiber.type} as a component`);
@@ -54,22 +51,14 @@ export const runComponent = (
   fiber.data.hooks ??= [];
   hookIdx = -1;
 
-  let jsxElement: JSX.Element = isFiber(propsSource)
-    ? fiber.component(propsSource.props as UnknownProps)
-    : propsSource
-      ? // 1st render, from the ElementNode:
-        (propsSource.type as ReactComponent)(propsSource.props)
-      : fiber.component!(fiber.props);
+  let jsxElement: JSX.Element = fiber.component!(
+    propsSource?.props ?? fiber.props,
+  );
 
   currentFiber = null;
   firstFiberRender = false;
 
   return jsxElement;
-};
-
-const isFiber = (src: ElementNode | FiberNode | null): src is FiberNode => {
-  const res: FiberNode | null = src ? ('id' in src ? src : null) : null;
-  return res !== null;
 };
 
 let hookIdx = -1;

@@ -126,7 +126,7 @@ export const jsxElementToFiberNode = (
       data: { hooks: null },
     };
     if (unwrapComponents) {
-      const content: JSX.Element = runComponent(fiber, jsxElement);
+      const content: JSX.Element = runComponent(fiber, null);
       const child = jsxElementToFiberNode(content, fiber, unwrapComponents);
       fiber.children = toFiberChildren(child);
     }
