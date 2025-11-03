@@ -1,7 +1,7 @@
 {
   "name": "faiwer-react",
-  "version": "0.0.1",
-  "description": "A hobby project",
+  "version": "0.8.0",
+  "description": "A hobby project. A naive and simplified React implementation",
   "main": "dest/index.js",
   "exports": {
     ".": {
