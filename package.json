@@ -1,7 +1,16 @@
 {
-  "name": "faiwer-react",
+  "name": "@faiwer/react",
   "version": "0.8.0",
   "description": "A hobby project. A naive and simplified React implementation",
+  "keywords": ["react", "jsx", "hooks", "virtual-dom", "frontend", "ui-library"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/faiwer/faiwer-react.git"
+  },
+  "homepage": "https://github.com/faiwer/faiwer-react#readme",
+  "bugs": {
+    "url": "https://github.com/faiwer/faiwer-react/issues"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [

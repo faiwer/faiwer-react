@@ -19,6 +19,26 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 - Portals
 - Fragments
 
+## Installation
+
+- `npm i --save @faiwer/react`
+- Update your `tsconfig.json`:
+  ```json
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@faiwer/react"
+  }
+  ```
+
+### Usage
+
+To mount an app:
+
+```tsx
+const container = document.getElementById('root');
+createRoot(container).render(<App />);
+```
+
 ## TODO
 
 - 1st line
