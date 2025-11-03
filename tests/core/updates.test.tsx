@@ -1,4 +1,6 @@
 import {
+  createContext,
+  useContext,
   useEffect,
   useLayoutEffect,
   useState,
@@ -568,5 +570,31 @@ describe('Updates', () => {
       const error = onError.mock.lastCall[0];
       expect(String(error?.message)).toContain('Maximum update depth exceeded');
     });
+  });
+
+  it('it remounts node on role change', async () => {
+    const ctx = createContext(42);
+    let updateMode: StateSetter<'context' | 'fragment'>;
+
+    const Child = () => useContext(ctx);
+
+    const Comp = () => {
+      const [mode, setMode] = useState<'context' | 'fragment'>('fragment');
+      updateMode = setMode;
+
+      return mode === 'fragment' ? (
+        <Fragment key="ctx">fragment</Fragment>
+      ) : (
+        <ctx.Provider key="ctx" value={22}>
+          <Child />
+        </ctx.Provider>
+      );
+    };
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('fragment');
+
+    await act(() => updateMode('context'));
+    expectHtml(root).toBe('22');
   });
 });

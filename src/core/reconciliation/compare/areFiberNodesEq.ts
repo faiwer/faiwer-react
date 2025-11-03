@@ -10,12 +10,7 @@ export const areFiberNodesEq = (
 ): boolean => {
   if (!left || !right) return left === right;
 
-  if (
-    left.type !== right.type ||
-    left.key !== right.key ||
-    left.role !== right.role
-  )
-    return false;
+  if (left.type !== right.type || left.role !== right.role) return false;
 
   const lNode = left.tag ?? left.component;
   const rNode = right.tag ?? right.component;
