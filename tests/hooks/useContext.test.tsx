@@ -6,7 +6,7 @@ import {
   type ReactComponentWithChildren,
   useLayoutEffect,
 } from '~/index';
-import { createToggler, expectHtml, mount } from '../helpers';
+import { createToggler, expectHtml, mount, useRerender } from '../helpers';
 import { act } from '~/testing';
 import { Fragment } from 'faiwer-react/jsx-runtime';
 
@@ -56,8 +56,6 @@ describe('Hooks: useContext', () => {
       await Promise.resolve();
       expectHtml(root).toBe('<div>43</div>');
     });
-
-    // add a test for a trapped component with useContext
 
     it(`useContext always uses the closest provider. ${mode}`, async () => {
       const Parent = () => (
@@ -219,5 +217,63 @@ describe('Hooks: useContext', () => {
     });
     expectHtml(root).toBe('42');
     expect(childCreated).toHaveBeenCalledTimes(1);
+  });
+
+  it('updates the context-fiber props', async () => {
+    let updateV: StateSetter<number>;
+    let rerender: () => void;
+
+    const Child = () => {
+      rerender = useRerender();
+      return useContext(ctx);
+    };
+
+    const Comp = () => {
+      const [v, setV] = useState(42);
+      updateV = setV;
+
+      return (
+        <ctx.Provider value={v}>
+          <Child />
+        </ctx.Provider>
+      );
+    };
+
+    const root = mount(<Comp />);
+
+    await act(() => updateV!(22));
+    expectHtml(root).toBe('22');
+
+    await act(() => rerender());
+    // It'll be 42 if we skipped "setProps"
+    expectHtml(root).toBe('22');
+  });
+
+  it(`doesn't invalidate consumers when the value is intact`, async () => {
+    let rerender: () => void;
+    const onChildRender = jest.fn();
+
+    const Child = () => {
+      onChildRender();
+      return useContext(ctx);
+    };
+
+    const Comp = () => {
+      rerender = useRerender();
+
+      return (
+        <ctx.Provider value={24}>
+          <Child />
+        </ctx.Provider>
+      );
+    };
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('24');
+    expect(onChildRender).toHaveBeenCalledTimes(1);
+
+    await act(() => rerender());
+    expectHtml(root).toBe('24');
+    expect(onChildRender).toHaveBeenCalledTimes(1);
   });
 });
