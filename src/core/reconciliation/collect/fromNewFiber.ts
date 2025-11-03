@@ -25,7 +25,7 @@ export const collectActionsFromNewFiber = (fiber: FiberNode): Action[] => {
       const actions: Action[] = [{ type: 'CreateTag', fiber }];
 
       for (const [k, v] of Object.entries(fiber.props ?? EMPTY)) {
-        assertsTagAttrValue(v);
+        assertsTagAttrValue(k, v);
         actions.push({
           type: 'SetAttr',
           fiber,

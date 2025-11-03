@@ -12,8 +12,9 @@ export type TagAttrValue =
   // Absent attributes
   | null
   | undefined
-  // Event handlers
-  | Function;
+  // Event handlers & Tag styles
+  | Function
+  | TagStyles;
 
 // 'onclick' | 'onmousedown' | …
 type EventKeys<T extends HTMLElement> = {
@@ -85,9 +86,15 @@ type DomEventHandlerX<E extends string> =
 export type TagProps<T extends HTMLElement = HTMLElement> =
   & TagNativeProps<T>
   & ElementCommonAttrs
-  & { ref?: HtmlRef<T> | RefSetter<T | null> }
+  & {
+    ref?: HtmlRef<T> | RefSetter<T | null>;
+    style?: string | TagStyles
+  }
   & Record<`data-${string}`, ScalarNode>
   & { children?: JSX.Element };
+
+/** A map like { fontSize: '12px' }. */
+export type TagStyles = { [K in keyof CSSStyleDeclaration]?: string | number };
 
 export type SvgRootProps = TagProps<HTMLElement> & {
   xmlns?: string;

@@ -42,7 +42,6 @@ createRoot(container).render(<App />);
 ## TODO
 
 - 1st line
-  - Support tag-`style` attribute
   - Events:
     - "capture"-kind of events
     - camelCase events

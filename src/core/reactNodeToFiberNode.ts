@@ -142,7 +142,7 @@ export const jsxElementToFiberNode = (
       props,
       tag: jsxElement.type,
       ref,
-      data: { events: {} },
+      data: { events: {}, styles: null },
     };
     tagFiber.children = jsxElement.children
       .map((n) => jsxElementToFiberNode(n, tagFiber, unwrapComponents))

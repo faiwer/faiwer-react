@@ -66,6 +66,6 @@ const createRootFiber = (appId: number): TagFiberNode => ({
   type: 'tag',
   tag: 'root',
   level: 0,
-  data: { events: {} },
+  data: { events: {}, styles: null },
   props: {},
 });

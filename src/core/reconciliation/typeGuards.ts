@@ -23,10 +23,17 @@ export const isContextProvider = (
 };
 
 /**
- * Validates that the given value can be used as an event handler or a tag
- * attribute value. Throws if not.
+ * Validates that the given value can be used as:
+ * - an event handler;
+ * - a tag attribute value;
+ * - styles (either a string or an object).
+ *
+ * Throws if not.
  */
-export function assertsTagAttrValue(v: unknown): asserts v is TagAttrValue {
+export function assertsTagAttrValue(
+  name: string,
+  v: unknown,
+): asserts v is TagAttrValue {
   switch (typeof v) {
     case 'undefined':
     case 'string':
@@ -36,7 +43,7 @@ export function assertsTagAttrValue(v: unknown): asserts v is TagAttrValue {
       return;
 
     case 'object':
-      if (v === null) return;
+      if (v === null || name === 'style') return;
 
     case 'bigint':
     case 'symbol':

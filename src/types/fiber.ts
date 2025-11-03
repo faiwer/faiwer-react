@@ -1,7 +1,7 @@
 import type { ComponentState, ReactComponent } from './component';
 import type { ContextState } from './context';
 import type { UnknownProps, ReactKey } from './core';
-import type { DomNode } from './dom';
+import type { DomNode, TagStyles } from './dom';
 import type { Ref, RefSetter } from './refs';
 
 /**
@@ -160,6 +160,7 @@ export type TagState = {
   events: Partial<
     Record<string, { wrapper: EventListener; handler: Function | null }>
   >;
+  styles: TagStyles | null;
 };
 
 /**

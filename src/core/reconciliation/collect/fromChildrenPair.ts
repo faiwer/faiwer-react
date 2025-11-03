@@ -131,7 +131,7 @@ const createFakeFiberContainer = (fiber: FiberNode): TagFiberNode => ({
   type: 'tag',
   element: document.createElement('x-container'),
   tag: FAKE_CONTAINER_TAG,
-  data: { events: {} },
+  data: { events: {}, styles: null },
   props: {},
 });
 
