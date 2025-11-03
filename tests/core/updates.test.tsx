@@ -236,20 +236,20 @@ describe('Updates', () => {
   it('updates are batched', async () => {
     let setParentState: StateSetter<number>;
     let setChildState: StateSetter<number>;
+    const onChildRender = jest.fn();
+    const onParentRender = jest.fn();
 
-    let childRendered = 0;
     const Child = () => {
       const [v, setV] = useState(2);
       setChildState = setV;
-      ++childRendered;
+      onChildRender();
       return <div>{v}</div>;
     };
 
-    let parentRendered = 0;
     const Parent = () => {
       const [v, setV] = useState(1);
       setParentState = setV;
-      ++parentRendered;
+      onParentRender();
       return (
         <div>
           {v}
@@ -260,8 +260,8 @@ describe('Updates', () => {
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('<div>1<div>2</div></div>');
-    expect(childRendered).toBe(1);
-    expect(parentRendered).toBe(1);
+    expect(onChildRender).toHaveBeenCalledTimes(1);
+    expect(onParentRender).toHaveBeenCalledTimes(1);
 
     await act(() => {
       setParentState!(3); // Should be skipped.
@@ -270,8 +270,8 @@ describe('Updates', () => {
       setChildState!(9);
     });
     expectHtml(root).toBe('<div>5<div>9</div></div>');
-    expect(parentRendered).toBe(2);
-    expect(childRendered).toBe(2);
+    expect(onParentRender).toHaveBeenCalledTimes(2);
+    expect(onChildRender).toHaveBeenCalledTimes(2);
   });
 
   it('internally updated component still gets prop updates', async () => {

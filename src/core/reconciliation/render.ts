@@ -17,6 +17,10 @@ export function reactRender(app: App, depth = 0) {
     throw new Error(`Maximum update depth exceeded`);
   }
 
+  if (app.testMode && app.invalidatedComponents.size === 0) {
+    throw new Error(`Unnecessary react render`);
+  }
+
   if (app.state === 'killed') {
     return;
   }
