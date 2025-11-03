@@ -88,7 +88,7 @@ export type TagProps<T extends HTMLElement = HTMLElement> =
   & ElementCommonAttrs
   & {
     ref?: HtmlRef<T> | RefSetter<T | null>;
-    style?: string | TagStyles
+    style?: string | null | undefined | TagStyles
   }
   & Record<`data-${string}`, ScalarNode>
   & { children?: JSX.Element };

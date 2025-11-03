@@ -25,6 +25,11 @@ describe('styles', () => {
     expect(div?.style.fontSize).toBe('12px');
   });
 
+  it('handles numeric values', () => {
+    const root = mount(<div style={{ zIndex: 5 }} />);
+    expectHtml(root).toBe(`<div style="z-index: 5;"></div>`);
+  });
+
   it('supports CSS-variables', () => {
     const root = mount(
       <>
@@ -105,5 +110,26 @@ describe('styles', () => {
       `<div style="${initialCSS}"></div>` +
         `<span style="${initialCSS}"></span>`,
     );
+  });
+
+  it('removes styles when set to null', async () => {
+    let updateShow: StateSetter<boolean>;
+
+    const Comp = () => {
+      const [show, setShow] = useState(true);
+      updateShow = setShow;
+
+      return (
+        <>
+          <div style={show ? 'color: red' : null} />
+          <span style={show ? { color: 'red' } : undefined} />
+        </>
+      );
+    };
+
+    const root = mount(<Comp />);
+
+    await act(() => updateShow!(false));
+    expectHtml(root).toBe(`<div></div><span></span>`);
   });
 });
