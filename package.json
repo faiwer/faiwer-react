@@ -2,7 +2,12 @@
   "name": "faiwer-react",
   "version": "0.8.0",
   "description": "A hobby project. A naive and simplified React implementation",
-  "main": "dest/index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,6 +23,9 @@
     }
   },
   "scripts": {
+    "build": "npm run clean && npx tsgo -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run build",
     "test": "jest",
     "lint": "oxlint .",
     "type-check": "npx tsgo --noEmit -p tsconfig.json",
@@ -36,7 +44,8 @@
     "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^16.2.6",
     "oxlint": "^1.16.0",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "tsc-alias": "^1.8.16"
   },
   "lint-staged": {
     "**/*.{ts,tsx,md}": [
