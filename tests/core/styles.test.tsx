@@ -25,6 +25,26 @@ describe('styles', () => {
     expect(div?.style.fontSize).toBe('12px');
   });
 
+  it('supports CSS-variables', () => {
+    const root = mount(
+      <>
+        <div
+          style={{
+            '--main-color': 'blue',
+            '--size': 10,
+            '--camelCase': 'string',
+          }}
+        />
+        <span style="--main-color: blue; --size: 10; --camelCase: string" />
+      </>,
+    );
+
+    const css = `--main-color: blue; --size: 10; --camelCase: string;`;
+    expectHtml(root).toBe(
+      `<div style="${css}"></div><span style="${css}"></span>`,
+    );
+  });
+
   it(`It doesn't crush when an unknown style was given`, () => {
     const unknown = 'unknown' as 'all';
     const root = mount(
@@ -55,26 +75,26 @@ describe('styles', () => {
 
       return changed ? (
         <>
-          <div style="color: red; border-width: 1px" />
-          <span style={{ color: 'red', borderWidth: '1px' }} />
+          <div style="color: red; border-width: 1px; --a: 0" />
+          <span style={{ color: 'red', borderWidth: '1px', ['--a']: 0 }} />
         </>
       ) : (
         <>
-          <div style="color: red; font-size: 12px" />
-          <span style={{ color: 'red', fontSize: '12px' }} />
+          <div style="color: red; font-size: 12px; --b: 42" />
+          <span style={{ color: 'red', fontSize: '12px', ['--b']: 42 }} />
         </>
       );
     };
 
     const root = mount(<Comp />);
-    const initialCSS = `color: red; font-size: 12px;`;
+    const initialCSS = `color: red; font-size: 12px; --b: 42;`;
     expectHtml(root).toBe(
       `<div style="${initialCSS}"></div>` +
         `<span style="${initialCSS}"></span>`,
     );
 
     await act(() => updateChanged(true));
-    const changedCSS = `color: red; border-width: 1px;`;
+    const changedCSS = `color: red; border-width: 1px; --a: 0;`;
     expectHtml(root).toBe(
       `<div style="${changedCSS}"></div>` +
         `<span style="${changedCSS}"></span>`,

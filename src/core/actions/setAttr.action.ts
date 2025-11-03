@@ -136,7 +136,7 @@ const strToStyles = (css: string): TagStyles => {
   return Object.fromEntries(
     Array.from(cssDummy.style).map((k) => [
       k,
-      cssDummy.style[k as keyof TagStyles] as string,
+      cssDummy.style.getPropertyValue(k),
     ]),
   );
 };

@@ -94,7 +94,9 @@ export type TagProps<T extends HTMLElement = HTMLElement> =
   & { children?: JSX.Element };
 
 /** A map like { fontSize: '12px' }. */
-export type TagStyles = { [K in keyof CSSStyleDeclaration]?: string | number };
+export type TagStyles =
+  & { [K in keyof CSSStyleDeclaration]?: string | number; } // prettier-ignore
+  & { [K in `--${string}`]: string | number }; // prettier-ignore
 
 export type SvgRootProps = TagProps<HTMLElement> & {
   xmlns?: string;
