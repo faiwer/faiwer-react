@@ -14,8 +14,8 @@ import type { Action } from 'faiwer-react/types/actions';
 import { createFiberNode, toFiberChildren } from './fibers';
 
 /**
- * Mounts an app (`jsxElement`) to the given DOM-node (`container`). Returns
- * a function that destroys the app. It removes all app's DOM nodes.
+ * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
+ * a function that destroys the app and removes all of its DOM nodes.
  */
 export const mount = (
   container: HTMLElement,
@@ -58,8 +58,8 @@ export const mount = (
 };
 
 /**
- * A special fiber node. The only one that doesn't have a real parent fiber.
- * Used as the root of the Fiber-tree.
+ * A special fiber node - the only one that doesn't have a real parent fiber.
+ * Used as the root of the fiber tree.
  */
 const createRootFiber = (appId: number): TagFiberNode => ({
   ...createFiberNode({ appId } as unknown as FiberNode),

@@ -26,8 +26,8 @@ import type {
  */
 export function createElement(
   /**
-   * What to render. It can be a tag (a string node), a component (a function),
-   * or a portal (HTMLElement).
+   * What to render. Can be a tag (string), a component (function),
+   * or a portal target (HTMLElement).
    */
   // prettier-ignore
   type:
@@ -53,8 +53,9 @@ export function createElement(
       type,
       props: propsRaw,
       key,
-      // ComponentFiber doesn't support children. We never know what's inside
-      // until we run the component. So `children` is a part of `props`.
+      // ComponentFiber doesn't support direct children since we don't know
+      // what's inside until the component runs. Children are passed via `props`
+      // instead.
       children: [],
     };
   }
@@ -88,18 +89,19 @@ type TagProps = UnknownProps & {
 };
 
 /**
- * Use it to render the given content in some external HTML node. Unlike in the
- * original React this version doesn't support interdimensional event bubbling.
+ * Renders content into an external HTML node. Unlike React, this version
+ * doesn't support interdimensional event bubbling.
  *
- * For some reason in original React it's not <Portal target=?/>. In this library
- * it's just a simple wrapper over `createElement` with `type === domNode`.
+ * Following the React's approach, this library doesn't use <Portal target=?/>
+ * syntax. Thus, it's a simple wrapper around `createElement` with `type ===
+ * domNode`.
  */
 export function createPortal(
   /** What to render. */
   children: JSX.Element,
   /** Where to render. */
   domNode: HTMLElement,
-  /** Custom key if you need conditionally recreate portals. */
+  /** Custom key if you need to conditionally recreate portals. */
   key?: string,
 ) {
   return createElement(domNode, { children }, key);

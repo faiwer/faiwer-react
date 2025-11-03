@@ -2,7 +2,7 @@ import type { ElementCommonAttrs, UnknownProps } from './core';
 import type { HookStore } from './hooks';
 
 export type ComponentState = {
-  hooks: HookStore | null /* 1st render */;
+  hooks: HookStore | null /* null on first render */;
 };
 
 export type ReactComponent<TProps extends UnknownProps = UnknownProps> = (

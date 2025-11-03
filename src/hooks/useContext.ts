@@ -52,7 +52,7 @@ export const createContext = <T>(
 /**
  * A hook that allows you to consume context values from the nearest Provider up
  * the component tree. The component will re-render when the context value
- * changes. If context provider is not found the default context value is used.
+ * changes. If no context provider is found, the default context value is used.
  *
  * @example
  * const ThemeContext = createContext('light');
@@ -69,8 +69,8 @@ export const useContext = <T>(
   const item = getNextHookOrCreate<UseContextItem<T>>('context', (fiber) => {
     const providerFiber = findProvider(fiber, ctx.__id);
     if (providerFiber) {
-      // We can assume that the found provider never changes. Because when it
-      // changes all its children die (including this component).
+      // We can assume that the found provider never changes, because when it
+      // changes, all its children die (including this component).
       providerFiber.data.consumers.add(fiber);
     }
 
@@ -97,13 +97,13 @@ export const useContext = <T>(
     return item.providerFiber.props.value as T;
   }
 
-  // Provider has not found. Use the default value.
+  // Provider not found. Use the default value.
   return ctx.__default;
 };
 
 /**
- * Traverse through the given fiber's parent nodes and search for the propver
- * <cxt.Provider/>. Returns `null` if it is not found.
+ * Traverse through the given fiber's parent nodes and search for the provider
+ * <ctx.Provider/>. Returns `null` if it is not found.
  */
 const findProvider = (
   fiber: FiberNode,

@@ -5,9 +5,9 @@ import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 
 /**
  * By default we don't run all components. We run only those that were manually
- * invalidated. As if they all wrapped with `memo()`. So `.children` node of
- * such fibers is empty. This method recursively goes through all of the given
- * fiber-DOM subtree nodes and run all found components to fill their
+ * invalidated, as if they were all wrapped with `memo()`. So the `.children`
+ * node of such fibers is empty. This method recursively goes through all of the
+ * given fiber DOM subtree nodes and runs all found components to fill their
  * `.children`. Should be used only for not-yet-mounted component fiber nodes.
  */
 export const runFiberComponents = (app: App, fiber: FiberNode): void => {
@@ -39,7 +39,7 @@ const checkParents = (fiber: FiberNode): void => {
   while (parent && parent.tag !== FAKE_CONTAINER_TAG) parent = parent.parent;
   if (!parent) {
     throw new Error(
-      `runFiberComponents shouldn't be called for alread mounted fiber nodes`,
+      `runFiberComponents shouldn't be called for already mounted fiber nodes`,
     );
   }
 };

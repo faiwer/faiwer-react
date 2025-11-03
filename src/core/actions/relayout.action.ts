@@ -35,22 +35,22 @@ export function relayoutAction(
   }
 
   if (after.size > 0) {
-    // Determine what can be used as a starting point to inserting new children.
-    // If `prev` is `null` new nodes should be added to the beginning. If not:
-    // right after the `prev` node.
+    // Determine what can be used as a starting point for inserting new children.
+    // If `prev` is `null`, new nodes should be added to the beginning.
+    // Otherwise, add them right after the `prev` node.
     let [container, prev] = getAnchor(fiber);
 
     for (const [key, r] of after) {
       const l = before.get(key);
 
       if (!l) {
-        // No nodes from `left` correlates with this node from `right`. So
-        // consider it a brand new node. And put to the current position.
+        // No nodes from `left` correlate with this node from `right`.
+        // Consider it a brand new node and put it at the current position.
         prev = insertNewFiber(fiber, container, prev, r.fiber);
       } else {
-        // Keep DOM-nodes from the previous render. Any requested updates for
-        // them are already applied. But we might need to reposition them within
-        // their parent.
+        // Keep DOM nodes from the previous render. Any requested updates for
+        // them are already applied, but we might need to reposition them
+        // within their parent.
         prev = repositionFiberWhenNeeded(l.fiber, container, prev);
       }
     }
@@ -64,7 +64,7 @@ export function relayoutAction(
     (key) => nullthrows(before.get(key) ?? after.get(key)).fiber,
   );
 
-  // If `fiber` has 0 or 1 dom-children we can remove <!--begin|end--> brackets.
+  // If `fiber` has 0 or 1 DOM children, we can remove <!--begin|end--> brackets.
   tryToCompactNode(fiber);
 }
 
@@ -74,24 +74,23 @@ export function relayoutAction(
  */
 const expandFiberWhenNeeded = (fiber: FiberNode, after: FiberMap): void => {
   if (isCompactNone(fiber)) {
-    // Case 1: it's !--empty. So it can't have children. Fix it.
+    // Case 1: it's <!--empty-->. It can't have children, so fix it.
     unwrapCompactFiber(fiber);
   } else if (isCompactSingleChild(fiber)) {
     if (after.size > 1) {
-      // Case 2: It's in the "single child" mode. Fix it to support more than
-      // one children
+      // Case 2: It's in "single child" mode. Fix it to support multiple children.
       unwrapCompactFiber(fiber);
     } else {
       throw new Error(
-        `Invalid state: "remove" action didn't unwap the parent container node during deletion of the only child`,
+        `Invalid state: "remove" action didn't unwrap the parent container node during deletion of the only child`,
       );
     }
   }
 };
 
 /**
- * Puts the given `child` DOM nodes to the `parent`'s DOM-area at the anchor
- * position (`container` + `prev`). Actualizes the `child`'s parent node.
+ * Puts the given `child` DOM nodes into the `parent`'s DOM area at the anchor
+ * position (`container` + `prev`). Updates the `child`'s parent node.
  */
 const insertNewFiber = (
   parent: FiberNode,
@@ -115,7 +114,7 @@ const insertNewFiber = (
 };
 
 /**
- * Reposition is be needed in such situations:
+ * Repositioning is needed in such situations:
  * - before: <a/><b/><c key="c"/> -> <c key="c"/><a/><b/>.
  */
 const repositionFiberWhenNeeded = (
@@ -127,8 +126,8 @@ const repositionFiberWhenNeeded = (
   if (nodes[0].previousSibling !== prev) {
     for (const n of nodes) {
       if (!prev) {
-        // Couldn't find a way to test it, because even without this move the
-        // following `repositionFiberWhenNeeded` will heal this gap. Anyway, it
+        // Couldn't find a way to test this, because even without this move the
+        // following `repositionFiberWhenNeeded` will heal this gap. Anyway,
         // it seems right to keep it.
         container.prepend(n);
       } else {

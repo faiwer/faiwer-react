@@ -13,9 +13,9 @@ import { applyAction } from './applyAction';
  */
 export function removeAction(fiber: FiberNode) {
   for (const child of fiber.children) {
-    // Recursively remove all children before we remove the parent node. It's
-    // especially critical because components may have effects. We should run
-    // effects before removing parent nodes and parent components.
+    // Recursively remove all children before removing the parent node. This is
+    // critical for components with effects - we must run cleanup effects
+    // before removing their parent nodes.
     applyAction({ type: 'Remove', fiber: child });
   }
 
@@ -28,10 +28,8 @@ export function removeAction(fiber: FiberNode) {
   }
 
   if (isCompactSingleChild(fiber.parent)) {
-    // Can't remove `fiber` when its parent doesn't have its own direct DOM
-    // node. Thus, we need to unwrap the compact-fiber (create <!--begin|end-->
-    // wrappers). We shouldn't do it in the "replace" mode because the replace
-    // action handles this case separately.
+    // Can't remove `fiber` when its parent lacks its own direct DOM node.
+    // We need to unwrap the compact-fiber (create <!--begin|end--> wrappers).
     unwrapCompactFiber(fiber.parent);
   }
 
@@ -46,15 +44,14 @@ export function removeAction(fiber: FiberNode) {
     unsetRef(fiber.ref);
   }
 
-  emptyFiberNode(fiber); // Help to gc.
+  emptyFiberNode(fiber); // Help with garbage collection.
 }
 
 /**
- * Removes all assigned event listeners. Even though we never reuse the same tag
- * node after removal it makes sense, because such an event handlers captures a
- * link to a fiber tree. It will be a memory leak when the tag node is preserved
- * somewhere in the user's code. It would be a memory leak anyway, but it's
- * better to mitigate such an issue.
+ * Removes all assigned event listeners. While we never reuse tag nodes after
+ * removal, this cleanup is important because event handlers capture references
+ * to the fiber tree. If the tag node is preserved in user code, this would
+ * create a memory leak. Better to mitigate this potential issue.
  */
 const unlistenTagEvents = (fiber: TagFiberNode): void => {
   for (const [name, record] of Object.entries(fiber.data.events)) {

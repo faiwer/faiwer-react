@@ -12,9 +12,9 @@ import { collectActionsFromComponent } from './fromComponent';
 import { areFiberPropsEq } from '../compare/areFiberPropsEq';
 
 /**
- * `l` & `r` are the same node. But `r` may have some updates. This method
- * collects a list of actions that has to be applied to convert `l` to `r`.
- * It doesn't including removing or replacing the existing `l` node.
+ * `l` and `r` are the same node, but `r` may have some updates. This method
+ * collects a list of actions that must be applied to convert `l` to `r`.
+ * This doesn't include removing or replacing the existing `l` node.
  */
 export const collectActionsFromFiberPair = (
   app: App,
@@ -66,7 +66,7 @@ export const collectActionsFromFiberPair = (
       break;
 
     case 'component':
-      // One of the l-component props was updates -> run the component.
+      // One of the l-component props was updated -> run the component.
       app.invalidatedComponents.add(l);
       if (!eqProps) {
         actions.push({
@@ -152,17 +152,17 @@ const collectActionsFromTagAttrs = (
 };
 
 /**
- * The given context provider got an update for its `value` props. We have to
- * traverse through all of its context-consumers and invalidate them.
+ * The given context provider got an update for its `value` prop. We have to
+ * traverse through all of its context consumers and invalidate them.
  */
 const invalidateContextValue = (
   app: App,
   l: ContextFiberNode,
   r: ContextFiberNode,
 ) => {
-  // When we render child components we can't reach `r.fiber.props`. Whereas
+  // When we render child components we can't reach `r.fiber.props`, while
   // `l.fiber.props` are obsolete until we call `SetProps` later in
-  // `applyActions`. Thus, save it in a temporary storage.
+  // `applyActions`. Therefore, save it in temporary storage.
   app.tempContext.set(l.id, r.props.value);
   // Since we can't guarantee that all provider-consumers will be invalidated
   // naturally, we must invalidate them manually:

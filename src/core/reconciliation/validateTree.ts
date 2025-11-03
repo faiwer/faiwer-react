@@ -5,7 +5,7 @@ import { nullthrows } from 'faiwer-react/utils';
  * Validates the given fiber node and its subnodes. In case of error it throws.
  */
 export const validateTree = (node: FiberNode, path = ''): void => {
-  // Each rendered not must be associated with at least one real DOM-node.
+  // Each rendered node must be associated with at least one real DOM node.
   nullthrows(node.element, `${path}.element`);
 
   if (node.type === 'tag') {

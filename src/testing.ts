@@ -1,7 +1,8 @@
 /**
- * Put your "setState" calls in tests in the `fn` callback. When the promise is
- * resolved the component is re-rendered. Thus its HTML is up to date. Its
- * layout effects are finished. But its normal effects are not finished yet.
+ * Put your "setState" calls in tests within the `fn` callback. When the promise
+ * resolves, the component will be re-rendered and its HTML will be up to date.
+ * Layout effects will have finished running, but normal effects may still be
+ * pending.
  */
 export const act = async (fn: () => void | Promise<void>) => {
   await fn();

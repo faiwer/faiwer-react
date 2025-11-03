@@ -15,7 +15,7 @@ export type ReactKey = string | number;
 export type UnknownProps = Record<PropertyKey, unknown> & ElementCommonAttrs;
 
 /**
- * The 1st arguments of `createElement` function. Basically, this type reflects
+ * The 1st argument of `createElement` function. Basically, this type reflects
  * everything that can be created in "<" & "/>" brackets: tags, components,
  * fragments, context providers.
  */

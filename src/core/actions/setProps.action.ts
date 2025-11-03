@@ -2,8 +2,8 @@ import type { FiberNode } from 'faiwer-react/types';
 import type { SetPropsAction } from 'faiwer-react/types/actions';
 
 /**
- * Updates the set of props for the given fiber node. It doesn't do any
- * DOM-changes. It doesn't run components.
+ * Updates the set of props for the given fiber node. This doesn't make any
+ * DOM changes or run components.
  */
 export function setPropsAction(fiber: FiberNode, { props }: SetPropsAction) {
   if (

@@ -5,12 +5,12 @@ import { postCommit } from './postCommit';
 import { applyActions } from './applyActions';
 
 /**
- * Performs another rendering round. Once anything changes a component state
- * (invalidates it) a new render cycle is scheduled. The render consist of:
+ * Performs another rendering round. Once anything changes a component's state
+ * (invalidates it), a new render cycle is scheduled. The render consists of:
  *
  * 1. running components, collecting needed changes (actions), scheduling effects
- * 2. applying actions to the DOM- and Fiber-trees
- * 3. running scheduled effects, updating ref-handlers (postCommit)
+ * 2. applying actions to the DOM and fiber trees
+ * 3. running scheduled effects, updating ref handlers (postCommit)
  */
 export function reactRender(app: App, depth = 0) {
   if (depth > MAX_DEPTH) {

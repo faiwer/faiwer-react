@@ -14,8 +14,8 @@ export const getFiberLevel = (fiber: FiberNode): number => {
   return fiber.level;
 };
 
-/** To avoid having mess and havoc we keep new DOM-nodes in a temporary
- * <x-container/> DOM-node until the Relayout action comes into play. */
+/** To avoid mess and havoc, we keep new DOM nodes in a temporary
+ * <x-container/> DOM node until the Relayout action comes into play. */
 export const FAKE_CONTAINER_TAG = 'x-container';
 
 /** Pseudo tagName for fragment JSX.Elements. Not used anywhere but in
@@ -44,13 +44,13 @@ export const createFiberNode = (parent: FiberNode) =>
 export const NULL_FIBER = null as unknown as FiberNode;
 
 /**
- * A little optimization. To avoid having `children: [[node]], we may flatten
- * it. But it can be done only with non-keyed regular fragments.
+ * A small optimization. To avoid having `children: [[node]]`, we may flatten
+ * it. But this can only be done with non-keyed regular fragments.
  */
 export const toFiberChildren = (fiber: FiberNode): FiberNode[] => {
   if (fiber.type === 'fragment' && fiber.role === null && fiber.key === null) {
     for (const child of fiber.children) {
-      // Fix the parent, 'cause we moved them 1-lvl up.
+      // Fix the parent, since we moved them 1 level up.
       child.parent = nullthrows(child.parent.parent);
     }
     return fiber.children;

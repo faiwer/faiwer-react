@@ -16,7 +16,7 @@ export const removeApp = (id: number): void => {
   const app = apps[id] as Record<string, unknown>;
   if (app) {
     apps[id] = null;
-    // Help GC.
+    // Help with garbage collection.
     app.root = app.tempContext = null;
     app.effects = { normal: [] };
     app.invalidatedComponents = { size: 0 };

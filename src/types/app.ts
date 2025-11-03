@@ -10,7 +10,7 @@ export type AppState =
    **/
   | 'scheduled'
   /**
-   * 1. Invalidates affected fiber-nodes. It includes re-running components.
+   * 1. Invalidates affected fiber nodes. It includes re-running components.
    * 2. Compares the old and the new fiber trees.
    * 3. Prepares a list of actions that would convert the old tree to the new
    *    one.
@@ -32,8 +32,8 @@ export type AppState =
    */
   | 'layoutEffects'
   /**
-   * Run scheduled normal effects. At this point the browser could have updated
-   * the UI. Such effects also may change components state.
+   * Runs scheduled normal effects. At this point the browser could have updated
+   * the UI. Such effects also may change component state.
    */
   | 'effects'
   /**

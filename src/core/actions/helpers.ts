@@ -18,9 +18,9 @@ import { buildCommentText } from '../reconciliation/comments';
 export const isEventName = (name: string): boolean => name.startsWith('on');
 
 /**
- * Returns a DOM-container for the given fiber node. It's not always the direct
- * parent's element, because the parent node might be in the compact node or
- * a fragment-like range (<!--begin|end-->). Also it could be a portal node.
+ * Returns the DOM container for the given fiber node. This isn't always the
+ * direct parent's element since the parent might be a compact node or a
+ * fragment-like range (<!--begin|end-->), or it could be a portal node.
  */
 export const getParentElement = (fiber: FiberNode): Element => {
   while (
@@ -65,7 +65,7 @@ const asComment = (node: Node | null): Comment => {
 };
 
 /**
- * Finds the the anchor node to attach other nodes. There are two scenarios:
+ * Finds the anchor node for attaching other nodes. There are two scenarios:
  * 1) [element, null] - the new node should be added to the beginning of the
  *    element;
  * 2) [element, child] - the new node should be added right after `child`.
@@ -101,14 +101,14 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
     return [getParentElement(fiber), getBeginComment(fiber)];
   }
 
-  // "text" & "null" can't contain childrens.
-  throw new Error(`Unsupport kind of anchor: ${fiber.type}`);
+  // "text" & "null" types cannot contain children.
+  throw new Error(`Unsupported anchor type: ${fiber.type}`);
 };
 
 /**
- * Returns all direct DOM-nodes associated with the given fiber. It's not always
- * a single node, because component and fragments may be in the expanded state
- * (!--begin + content = !--end).
+ * Returns all direct DOM nodes associated with the given fiber. This isn't
+ * always a single node since components and fragments may be in expanded state
+ * (<!--begin--> + content + <!--end-->).
  */
 export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
   switch (fiber.type) {
@@ -137,8 +137,8 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
 };
 
 /**
- * Once the node leaves the DOM tree we need to update all associated ref
- * objects and ref handers.
+ * When a node leaves the DOM tree, we need to update all associated ref
+ * objects and ref handlers.
  */
 export const unsetRef = <T>(ref: Ref<T | null> | RefSetter<T | null>): void => {
   if (typeof ref === 'function') {
@@ -149,8 +149,8 @@ export const unsetRef = <T>(ref: Ref<T | null> | RefSetter<T | null>): void => {
 };
 
 /**
- * To help avoiding memory leaks this method removes those fiber properties than
- * can hold links to other objects.
+ * To help avoid memory leaks, this method removes fiber properties that
+ * can hold references to other objects.
  */
 export const emptyFiberNode = (fiber: FiberNode): void => {
   fiber.data = null;

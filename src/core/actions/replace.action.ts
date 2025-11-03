@@ -10,22 +10,22 @@ import { applyAction } from './applyAction';
  * completely different node. This happens when the `type`, `tag`, or
  * `component` fields change between renders.
  *
- * It's not called when the same node chnages its `key`. In such a cause we get:
+ * It's not called when the same node changes its `key`. In such a case we get:
  * - "create*" for the new fiber
  * - "remove" for the previous fiber
  * - "relayout" for the parent fiber
  *
- * The process involves removing the old fiber's DOM & fiber nodes and subnodes
- * and inserting the new fiber's DOM nodes in the same position, while
- * preserving the original fiber object (keeping the same ID).
+ * The process involves removing the old fiber's DOM and fiber nodes (and
+ * subnodes), and inserting the new fiber's DOM nodes in the same position
+ * while preserving the original fiber object (keeping the same ID).
  */
 export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
   const { parent } = fiber;
 
   if (isCompactSingleChild(parent)) {
-    // The node we're replacing is the only node of its parent, so the parent is
-    // in the compact mode. We should unwrap it before removing this node.
-    // Otherwise it'll be disconnected from the DOM tree.
+    // The node we're replacing is the only child of its parent, so the parent
+    // is in compact mode. We should unwrap it before removing this node,
+    // otherwise it will be disconnected from the DOM tree.
     unwrapCompactFiber(parent);
   }
 
@@ -53,7 +53,7 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
 
   before.children = after.children;
   for (const child of before.children) {
-    // after's dom nodes were in a <x-container/>. We moved them to the right
+    // after's DOM nodes were in a <x-container/>. We moved them to the correct
     // container. Now update the `parent` field.
     child.parent = before;
   }

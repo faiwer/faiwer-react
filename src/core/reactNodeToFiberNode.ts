@@ -26,7 +26,7 @@ import { isContextProvider } from './reconciliation/typeGuards';
  */
 export const jsxElementToFiberNode = (
   jsxElement: JSX.Element,
-  /** Each fiber node but the root must have a parent fiber node. */
+  /** Every fiber node except the root must have a parent fiber node. */
   parent: FiberNode,
   /** Pass `true` on the 1st render for the given node to run internal
    * components recursively. By default it doesn't run any components. */
@@ -53,7 +53,7 @@ export const jsxElementToFiberNode = (
     return nullFiber;
   }
 
-  // A text-node (string, number or boolean).
+  // A text node (string, number or boolean).
   if (typeof jsxElement !== 'object') {
     const textFiber: TextFiberNode = {
       ...createFiberNode(parent),
@@ -115,7 +115,7 @@ export const jsxElementToFiberNode = (
     return fragmentFiber;
   }
 
-  // A component-node (<Message/>):
+  // A component node (<Message/>):
   if (typeof jsxElement.type === 'function') {
     const fiber: ComponentFiberNode = {
       ...createFiberNode(parent),

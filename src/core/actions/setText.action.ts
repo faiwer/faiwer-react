@@ -3,7 +3,7 @@ import type { SetTextAction } from 'faiwer-react/types/actions';
 import { nullthrows } from 'faiwer-react/utils';
 
 /**
- * Replaces the text content within a Text DOM-Node.
+ * Replaces the text content within a Text DOM node.
  */
 export function setTextAction(fiber: FiberNode, { text }: SetTextAction) {
   if (fiber.type !== 'text') {

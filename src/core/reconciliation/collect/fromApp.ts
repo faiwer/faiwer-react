@@ -4,8 +4,8 @@ import { collectActionsFromComponent } from './fromComponent';
 import { getFiberLevel } from '../fibers';
 
 /**
- * Goes through the list of invalidated components, run them, find the diff, and
- * returns the list of actions to convert the previous fiber tree to the new
+ * Goes through the list of invalidated components, runs them, finds the diff,
+ * and returns the list of actions to convert the previous fiber tree to the new
  * one.
  */
 export const collectActionsFromApp = (app: App): Action[] => {
@@ -25,9 +25,9 @@ export const collectActionsFromApp = (app: App): Action[] => {
 
   if (app.invalidatedComponents.size > 0) {
     // The only reason why a component might be kept in `invalidatedComponents`
-    // after the 1st run is that this component was "trapped" inside of a
+    // after the first run is that this component was "trapped" inside a
     // non-invalidated component. We don't traverse through the whole fiber
-    // tree. Thus we need to run the rest of the queue again.
+    // tree, so we need to run the rest of the queue again.
     if (app.testMode) {
       // A sanity check
       for (const fiber of app.invalidatedComponents) {

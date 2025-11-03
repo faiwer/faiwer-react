@@ -6,11 +6,11 @@ import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
 
 /**
- * - A ref of a ref handler for the given node was:
- *   - set up
- *   - or replaced
+ * A ref or ref handler for the given node was:
+ * - set up
+ * - or replaced
  *
- * Removing node with a ref handler is handled in remove and replace actions.
+ * Removing nodes with ref handlers is handled in remove and replace actions.
  */
 export function setRefAction(
   fiber: FiberNode,
@@ -22,15 +22,15 @@ export function setRefAction(
 
   if (
     fiber.ref &&
-    // It's `true` on the 1st render of the tag. We shouldn't run `onRef(null)`
-    // in such a case
+    // It's `true` on the first render of the tag. We shouldn't run `onRef(null)`
+    // in such a case.
     !dontUnsetRef
   ) {
     // ref.current = null | ref(null)
     unsetRef(fiber.ref);
   }
 
-  // Run effects only when the DOMNode is already mounted to a real DOMnode.
+  // Run effects only when the DOM node is already mounted to a real DOM node.
   scheduleEffect(
     getAppByFiber(fiber),
     () => {

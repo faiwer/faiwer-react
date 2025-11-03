@@ -3,18 +3,18 @@ import { reactRender } from './render';
 import { runEffects } from './effects';
 
 /**
- * A stage that happens when we applied all necessary DOM- and fiber-changes in
- * applyActions (aka as the "commit"). In this stage we:
+ * A stage that happens after we've applied all necessary DOM and fiber changes
+ * in applyActions (the "commit" phase). In this stage we:
  * - run all kinds of effects
- * - when needed schedule another render cycle (effects updated a component
+ * - when needed, schedule another render cycle (if effects updated component
  *   state)
  * - or move the app to the idle stage
  */
 export function postCommit(app: App, depth: number) {
   app.tempContext.clear();
 
-  // Run "ref" and "layout" effects. They have to be run in the same micro-queue
-  // with the commit phase.
+  // Run "ref" and "layout" effects. They must be run in the same microtask
+  // queue as the commit phase.
   if (app.effects.layout.length > 0 || app.effects.refs.length > 0) {
     app.state = 'layoutEffects';
     runEffects(app, 'layout'); // It will also run "ref" effects
@@ -23,7 +23,7 @@ export function postCommit(app: App, depth: number) {
       // 1+ component was invalidated in an effect
       if (app.effects.normal.length > 0) {
         // Layout effect component invalidations should be applied within the
-        // same microtask queue, so we need to run the scheduled normal effecs
+        // same microtask queue, so we need to run the scheduled normal effects
         // right away.
         app.state = 'effects';
         runEffects(app, 'normal');

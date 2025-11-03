@@ -3,9 +3,9 @@ import type { App, EffectMode } from 'faiwer-react/types';
 /**
  * Adds to a planner the given effect.
  * - `refs` & `layout` effects are run in the same microtask queue
- * - `normal` effect are normally run in the next microtask, but sometimes can
+ * - `normal` effects are normally run in the next microtask, but sometimes can
  *   be run in the same microtask queue (when one of the ref or layout effects
- *   invalidated a component).
+ *   invalidates a component).
  */
 export const scheduleEffect = (
   app: App,
@@ -16,11 +16,11 @@ export const scheduleEffect = (
 };
 
 /**
- * Run one-by-one scheduled effect of the given queue.
+ * Run scheduled effects one-by-one from the given queue.
  */
 export const runEffects = (app: App, mode: EffectMode) => {
   if (mode === 'layout') {
-    // "refs" effects are essentually layout effects that should be started
+    // "refs" effects are essentially layout effects that should be started
     // before user-defined layout effects.
     runEffects(app, 'refs');
   }

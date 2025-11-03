@@ -26,7 +26,7 @@ export type SetAttrAction = CommonAction & {
 export type SetRefAction = CommonAction & {
   type: 'SetRef';
   ref: Ref<unknown> | RefSetter<unknown> | null;
-  // We shouldn't empty refs on the 1st render.
+  // We shouldn't clear refs on the first render.
   dontUnsetRef?: boolean;
 };
 export type SetPropsAction = CommonAction & {

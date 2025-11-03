@@ -17,8 +17,8 @@ import { isContainerFiber } from '../typeGuards';
 
 /**
  * Returns a list of actions needed to convert `before` to `after`, where
- * `before` is a list of children from the last render, and `after` the list
- * of children of the same node gotten from the current render.
+ * `before` is a list of children from the last render, and `after` is the list
+ * of children of the same node from the current render.
  */
 export const collectActionsFromChildrenPair = (
   /** The parent node for both `before` and `after`. */
@@ -36,11 +36,11 @@ export const collectActionsFromChildrenPair = (
 
   const actions: Action[] = [];
 
-  // Search for nodes that were in the past render but doesn't exist in the
+  // Search for nodes that were in the past render but don't exist in the
   // current render. Then remove them.
   for (const [key, l] of left.entries()) {
     if (!right.has(key)) {
-      // Don't run component from the removing node even if they were invalidated
+      // Don't run components from the removing node even if they were invalidated
       uninvalidateFiberSubTree(app, l.fiber);
       actions.push({ type: 'Remove', fiber: l.fiber });
       relayoutNeeded = true; // to handle the compact mode of the container.
@@ -57,13 +57,13 @@ export const collectActionsFromChildrenPair = (
       actions.push(...createFiberActions(app, r.fiber));
 
       if (l) {
-        // Don't run component from the removing node even if they were invalidated
+        // Don't run components from the removing node even if they were invalidated
         uninvalidateFiberSubTree(app, l.fiber);
         actions.push({ type: 'Replace', fiber: l.fiber, newFiber: r.fiber });
       }
       continue;
     } else {
-      // No need to recreate the existing node. But we might need to update it
+      // No need to recreate the existing node, but we might need to update it
       // or one of its children.
       actions.push(...collectActionsFromFiberPair(app, l.fiber, r.fiber));
     }
@@ -107,8 +107,8 @@ const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
   const fakeParent = createFakeFiberContainer(fiber.parent);
   fakeParent.parent = fiber.parent;
   // Wrap the given node with a fake <x-container/> node to force `applyActions`
-  // to create new DOM nodes in the fake dom-node, not in the mounted container.
-  // Relayout-action will move them into the real node and then reassign the
+  // to create new DOM nodes in the fake DOM node, not in the mounted container.
+  // The Relayout action will move them into the real node and then reassign the
   // parent.
   fiber.parent = fakeParent;
 
@@ -122,8 +122,8 @@ const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
 };
 
 /**
- * Create an <x-container/> DOM node, that is not mount to the real DOM-tree.
- * It'll be used to store new DOM-nodes until the Relayout store will reposition
+ * Create an <x-container/> DOM node that is not mounted to the real DOM tree.
+ * It will be used to store new DOM nodes until the Relayout action repositions
  * them into their real parent.
  */
 const createFakeFiberContainer = (fiber: FiberNode): TagFiberNode => ({

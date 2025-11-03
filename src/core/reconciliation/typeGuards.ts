@@ -6,7 +6,7 @@ import type {
 } from 'faiwer-react/types';
 
 /**
- * Returns true if the given fiber can container children fiber nodes.
+ * Returns true if the given fiber can contain children fiber nodes.
  */
 export const isContainerFiber = (fiber: FiberNode): boolean =>
   fiber.type === 'component' ||

@@ -5,8 +5,8 @@ import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
 /**
  * A hook that memoizes the result of a computation and only recalculates it
  * when one of the dependencies has changed. This is useful for expensive
- * calculations that you don't want to repeat on every render. Or when you want
- * to preserve the same object across the renders to avoid invalidating effects
+ * calculations that you don't want to repeat on every render, or when you want
+ * to preserve the same object across renders to avoid invalidating effects
  * or other memoization.
  *
  * @example

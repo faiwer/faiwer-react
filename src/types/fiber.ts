@@ -20,7 +20,7 @@ type CommonFiber = {
   /** Unique (within the given app) ID of the fiber. */
   id: number;
   /** Since we support multiple apps simultaneously this is the ID of the map
-   * this nodes belongs to. */
+   * this node belongs to. */
   appId: number;
   /**
    * The parent fiber node.
@@ -30,8 +30,8 @@ type CommonFiber = {
   /** Lazily calculated position within the fiber tree. */
   level: number | null;
   /**
-   * A list of fiber-children. For simplicity every fiber has this field. Even
-   * though text- & fragment-based fibers don't support children.
+   * A list of fiber children. For simplicity every fiber has this field. Even
+   * though text and fragment-based fibers don't support children.
    *
    * Note: `children` for component fibers is not equal the component's
    * children-prop. A children-prop may be anything. It's used only to run the
@@ -70,10 +70,10 @@ export type ComponentFiberNode = CommonFiber & {
    * Since components can render everything we never know the element.
    *
    * Note: when component is rendered in the compact mode `element` refers to
-   * the only rendered DOM-node of one of its child fiber-nodes.
+   * the only rendered DOM node of one of its child fiber nodes.
    *
    * Note: when `element` refers to <!--r:end:id--> it means it renders a
-   * fragment-like content (2+ DOM-nodes) that is clamped between
+   * fragment-like content (2+ DOM nodes) that is clamped between
    * <!--r:begin:id--> and <!--r:end:id--> HTML-comment nodes.
    */
   element: DomNode | null;
@@ -107,7 +107,7 @@ export type TextFiberNode = CommonFiber & {
  */
 export type PortalFiberNode = CommonFiber & {
   type: 'tag';
-  /** A target DOM-node. */
+  /** A target DOM node. */
   data: HTMLElement;
   key: ReactKey | null;
   role: 'portal';
@@ -154,8 +154,8 @@ export type ContextFiberNode<T = unknown> = Omit<
 export type TagState = {
   /**
    * To avoid running `(add|remove)EventListener` every render we wrap the given
-   * event handlers and put the methods in this map. `null` mean the 1st render,
-   * when the event handler is not yet set up but is presented in JSX.
+   * event handlers and put the methods in this map. `null` means the first
+   * render, when the event handler is not yet set up but is presented in JSX.
    */
   events: Partial<
     Record<string, { wrapper: EventListener; handler: Function | null }>

@@ -3,9 +3,9 @@ import { getAppByFiber } from './app';
 import { reactRender } from './render';
 
 /**
- * Put the given component to the update-queue (`invalidatedComponents`).
- * Schedules a new render cycle if it's not scheduled already. Throws an error
- * if invalidating is happening in the wrong app state.
+ * Adds the given component to the update queue (`invalidatedComponents`).
+ * Schedules a new render cycle if one isn't scheduled already. Throws an error
+ * if invalidation is happening in the wrong app state.
  */
 export const invalidateFiber = (fiber: FiberNode): void => {
   if (fiber.type !== 'component') {

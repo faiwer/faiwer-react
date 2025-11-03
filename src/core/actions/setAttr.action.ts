@@ -4,7 +4,7 @@ import { nullthrows } from 'faiwer-react/utils';
 import { isEventName } from './helpers';
 
 /**
- * It's applicable only to DOM Tag nodes and handles the following scenarios:
+ * Applicable only to DOM tag nodes and handles the following scenarios:
  * - Removing, adding or updating an attribute
  * - Removing, adding or replacing an event handler
  */
@@ -29,8 +29,8 @@ export function setAttrAction(
   } else {
     const strValue = String(value);
     if (strValue !== element.getAttribute(name)) {
-      // Without this check updates like img.src = the-same-src
-      // lead to retrigerring the onload handler.
+      // Without this check, updates like img.src = the-same-src
+      // lead to retriggering the onload handler.
       element.setAttribute(name === 'className' ? 'class' : name, strValue);
     }
   }
@@ -60,20 +60,20 @@ const setEventHandler = (
 
   const eventName = name.slice(2); // onclick -> click.
 
-  // Instead of adding and removing event handlers on every renders we can add a
-  // wrapper that calls `events[eventName]`, and update only the internal
+  // Instead of adding and removing event handlers on every render, we can add a
+  // wrapper that calls `events[eventName]` and update only the internal
   // function when it changes.
   if (!events[name]) {
     events[name] = {
       handler: value,
       wrapper: (event: Event) => {
-        // Original React doesn't support stopping propagation on `false return.
+        // Original React doesn't support stopping propagation on `false` return.
         events[name]!.handler?.(event);
       },
     };
     element.addEventListener(eventName, events[name].wrapper);
   } else {
-    // The tag is already listening this event. Just update the internal ref.
+    // The tag is already listening to this event. Just update the internal ref.
     events[name].handler = value;
   }
 };

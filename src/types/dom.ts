@@ -5,7 +5,7 @@ import type { HtmlRef, RefSetter } from './refs';
 export type DomNode = Element | Text | Comment;
 
 export type TagAttrValue =
-  // Next scalar values will be stingified
+  // Next scalar values will be stringified
   | string
   | number
   | boolean
@@ -22,7 +22,7 @@ type EventKeys<T extends HTMLElement> = {
 
 /**
  * Each HTMLElement contains a ton of properties. Most of them shouldn't be used
- * in JSX-tag-nodes. This type matches most inapplicable generic properties.
+ * in JSX tag nodes. This type matches most inapplicable generic properties.
  */
 type GeneralRemove =
   | `DOCUMENT_${string}`
@@ -99,7 +99,7 @@ export type SvgRootProps = TagProps<HTMLElement> & {
 /**
  * It's a whole world of non-implemented types :(. I haven't found any simple
  * way to get it from the default DOM types, so I left a fallback that at least
- * doesn't block svg-tags.
+ * doesn't block SVG tags.
  */
 // prettier-ignore
 export type SvgTagProps =

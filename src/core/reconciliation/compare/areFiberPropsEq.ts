@@ -1,7 +1,7 @@
 import type { FiberNode, UnknownProps } from 'faiwer-react/types';
 
 /**
- * Returns false when `r` !== `l` and requires to be updated. It doesn't involve
+ * Returns false when `r` !== `l` and requires updating. This doesn't involve
  * any `children` checks.
  */
 export const areFiberPropsEq = (l: FiberNode, r: FiberNode): boolean => {

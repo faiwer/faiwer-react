@@ -2,7 +2,7 @@ import type { ReactComponent } from './component';
 import type { FiberNode } from './fiber';
 
 export type ReactContextProvider<T = unknown> =
-  // Fake. It's not callable. React fakes it too. JSX require each node
+  // Fake. It's not callable. React fakes it too. JSX requires each node
   // that can be done by <Capitalized/>-syntax to be a valid component.
   // prettier-ignore
   & ReactComponent<{ children: JSX.Element; value: T }>

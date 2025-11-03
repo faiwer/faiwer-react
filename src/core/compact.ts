@@ -26,9 +26,9 @@ const isEmptyOf = (domNode: ChildNode, fiber: FiberNode): domNode is Comment =>
   domNode.textContent === buildCommentText('empty', fiber.id);
 
 /**
- * Returns true if the given `fiber` is in the solo compact mode. It means it
- * doesn't have its own direct DOM element. Instead its `element` refers to its
- * only child's `element`. It allows avoiding using !--brackets.
+ * Returns true if the given `fiber` is in solo compact mode. This means it
+ * doesn't have its own direct DOM element. Instead, its `element` refers to its
+ * only child's `element`, avoiding the need for <!--brackets-->.
  */
 export const isCompactSingleChild = (
   fiber: FiberNode,
@@ -40,8 +40,8 @@ export const isCompactSingleChild = (
   !isEmptyOf(fiber.element!, fiber);
 
 /**
- * Returns true if the given `fiber` is in the none compact mode. It means it
- * has no fiber-children, and it's element is <!--r:empty:id-->
+ * Returns true if the given `fiber` is in none compact mode. This means it
+ * has no fiber children, and its element is <!--r:empty:id-->
  */
 export const isCompactNone = (
   fiber: FiberNode,
@@ -52,15 +52,15 @@ export const isCompactNone = (
   isEmptyOf(fiber.element!, fiber);
 
 /**
- * If the given fiber node has !--brackets this function tries to apply one of
- * the "compact" optimizations:
+ * If the given fiber node has <!--brackets-->, this function tries to apply one
+ * of the "compact" optimizations:
  *
- * - If the node has no children it'll replace the brackets with
- *   <!--r:empty:id-->.
- * - If the node has only one child it'll remove the brackets and refer
- *   `fiber.element` to its only direct DOM child.
+ * - If the node has no children, it replaces the brackets with
+ *   <!--r:empty:id-->
+ * - If the node has only one child, it removes the brackets and sets
+ *   `fiber.element` to reference its only direct DOM child
  *
- * It'll also try to compact recursively the parent nodes when it's possible.
+ * It also tries to recursively compact parent nodes when possible.
  */
 export function tryToCompactNode(fiber: FiberNode): void {
   if (!isEndOf(fiber.element!, fiber)) {
@@ -69,9 +69,9 @@ export function tryToCompactNode(fiber: FiberNode): void {
 
   // By default each fragment or component is rendered with 3+ nodes:
   // <!--r:begin:id--> + …children + <!--r:end:id-->
-  // It works this way to support 0 or 2+ amount of nodes without having
-  // too complex logic. But in most of cases there is only one child. Or none.
-  // Such for scenarios we support two different compact modes.
+  // This approach supports 0 or 2+ nodes without overly complex logic.
+  // However, most cases have only one child or none. For these scenarios,
+  // we support two different compact modes.
 
   const prev1 = fiber.element!.previousSibling;
   // Scenario 1: 0 children.
@@ -91,7 +91,7 @@ export function tryToCompactNode(fiber: FiberNode): void {
     prev2.remove(); // !--begin
     fiber.element!.remove(); // !--end
     fiber.element = fiber.children[0].element;
-    // <!--begin--><!--end--> are removed. Now `fiber`.element refers to it's
+    // <!--begin--><!--end--> are removed. Now `fiber.element` refers to its
     // only child node.
     tryToCompactNode(fiber.parent);
   }

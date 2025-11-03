@@ -12,7 +12,7 @@ import { getAppByFiber } from './reconciliation/app';
 let currentFiber: ComponentFiberNode | null;
 
 /**
- * Return the fiber of the component that is being rendered right now. Don't
+ * Returns the fiber of the component that is being rendered right now. Don't
  * run this function outside of the render phase.
  */
 export const getCurrentComponentFiber = (): ComponentFiberNode =>
@@ -33,7 +33,7 @@ let firstFiberRender = false;
 export const isFirstFiberRender = (): boolean => firstFiberRender;
 
 /**
- * It runs the functional component. Before running it prepares everything that
+ * Runs the functional component. Before running, it prepares everything that
  * is required to make hooks work. The result is JSX returned from the component
  * function.
  */
@@ -72,7 +72,7 @@ const getComponentHookStore = (fiberNode: ComponentFiberNode): HookStore => {
 };
 
 /**
- * Switch to the next hook and returns its state.
+ * Switches to the next hook and returns its state.
  */
 export const getNextFiberState = (): HookStateItem =>
   getComponentHookStore(getCurrentComponentFiber())[++hookIdx];
