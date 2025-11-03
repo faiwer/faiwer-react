@@ -3,7 +3,7 @@ import type { ReactContextProvider } from './context';
 
 /**
  * Any unique string or number that can help the React engine to identify the
- * given node in the reconcilation algorithm. Also can be used to forcibly
+ * given node in the reconciliation algorithm. Also can be used to forcibly
  * recreate the given node by purpose.
  */
 export type ReactKey = string | number;

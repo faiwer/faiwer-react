@@ -19,7 +19,7 @@ export const getFiberLevel = (fiber: FiberNode): number => {
 export const FAKE_CONTAINER_TAG = 'x-container';
 
 /** Pseudo tagName for fragment JSX.Elements. Not used anywhere but in
- * jsxElementToFiberNode differenciate fragments from tags. */
+ * jsxElementToFiberNode to differentiate fragments from tags. */
 export const FRAGMENT_TAG = 'x-fragment';
 
 let fiberIdx = 0;

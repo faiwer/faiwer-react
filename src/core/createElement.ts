@@ -8,7 +8,7 @@ import type {
 
 /**
  * This method is used as the JSX resolver. Every <tag/> or <Component/> is a
- * call to this methods.
+ * call to this method.
  *
  * @example
  * <div key="key" className="a" /> ===
@@ -89,9 +89,9 @@ type TagProps = UnknownProps & {
 
 /**
  * Use it to render the given content in some external HTML node. Unlike in the
- * original React this version doesn't support interdimentional event bubbling.
+ * original React this version doesn't support interdimensional event bubbling.
  *
- * For some React in original React it's not <Portal target=?/>. In this library
+ * For some reason in original React it's not <Portal target=?/>. In this library
  * it's just a simple wrapper over `createElement` with `type === domNode`.
  */
 export function createPortal(

@@ -54,7 +54,7 @@ export function removeAction(fiber: FiberNode) {
  * node after removal it makes sense, because such an event handlers captures a
  * link to a fiber tree. It will be a memory leak when the tag node is preserved
  * somewhere in the user's code. It would be a memory leak anyway, but it's
- * better to mitigate such an ussue.
+ * better to mitigate such an issue.
  */
 const unlistenTagEvents = (fiber: TagFiberNode): void => {
   for (const [name, record] of Object.entries(fiber.data.events)) {

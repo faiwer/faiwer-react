@@ -7,7 +7,7 @@ import { applyAction } from './applyAction';
  * - Creates a <!--r:portal:id--> comment for a portal fiber
  * - Creates a new tag DOM-node for a tag fiber
  *
- * It doesn't create childern nodes and doesn't set any attributes or event
+ * It doesn't create children nodes and doesn't set any attributes or event
  * handlers.
  */
 export function createTagAction(fiber: FiberNode): void {
@@ -16,7 +16,7 @@ export function createTagAction(fiber: FiberNode): void {
   }
 
   if (fiber.data instanceof HTMLElement) {
-    // It's a portal. Not a regular tag. We shoudln't create it, it already
+    // It's a portal. Not a regular tag. We shouldn't create it, it already
     // exists somewhere outside of the app's dom-sub-tree. Instead we need
     // to create a new <!--r:portal:id--> node.
     applyAction({ type: 'CreateComment', fiber, mode: 'portal' });
