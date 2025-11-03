@@ -106,18 +106,21 @@ const setTagStyles = (
 
   for (const key of Object.keys(fiber.data.styles ?? {})) {
     if (!(key in newStyles)) {
-      elementStyle.removeProperty(key);
+      if (key.includes('-')) {
+        elementStyle.removeProperty(key);
+      } else if (key in elementStyle) {
+        // @ts-ignore It's wrongly typed as read-only.
+        elementStyle[key as keyof TagStyles] = '';
+      }
     }
   }
 
   for (const [key, value] of Object.entries(newStyles)) {
     if (key.includes('-')) {
       elementStyle.setProperty(key, value as string);
-    } else {
-      if (key in elementStyle) {
-        // @ts-ignore It's wrongly typed as read-only.
-        elementStyle[key as keyof TagStyles] = value;
-      }
+    } else if (key in elementStyle) {
+      // @ts-ignore It's wrongly typed as read-only.
+      elementStyle[key as keyof TagStyles] = value;
     }
   }
 
