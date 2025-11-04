@@ -3,7 +3,7 @@ export * from './hooks/index';
 export * from '~/core/createRoot';
 export * from '~/core/createElement';
 
-export function memo<T>(Comp: T, isEq: unknown): T {
+export function memo<T>(Comp: T, isEq?: unknown): T {
   if (isEq) {
     throw new Error(`Custom "isEqual" for memo is not supported`);
   }
