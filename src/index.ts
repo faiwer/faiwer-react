@@ -3,6 +3,7 @@ export * from './hooks/index';
 export * from '~/core/createRoot';
 export * from '~/core/createElement';
 export { Component } from '~/core/classComponent';
+export * from './mocks';
 
 export function memo<T>(Comp: T, isEq?: unknown): T {
   if (isEq) {
