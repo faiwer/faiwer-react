@@ -1,30 +1,38 @@
 import type { ReactComponent, UnknownProps } from './types';
 
 /**
- * For now, it's not implemented. Later, it won't be needed because the `ref`
- * will be passed right into the given component as a regular prop.
+ * Currently a no-op that returns the component unchanged. In the future,
+ * ref forwarding won't be needed since refs will be passed as regular props
+ * to components.
  */
 export const forwardRef = <T extends UnknownProps>(
   Component: ReactComponent<T>,
 ): typeof Component => Component;
 
 /**
- * The engine doesn't support dropping parts of the updates on the fly. But to
- * mitigate the issue we can just run the given actions as is.
+ * Mock implementation of React's startTransition. This engine doesn't support
+ * concurrent features or update prioritization, so transitions are executed
+ * immediately without deferring.
  */
 export const startTransition = (fn: () => void) => {
   fn();
 };
 
 /**
- * Not supported. Runs the given action setters as is as a fallback.
+ * Mock implementation of React's flushSync. Unlike React, this engine's
+ * scheduler renders in the next JS tick, so this is a simplified version
+ * that executes the callback but doesn't force synchronous rendering.
+ *
+ * Note: True flushSync behavior would require bypassing the scheduler
+ * and rendering immediately, which is not currently implemented.
  */
 export const flushSync = (fn: () => void) => {
   fn();
 };
 
 /**
- * Not supported. Probable never will. There is no way to mock it.
+ * Suspense is not supported and likely never will be, as it requires complex
+ * async rendering capabilities. Throws an error when used.
  */
 export const Suspense = () => {
   throw new Error(`Suspense is not supported`);

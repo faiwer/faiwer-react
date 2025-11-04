@@ -1,4 +1,5 @@
 import type {
+  ElementNode,
   ElementType,
   FiberNode,
   ReactContext,
