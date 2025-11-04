@@ -1,12 +1,11 @@
-import type {
-  FiberNode,
-  TagAttrValue,
-  TagFiberNode,
-  TagStyles,
-} from 'faiwer-react/types';
+import type { FiberNode } from 'faiwer-react/types';
 import type { SetAttrAction } from 'faiwer-react/types/actions';
 import { nullthrows } from 'faiwer-react/utils';
 import { isEventName } from './helpers';
+import { setSvgAttribute } from './dom/svg';
+import { setTagStyles } from './dom/css';
+import { setEventHandler } from './dom/events';
+import { setHtmlAttribute } from './dom/attributes';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -41,143 +40,8 @@ export function setAttrAction(
       if (element instanceof SVGElement) {
         setSvgAttribute(element, name, strValue);
       } else {
-        element.setAttribute(name === 'className' ? 'class' : name, strValue);
+        setHtmlAttribute(element as HTMLElement, name, value);
       }
     }
   }
 }
-
-const setEventHandler = (
-  fiber: TagFiberNode,
-  element: Element,
-  name: string,
-  value: TagAttrValue,
-): void => {
-  const { events } = fiber.data;
-
-  if (value == null || value === false) {
-    if (events[name]) {
-      // Event handler was added before but now it's removed.
-      events[name].handler = null;
-    }
-    return;
-  }
-
-  if (typeof value !== 'function') {
-    throw new Error(
-      `Unsupported format of event handler. It has to be "undefined" or a function`,
-    );
-  }
-
-  const eventName = name.slice(2); // onclick -> click.
-
-  // Instead of adding and removing event handlers on every render, we can add a
-  // wrapper that calls `events[eventName]` and update only the internal
-  // function when it changes.
-  if (!events[name]) {
-    events[name] = {
-      handler: value,
-      wrapper: (event: Event) => {
-        // Original React doesn't support stopping propagation on `false` return.
-        events[name]!.handler?.(event);
-      },
-    };
-    element.addEventListener(eventName, events[name].wrapper);
-  } else {
-    // The tag is already listening to this event. Just update the internal ref.
-    events[name].handler = value;
-  }
-};
-
-/**
- * Handles removing, toggling and adding tag styles.
- */
-const setTagStyles = (
-  fiber: TagFiberNode,
-  /** Should be a CSS-string (hyphens) or a CSS map (camelCase) */
-  stylesRaw: TagAttrValue,
-): void => {
-  if (
-    typeof stylesRaw !== 'string' &&
-    stylesRaw != null &&
-    typeof stylesRaw !== 'object'
-  ) {
-    throw new Error(`Unsupported format of styles`);
-  }
-
-  const elementStyle = (fiber.element as HTMLElement).style;
-  const newStyles: TagStyles =
-    typeof stylesRaw === 'string' ? strToStyles(stylesRaw) : (stylesRaw ?? {});
-
-  if (Object.keys(newStyles).length > 0) {
-    for (const key of Object.keys(fiber.data.styles ?? {})) {
-      if (!(key in newStyles)) {
-        if (key.includes('-')) {
-          elementStyle.removeProperty(key);
-        } else if (key in elementStyle) {
-          // @ts-ignore It's wrongly typed as read-only.
-          elementStyle[key as keyof TagStyles] = '';
-        }
-      }
-    }
-
-    for (const [key, value] of Object.entries(newStyles)) {
-      if (key.includes('-')) {
-        elementStyle.setProperty(key, value as string);
-      } else if (key in elementStyle) {
-        // @ts-ignore It's wrongly typed as read-only.
-        elementStyle[key as keyof TagStyles] = value;
-      }
-    }
-  } else {
-    fiber.element!.removeAttribute('style');
-  }
-
-  fiber.data.styles = newStyles;
-};
-
-/**
- * Converts a string like "color: red; font-size: 12px" to
- * { color: 'red', ['font-size']: '12px' }
- */
-const strToStyles = (css: string): TagStyles => {
-  cssDummy.style.cssText = css;
-  return Object.fromEntries(
-    Array.from(cssDummy.style).map((k) => [
-      k,
-      cssDummy.style.getPropertyValue(k),
-    ]),
-  );
-};
-
-const cssDummy = document.createElement('x-css-dummy');
-
-/**
- * SVG is weird. Some of the attributes are in camelCase, and some are in
- * kebab-case. This methods takes into account SVG-based nuances and sets the
- * given attribute in the right way.
- */
-const setSvgAttribute = (
-  element: SVGElement,
-  name: string,
-  value: string,
-): void => {
-  if (name === 'className') {
-    name = 'class';
-  } else if (!SVG_KEBAB.has(name)) {
-    name = name.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase());
-  }
-  element.setAttribute(name, value);
-};
-
-// Most of SVG attributes are in kebab-cases. Here is the list of exclusions.
-const SVG_KEBAB = new Set([
-  'viewBox',
-  'preserveAspectRatio',
-  'patternUnits',
-  'patternContentUnits',
-  'maskUnits',
-  'maskContentUnits',
-  'markerWidth',
-  'markerHeight',
-]);
