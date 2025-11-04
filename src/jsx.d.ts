@@ -3,11 +3,17 @@ import {
   type TagProps,
   type SvgTagProps,
   type SvgRootProps,
+  type ReactComponent,
+  type FC,
 } from './types';
 
 export {};
 
 declare global {
+  namespace React {
+    export { FC };
+  }
+
   namespace JSX {
     type Element = JsxElement;
 

@@ -15,3 +15,7 @@ export type PropsWithChildren<TProps extends UnknownProps = UnknownProps> =
 export type ReactComponentWithChildren<
   TProps extends UnknownProps = UnknownProps,
 > = ReactComponent<PropsWithChildren<TProps>>;
+
+// For compatibility with React.
+export type FC<Props extends UnknownProps = UnknownProps> =
+  ReactComponent<Props>;
