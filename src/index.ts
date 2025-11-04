@@ -4,6 +4,8 @@ export * from '~/core/createRoot';
 export * from '~/core/createElement';
 export { Component } from '~/core/classComponent';
 export * from './mocks';
+export { isValidElement } from './core/reconciliation/typeGuards';
+export { Children } from './core/Children';
 
 export function memo<T>(Comp: T, isEq?: unknown): T {
   if (isEq) {

@@ -52,3 +52,18 @@ export function assertsTagAttrValue(
       );
   }
 }
+
+/**
+ * Not used in the library, but it's a part of what React exports. Returns true
+ * if the given value is something that `createElement` returns.
+ */
+export const isValidElement = (value: unknown): value is ElementNode => {
+  return (
+    typeof value === 'object' &&
+    !!value &&
+    'type' in value &&
+    'props' in value &&
+    'key' in value &&
+    'children' in value
+  );
+};
