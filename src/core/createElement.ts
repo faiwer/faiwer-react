@@ -106,3 +106,26 @@ export function createPortal(
 ) {
   return createElementNew(domNode, { children }, key);
 }
+
+/**
+ * @deprecated Legacy version of `createElement` for 3rd party libs that already
+ * built with this signature.
+ */
+export function createElement(
+  // prettier-ignore
+  type: // <ctx.Provider/>, basically an object like { __ctx: context }
+    | ReactContextProvider
+    // A tag-string or a component
+    | ElementType
+    // A target for a portal.
+    | HTMLElement,
+  propsRaw: Record<PropertyKey, unknown>,
+  ...children: JSX.Element[]
+): ElementNode {
+  const { key, ...props } = propsRaw ?? {};
+  return createElementNew(
+    type,
+    { ...props, children: props.children ?? children },
+    key as ReactKey | undefined,
+  );
+}
