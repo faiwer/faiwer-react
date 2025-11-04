@@ -5,6 +5,11 @@ import type {
   ReactKey,
   UnknownProps,
 } from 'faiwer-react/types';
+import {
+  Component,
+  convertClassComponentToFC,
+  isComponentClass,
+} from './classComponent';
 
 /**
  * This method is used as the JSX resolver. Every <tag/> or <Component/> is a
@@ -36,7 +41,9 @@ export function createElementNew(
     // A tag-string or a component
     | ElementType
     // A target for a portal.
-    | HTMLElement,
+    | HTMLElement
+    // A legacy class-based component
+    | (new (props: UnknownProps) => Component<UnknownProps>),
   propsRaw: Record<PropertyKey, unknown>,
   key: ReactKey | null | undefined,
   // The following arguments are provided only in the development mode.
@@ -46,6 +53,10 @@ export function createElementNew(
   _self?: unknown,
 ): ElementNode {
   key ??= null; // Narrow the type for simplicity.
+
+  if (isComponentClass(type)) {
+    type = convertClassComponentToFC(type);
+  }
 
   if (typeof type === 'function') {
     // Any component instance (<Message/>).

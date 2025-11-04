@@ -1,6 +1,7 @@
 import {
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -11,13 +12,24 @@ import type {
   UnknownProps,
 } from 'faiwer-react/types';
 
+export const isComponentClass = (
+  value: unknown,
+): value is new (props: UnknownProps) => Component<UnknownProps> => {
+  return (
+    value != null &&
+    typeof value === 'function' &&
+    'prototype' in value &&
+    value.prototype instanceof Component
+  );
+};
+
 /**
  * A naive implementation of legacy class-based React components. Only the most
  * important methods are implemented. The implementation is very poor. Don't
  * rely on it.
  */
 export class Component<
-  Props extends UnknownProps,
+  Props extends UnknownProps = UnknownProps,
   State extends UnknownProps = UnknownProps,
 > {
   props: Props;
@@ -82,7 +94,10 @@ export const convertClassComponentToFC = <
   Component: new (props: Props) => Component<Props, State>,
 ): ReactComponent<Props> =>
   function FromClassComponent(props: Props): JSX.Element {
-    const { current: ref } = useRef<InternalState<Props>>({ mounted: false });
+    const { current: ref } = useRef<InternalState<Props>>({
+      mounted: false,
+      rendered: 0,
+    });
 
     const instance = useMemo(
       () =>
@@ -97,7 +112,13 @@ export const convertClassComponentToFC = <
       () => instance.state! ?? ({} as State),
     );
 
-    useEffect(() => {
+    if (!ref.mounted) {
+      instance.setState = function classSetState(update) {
+        setState((prev) => ({ ...prev, ...update }));
+      };
+    }
+
+    useLayoutEffect(() => {
       ref.mounted = true;
 
       instance.setState = (update) => {
@@ -140,6 +161,7 @@ export const convertClassComponentToFC = <
       ref.prevOutput = instance.render();
     }
 
+    ++ ref.rendered;
     return ref.prevOutput;
   };
 
@@ -147,15 +169,5 @@ interface InternalState<Props extends UnknownProps> {
   prevProps?: Props;
   prevOutput?: JSX.Element | null;
   mounted: boolean;
+  rendered: number;
 }
-
-export const isComponentClass = (
-  value: unknown,
-): value is new (props: UnknownProps) => Component<UnknownProps> => {
-  return (
-    value != null &&
-    typeof value === 'function' &&
-    'prototype' in value &&
-    value.prototype instanceof Component
-  );
-};
