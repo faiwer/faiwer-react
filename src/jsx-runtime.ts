@@ -1,4 +1,4 @@
-import { createElement } from '~/index';
+import { createElementNew } from '~/index';
 import { FRAGMENT_TAG } from './core/reconciliation/fibers';
 
 /**
@@ -14,7 +14,7 @@ import { FRAGMENT_TAG } from './core/reconciliation/fibers';
  * <span>A</span> ===
  *    jsx("span", { children: "A" })
  */
-export const jsx = createElement;
+export const jsx = createElementNew;
 
 /**
  * `createElement` with 2+ children
@@ -25,7 +25,7 @@ export const jsx = createElement;
  *     jsx("span", { children: "B" })
  *   ]});
  */
-export const jsxs = createElement;
+export const jsxs = createElementNew;
 
 /**
  * <>[1,2]</>

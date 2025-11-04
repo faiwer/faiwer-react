@@ -24,7 +24,7 @@ import type {
  *     key
  *   );
  */
-export function createElement(
+export function createElementNew(
   /**
    * What to render. Can be a tag (string), a component (function),
    * or a portal target (HTMLElement).
@@ -104,5 +104,5 @@ export function createPortal(
   /** Custom key if you need to conditionally recreate portals. */
   key?: string,
 ) {
-  return createElement(domNode, { children }, key);
+  return createElementNew(domNode, { children }, key);
 }
