@@ -21,8 +21,93 @@ export function createTagAction(fiber: FiberNode): void {
     applyAction({ type: 'CreateComment', fiber, mode: 'portal' });
   } else if (fiber.tag !== 'root') {
     // 'root' is a special case - it's the node where the app is mounted.
-    const tag = document.createElement(fiber.tag);
+    const tag = SVG_TAGS.has(fiber.tag)
+      ? document.createElementNS('http://www.w3.org/2000/svg', fiber.tag)
+      : document.createElement(fiber.tag);
     fiber.element = tag;
     getParentElement(fiber).appendChild(fiber.element);
   }
 }
+
+const SVG_TAGS = new Set([
+  // Core SVG Elements:
+  'svg',
+  'g',
+  'defs',
+  'symbol',
+  'use',
+  'image',
+  'switch',
+  'style',
+  // Basic Shapes:
+  'rect',
+  'circle',
+  'ellipse',
+  'line',
+  'polyline',
+  'polygon',
+  'path',
+  // Text Elements:
+  'text',
+  'tspan',
+  'tref',
+  'textPath',
+  'altGlyph',
+  'glyphRef',
+  // Descriptive & Metadata:
+  'title',
+  'desc',
+  'metadata',
+  // Container Elements:
+  'foreignObject',
+  'marker',
+  'pattern',
+  'mask',
+  'clipPath',
+  'filter',
+  // Gradient & Painting Elements:
+  'linearGradient',
+  'radialGradient',
+  'stop',
+  // Animation Elements:
+  'animate',
+  'animateMotion',
+  'animateTransform',
+  'set',
+  // Filter Primitive Elements:
+  'feBlend',
+  'feColorMatrix',
+  'feComponentTransfer',
+  'feComposite',
+  'feConvolveMatrix',
+  'feDiffuseLighting',
+  'feDisplacementMap',
+  'feDropShadow',
+  'feFlood',
+  'feFuncA',
+  'feFuncB',
+  'feFuncG',
+  'feFuncR',
+  'feGaussianBlur',
+  'feImage',
+  'feMerge',
+  'feMergeNode',
+  'feMorphology',
+  'feOffset',
+  'fePointLight',
+  'feSpecularLighting',
+  'feSpotLight',
+  'feTile',
+  'feTurbulence',
+  // Font Elements:
+  'font',
+  'glyph',
+  'hkern',
+  'vkern',
+  'font-face',
+  'font-face-src',
+  'font-face-uri',
+  'font-face-format',
+  'font-face-name',
+  'missing-glyph',
+]);

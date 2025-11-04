@@ -273,6 +273,32 @@ describe('Mounting: tags', () => {
     // onclick shouldn't be handler via `setAttribute`.
     expect(spy).toHaveBeenCalledTimes(1);
   });
+
+  it('renders SVG tags as SVGElements', () => {
+    const ns = jest.spyOn(document, 'createElementNS');
+    const root = mount(
+      <svg>
+        <path />
+      </svg>,
+    );
+    expect(root.querySelector('svg')).toBeInstanceOf(SVGElement);
+    expect(root.querySelector('path')).toBeInstanceOf(SVGElement);
+    expect(ns).toHaveBeenCalledTimes(2);
+    expectHtml(root).toBe('<svg><path></path></svg>');
+  });
+
+  it('sets SVG attributes properly', () => {
+    const root = mount(
+      <svg viewBox="0 0 10 10">
+        <path strokeWidth={2} markerWidth={8} />
+      </svg>,
+    );
+    expectHtml(root).toBe(
+      '<svg viewBox="0 0 10 10">' +
+        `<path stroke-width="2" markerWidth="8"></path>` +
+        '</svg>',
+    );
+  });
 });
 
 describe('Mounting: Components & fragments', () => {
