@@ -1,6 +1,6 @@
 {
   "name": "@faiwer/react",
-  "version": "0.8.0",
+  "version": "0.8.3",
   "description": "A hobby project. A naive and simplified React implementation",
   "keywords": ["react", "jsx", "hooks", "virtual-dom", "frontend", "ui-library"],
   "repository": {
@@ -29,10 +29,13 @@
     "./jsx-dev-runtime": {
       "types": "./dist/jsx-dev-runtime.d.ts",
       "default": "./dist/jsx-dev-runtime.js"
+    },
+    "./jsx": {
+      "types": "./dist/jsx.d.ts"
     }
   },
   "scripts": {
-    "build": "npm run clean && npx tsgo -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json",
+    "build": "npm run clean && npx tsgo -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json && cp src/jsx.d.ts dist/jsx.d.ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "test": "jest",
