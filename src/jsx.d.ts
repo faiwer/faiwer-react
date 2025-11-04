@@ -1,3 +1,4 @@
+import type { Component } from './core/classComponent';
 import {
   type JsxElement,
   type TagProps,
@@ -16,6 +17,10 @@ declare global {
 
   namespace JSX {
     type Element = JsxElement;
+
+    interface ElementClass extends Component<any, any> {
+      render: () => JSX.Element;
+    }
 
     interface IntrinsicElements {
       // Document structure
