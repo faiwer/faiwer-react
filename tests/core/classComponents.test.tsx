@@ -131,4 +131,26 @@ describe('Class components', () => {
       expectHtml(root).toBe(`<div>I'm 34 years old</div>`);
     });
   });
+
+  it('supports defaultProps', () => {
+    type Props = { age: number; name: string };
+    class User extends Component<Props> {
+      static defaultProps = { age: 21 };
+
+      constructor(props: Props) {
+        super(props);
+        expect(props.age).toBe(21);
+      }
+
+      render(): JSX.Element {
+        return (
+          <div>
+            {this.props.name}, age: {this.props.age}
+          </div>
+        );
+      }
+    }
+    const root = mount(<User name="Peter" />);
+    expectHtml(root).toBe(`<div>Peter, age: 21</div>`);
+  });
 });

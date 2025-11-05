@@ -92,8 +92,10 @@ export const convertClassComponentToFC = <
   State extends UnknownProps = UnknownProps,
 >(
   Component: new (props: Props) => Component<Props, State>,
-): ReactComponent<Props> =>
-  function FromClassComponent(props: Props): JSX.Element {
+): ReactComponent<Props> => {
+  const { defaultProps } = Component as { defaultProps?: Partial<Props> };
+
+  return function FromClassComponent(props: Props): JSX.Element {
     const { current: ref } = useRef<InternalState<Props>>({
       mounted: false,
       rendered: 0,
@@ -102,7 +104,7 @@ export const convertClassComponentToFC = <
     const instance = useMemo(
       () =>
         new Component({
-          ...(Component as { defaultProps?: Partial<Props> }).defaultProps,
+          ...defaultProps,
           ...props,
         }),
       [],
@@ -121,14 +123,7 @@ export const convertClassComponentToFC = <
     useLayoutEffect(() => {
       ref.mounted = true;
 
-      instance.setState = (update) => {
-        setState((prev) => ({
-          ...prev,
-          ...update,
-        }));
-      };
-
-      instance.componentDidMount?.();
+      instance.componentDidMount();
       return () => {
         instance.componentWillUnmount?.();
         ref.mounted = false;
@@ -151,19 +146,20 @@ export const convertClassComponentToFC = <
     if (ref.mounted) {
       ref.prevProps = instance.props;
     }
-    instance.props = props;
+    instance.props = {
+      ...defaultProps,
+      ...props,
+    };
     instance.state = state;
 
-    if (
-      !ref.mounted ||
-      instance.shouldComponentUpdate(props, instance.state)
-    ) {
+    if (!ref.mounted || instance.shouldComponentUpdate(props, instance.state)) {
       ref.prevOutput = instance.render();
     }
 
-    ++ ref.rendered;
+    ++ref.rendered;
     return ref.prevOutput;
   };
+};
 
 interface InternalState<Props extends UnknownProps> {
   prevProps?: Props;
