@@ -22,13 +22,13 @@ export const setEventHandler = (
     );
   }
 
-  const eventName = name.slice(2); // onclick -> click.
-
   // Instead of adding and removing event handlers on every render, we can add a
-  // wrapper that calls `events[eventName]` and update only the internal
+  // wrapper that calls `events[name]` and update only the internal
   // function when it changes.
   if (!events[name]) {
+    const eventName = name.slice(2).toLowerCase(); // onClick -> click.
     events[name] = {
+      name: eventName,
       handler: value,
       wrapper: (event: Event) => {
         // Original React doesn't support stopping propagation on `false` return.

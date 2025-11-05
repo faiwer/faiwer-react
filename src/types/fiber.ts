@@ -158,7 +158,15 @@ export type TagState = {
    * render, when the event handler is not yet set up but is presented in JSX.
    */
   events: Partial<
-    Record<string, { wrapper: EventListener; handler: Function | null }>
+    Record<
+      string,
+      {
+        /** Adapted event name. The value that is passed to .add|removeEventListener. */
+        name: string;
+        wrapper: EventListener;
+        handler: Function | null;
+      }
+    >
   >;
   styles: TagStyles | null;
 };

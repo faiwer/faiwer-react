@@ -54,9 +54,12 @@ export function removeAction(fiber: FiberNode) {
  * create a memory leak. Better to mitigate this potential issue.
  */
 const unlistenTagEvents = (fiber: TagFiberNode): void => {
-  for (const [name, record] of Object.entries(fiber.data.events)) {
+  for (const record of Object.values(fiber.data.events)) {
     if (record?.wrapper) {
-      (fiber.element as HTMLElement).removeEventListener(name, record.wrapper);
+      (fiber.element as HTMLElement).removeEventListener(
+        record.name,
+        record.wrapper,
+      );
     }
   }
 };

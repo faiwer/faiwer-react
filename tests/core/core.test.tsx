@@ -164,6 +164,13 @@ describe('Mounting: tags', () => {
       expect(onclick).toHaveBeenCalledTimes(2); // Was called again.
     });
 
+    it(`converts camelCase event names to lowercase event names`, () => {
+      const fn = jest.spyOn(HTMLElement.prototype, 'addEventListener');
+      // @ts-expect-error -- TODO
+      mount(<div onClick={() => null} />);
+      expect(fn).toHaveBeenCalledWith('click', expect.any(Function));
+    });
+
     it(`unsets tag attributes. mode: ${mode}`, async () => {
       let updateWithAttr: StateSetter<boolean>;
 
@@ -191,7 +198,7 @@ describe('Mounting: tags', () => {
   }
 
   for (const mode of ['replace tag', 'remove tag']) {
-    it('removes event handlers on tag removal', async () => {
+    it(`removes event handlers on tag removal: ${mode}`, async () => {
       const onclick = jest.fn();
       let updateShow: StateSetter<boolean>;
 
@@ -209,11 +216,13 @@ describe('Mounting: tags', () => {
       };
 
       let eventHandler: EventListenerOrEventListenerObject;
+      let onAddEvent = jest.fn();
       jest
         .spyOn(Element.prototype, 'addEventListener')
         .mockImplementationOnce((type, listener) => {
           expect(type).toBe('click');
           expect(typeof listener).toBe('function');
+          onAddEvent();
           eventHandler = listener;
         });
 
@@ -223,8 +232,9 @@ describe('Mounting: tags', () => {
       expectHtml(div).toBe('div');
 
       await act(() => updateShow(false));
+      expect(onAddEvent).toHaveBeenCalledTimes(1);
       expect(removeSpy).toHaveBeenCalledTimes(1);
-      expect(removeSpy).toHaveBeenCalledWith('onclick', eventHandler!);
+      expect(removeSpy).toHaveBeenCalledWith('click', eventHandler!);
     });
   }
 
