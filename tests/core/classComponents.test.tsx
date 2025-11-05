@@ -275,5 +275,50 @@ describe('Class components', () => {
     });
   });
 
+  it('calls getDerivedStateFromProps to update the state', async () => {
+    type Props = { age: number };
+    type State = { ageNextYear: number; name: string };
+
+    class User extends Component<Props, State> {
+      state: State = { name: 'Karl', ageNextYear: -1 };
+
+      static getDerivedStateFromProps(props: Props, state: State): State {
+        return { ...state, ageNextYear: props.age + 1 };
+      }
+
+      render() {
+        return (
+          <div>
+            Hey, I'm {this.state.name}. I am {this.props.age} years old. Next
+            year I'll be {this.state.ageNextYear} years old
+          </div>
+        );
+      }
+    }
+
+    let updateAge: StateSetter<number>;
+    const Wrapper = () => {
+      const [age, setAge] = useState(20);
+      updateAge = setAge;
+      return <User age={age} />;
+    };
+
+    // 1st render
+    const root = mount(<Wrapper />);
+    expectHtml(root).toBe(
+      `<div>Hey, I'm Karl. I am 20 years old. ` +
+        `Next year I'll be 21 years old</div>`,
+    );
+
+    // 2nd render
+    updateAge!(44);
+    await waitFor(() => {
+      expectHtml(root).toBe(
+        `<div>Hey, I'm Karl. I am 44 years old. ` +
+          `Next year I'll be 45 years old</div>`,
+      );
+    });
+  });
+
   it.todo('shouldComponentUpdate');
 });

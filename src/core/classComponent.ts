@@ -11,6 +11,7 @@ import type {
   ReactContext,
   UnknownProps,
 } from 'faiwer-react/types';
+import { getCurrentComponentFiber } from './components';
 
 export const isComponentClass = (value: unknown): value is ComponentClass => {
   return (
@@ -72,11 +73,12 @@ export class Component<
     throw new Error(`Not implemented`);
   }
 
-  static getSnapshotBeforeUpdate(
-    _prevProps: unknown,
-    _prevState: unknown,
-  ): unknown {
+  getSnapshotBeforeUpdate(_prevProps: unknown, _prevState: unknown): unknown {
     throw new Error(`Not implemented`);
+  }
+
+  static getDerivedStateFromProps(_props: any, _state: any): Partial<any> {
+    return {};
   }
 }
 
@@ -102,10 +104,17 @@ export const convertClassComponentToFC = <
     return cache.get(Component)!;
   }
 
-  const { defaultProps, contextType } = Component as {
-    defaultProps?: Partial<Props>;
-    contextType?: ReactContext<unknown>;
-  };
+  let { defaultProps, contextType, getDerivedStateFromProps } =
+    Component as unknown as {
+      defaultProps?: Partial<Props>;
+      contextType?: ReactContext<unknown>;
+      getDerivedStateFromProps?: (props: Props, state: State) => Partial<State>;
+    };
+  if (
+    getDerivedStateFromProps === Component.prototype.getDerivedStateFromProps
+  ) {
+    getDerivedStateFromProps = undefined;
+  }
 
   function FromClassComponent(props: Props): JSX.Element {
     const { current: ref } = useRef<InternalState<Props, State>>({
@@ -122,9 +131,18 @@ export const convertClassComponentToFC = <
       [],
     );
 
-    const [state, setState] = useState<State>(
+    let [state, setState] = useState<State>(
       () => instance.state! ?? ({} as State),
     );
+    if (getDerivedStateFromProps) {
+      // A dirty hack to update the state on the fly.
+      const fiber = getCurrentComponentFiber();
+      const hookState = fiber.data.hooks!.find((h) => h.type === 'state')!;
+      state = hookState.state = {
+        ...(hookState.state as State),
+        ...getDerivedStateFromProps(props, hookState.state as State),
+      };
+    }
 
     if (!ref.mounted) {
       instance.setState = function classSetState(update) {
