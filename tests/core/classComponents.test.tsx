@@ -153,4 +153,48 @@ describe('Class components', () => {
     const root = mount(<User name="Peter" />);
     expectHtml(root).toBe(`<div>Peter, age: 21</div>`);
   });
+
+  it('runs componentDidMount', async () => {
+    const onMount = jest.fn();
+    class User extends Component {
+      componentDidMount(): void {
+        onMount();
+      }
+      render() {
+        return null;
+      }
+    }
+
+    mount(<User />);
+    expect(onMount).toHaveBeenCalledTimes(1);
+  });
+
+  it('runs componentWillUnmount', async () => {
+    const onUnmount = jest.fn();
+    class User extends Component {
+      componentWillUnmount(): void {
+        onUnmount();
+      }
+      render() {
+        return 42;
+      }
+    }
+
+    let updateShow: StateSetter<boolean>;
+    const Wrapper = () => {
+      const [show, setShow] = useState(true);
+      updateShow = setShow;
+      return show && <User />;
+    };
+
+    const root = mount(<Wrapper />);
+    expectHtml(root).toBe('42');
+    expect(onUnmount).toHaveBeenCalledTimes(0);
+
+    updateShow!(false);
+    await waitFor(() => {
+      expect(onUnmount).toHaveBeenCalledTimes(1);
+      expectHtml(root).toBe('');
+    });
+  });
 });

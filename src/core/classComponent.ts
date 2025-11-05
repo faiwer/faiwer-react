@@ -125,7 +125,7 @@ export const convertClassComponentToFC = <
 
       instance.componentDidMount();
       return () => {
-        instance.componentWillUnmount?.();
+        instance.componentWillUnmount();
         ref.mounted = false;
       };
     }, []);
