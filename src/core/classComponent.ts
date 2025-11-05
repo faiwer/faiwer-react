@@ -12,9 +12,7 @@ import type {
   UnknownProps,
 } from 'faiwer-react/types';
 
-export const isComponentClass = (
-  value: unknown,
-): value is new (props: UnknownProps) => Component<UnknownProps> => {
+export const isComponentClass = (value: unknown): value is ComponentClass => {
   return (
     value != null &&
     typeof value === 'function' &&
@@ -43,7 +41,7 @@ export class Component<
   }
 
   // Overriden in `convertClassComponentToFC`.
-  setState(_update: Partial<Props>) {}
+  setState(_update: Partial<State>) {}
 
   // Could be overridden.
   componentDidMount(): void {}
@@ -83,6 +81,13 @@ export class Component<
 }
 
 /**
+ * Since we're running `convertClassComponentToFC` for the same component each
+ * time its JSX.Element was created we need to cache the output wrapper
+ * component. Otherwise every parent node's render will remount it.
+ */
+const cache = new Map<ComponentClass<any, any>, ReactComponent>();
+
+/**
  * Since I'm too lazy to implement a proper support for this legacy stuff, but
  * some of the 3rd party libraries still rely on it, I've made this converter.
  * It immitate the class-based component's lifecycle using hooks.
@@ -91,12 +96,19 @@ export const convertClassComponentToFC = <
   Props extends UnknownProps,
   State extends UnknownProps = UnknownProps,
 >(
-  Component: new (props: Props) => Component<Props, State>,
+  Component: ComponentClass<Props, State>,
 ): ReactComponent<Props> => {
-  const { defaultProps } = Component as { defaultProps?: Partial<Props> };
+  if (cache.has(Component)) {
+    return cache.get(Component)!;
+  }
 
-  return function FromClassComponent(props: Props): JSX.Element {
-    const { current: ref } = useRef<InternalState<Props>>({
+  const { defaultProps, contextType } = Component as {
+    defaultProps?: Partial<Props>;
+    contextType?: ReactContext<unknown>;
+  };
+
+  function FromClassComponent(props: Props): JSX.Element {
+    const { current: ref } = useRef<InternalState<Props, State>>({
       mounted: false,
       rendered: 0,
     });
@@ -131,21 +143,18 @@ export const convertClassComponentToFC = <
     }, []);
 
     useEffect(() => {
-      if (ref.mounted) {
-        instance.componentDidUpdate(ref.prevProps!, instance.state);
+      if (ref.prevProps) {
+        instance.componentDidUpdate(ref.prevProps!, ref.prevState!);
       }
+
+      ref.prevProps = instance.props;
+      ref.prevState = instance.state;
     });
 
-    if ((Component as { contextType?: ReactContext<unknown> }).contextType) {
-      instance.context = useContext(
-        (Component as unknown as { contextType: ReactContext<unknown> })
-          .contextType,
-      );
+    if (contextType) {
+      instance.context = useContext(contextType);
     }
 
-    if (ref.mounted) {
-      ref.prevProps = instance.props;
-    }
     instance.props = {
       ...defaultProps,
       ...props,
@@ -158,11 +167,23 @@ export const convertClassComponentToFC = <
 
     ++ref.rendered;
     return ref.prevOutput;
-  };
+  }
+
+  cache.set(Component, FromClassComponent as any);
+  return FromClassComponent;
 };
 
-interface InternalState<Props extends UnknownProps> {
+export type ComponentClass<
+  Props extends UnknownProps = UnknownProps,
+  State extends UnknownProps = UnknownProps,
+> = new (props: Props) => Component<Props, State>;
+
+interface InternalState<
+  Props extends UnknownProps,
+  State extends UnknownProps,
+> {
   prevProps?: Props;
+  prevState?: State;
   prevOutput?: JSX.Element | null;
   mounted: boolean;
   rendered: number;

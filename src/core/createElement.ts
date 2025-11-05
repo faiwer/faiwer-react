@@ -6,9 +6,9 @@ import type {
   UnknownProps,
 } from 'faiwer-react/types';
 import {
-  Component,
   convertClassComponentToFC,
   isComponentClass,
+  type ComponentClass,
 } from './classComponent';
 
 /**
@@ -43,7 +43,7 @@ export function createElementNew(
     // A target for a portal.
     | HTMLElement
     // A legacy class-based component
-    | (new (props: UnknownProps) => Component<UnknownProps>),
+    | ComponentClass,
   propsRaw: Record<PropertyKey, unknown>,
   key: ReactKey | null | undefined,
   // The following arguments are provided only in the development mode.

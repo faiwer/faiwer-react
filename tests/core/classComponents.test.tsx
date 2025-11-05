@@ -7,6 +7,7 @@ import {
   type UnknownProps,
 } from 'faiwer-react';
 import { expectHtml, mount, waitFor } from '../helpers';
+import type { ComponentClass } from 'faiwer-react/core/classComponent';
 
 describe('Class components', () => {
   it('renders a class component', () => {
@@ -45,11 +46,8 @@ describe('Class components', () => {
 
   const genWithRef = <Props extends UnknownProps, State extends UnknownProps>(
     initialState: State,
-    Source: new (props: Props) => Component<Props, State>,
-  ): [
-    Ref<Component<Props, State>>,
-    new (props: Props) => Component<Props, State>,
-  ] => {
+    Source: ComponentClass<Props, State>,
+  ): [Ref<Component<Props, State>>, ComponentClass<Props, State>] => {
     let ref: Ref<Component<Props, State>> = {
       current: null as unknown as Component<Props, State>,
     };
@@ -197,4 +195,54 @@ describe('Class components', () => {
       expectHtml(root).toBe('');
     });
   });
+
+  it('runs componentDidUpdate', async () => {
+    const didUpdate = jest.fn();
+
+    type Props = { id: number };
+    type State = { age: number };
+    const [ref, User] = genWithRef(
+      { age: 20 },
+      class User extends Component<Props, State> {
+        override componentDidUpdate(prevProps: Props, prevState: State): void {
+          didUpdate(prevProps, prevState);
+        }
+        render() {
+          return (
+            <>
+              {this.props.id}, {this.state.age}
+            </>
+          );
+        }
+      },
+    );
+
+    let updateId: StateSetter<number>;
+    const Wrapper = () => {
+      const [id, setId] = useState(1);
+      updateId = setId;
+      return <User id={id} />;
+    };
+
+    const root = mount(<Wrapper />);
+    expectHtml(root).toBe('1, 20');
+    expect(didUpdate).toHaveBeenCalledTimes(0);
+
+    ref.current.setState({ age: 21 });
+    await waitFor(() => {
+      expect(didUpdate).toHaveBeenCalledTimes(1);
+    });
+    expectHtml(root).toBe('1, 21');
+    expect(didUpdate).toHaveBeenCalledWith({ id: 1 }, { age: 20 });
+
+    updateId!(2);
+    await waitFor(() => {
+      expect(didUpdate).toHaveBeenCalledTimes(2);
+    });
+    expectHtml(root).toBe('2, 21');
+    expect(didUpdate).toHaveBeenCalledWith({ id: 1 }, { age: 21 });
+  });
+
+  it.todo('shouldComponentUpdate');
+  it.todo('contextType, context');
 });
