@@ -1,4 +1,3 @@
-import type { Component } from '../core/classComponent';
 import type { ReactComponent } from './component';
 import type { ReactContextProvider } from './context';
 

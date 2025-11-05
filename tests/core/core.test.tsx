@@ -299,6 +299,18 @@ describe('Mounting: tags', () => {
         '</svg>',
     );
   });
+
+  itRenders(
+    `doesn't put "true" to boolean fields`,
+    <input disabled={true} />,
+    `<input disabled="">`,
+  );
+
+  itRenders(
+    `doesn't put "false" to boolean fields`,
+    <input disabled={false} />,
+    `<input>`,
+  );
 });
 
 describe('Mounting: Components & fragments', () => {
