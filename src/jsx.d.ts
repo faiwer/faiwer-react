@@ -22,6 +22,13 @@ declare global {
       render: () => JSX.Element;
     }
 
+    type LibraryManagedAttributes<Component, Props> = Component extends {
+      defaultProps: infer Defaults;
+    }
+      ? Partial<Pick<Props, keyof Defaults>> &
+          Pick<Props, Exclude<keyof Props, keyof Defaults>>
+      : Props;
+
     interface IntrinsicElements {
       // Document structure
       html: TagProps<HTMLHtmlElement>;
