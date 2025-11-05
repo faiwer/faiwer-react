@@ -1,6 +1,7 @@
 // oxlint-disable no-this-alias
 import {
   Component,
+  createContext,
   useState,
   type Ref,
   type StateSetter,
@@ -243,6 +244,36 @@ describe('Class components', () => {
     expect(didUpdate).toHaveBeenCalledWith({ id: 1 }, { age: 21 });
   });
 
+  it('reads the context value', async () => {
+    const ctx = createContext(42);
+    class User extends Component {
+      static contextType = ctx;
+      declare context: number;
+
+      render() {
+        return <div>{this.context}</div>;
+      }
+    }
+
+    let updateV: StateSetter<number>;
+    const Wrapper = () => {
+      const [v, setV] = useState(20);
+      updateV = setV;
+      return (
+        <ctx.Provider value={v}>
+          <User />
+        </ctx.Provider>
+      );
+    };
+
+    const root = mount(<Wrapper />);
+    expectHtml(root).toBe(`<div>20</div>`);
+
+    updateV!(444);
+    await waitFor(() => {
+      expectHtml(root).toBe(`<div>444</div>`);
+    });
+  });
+
   it.todo('shouldComponentUpdate');
-  it.todo('contextType, context');
 });

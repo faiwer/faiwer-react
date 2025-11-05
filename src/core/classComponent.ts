@@ -34,7 +34,7 @@ export class Component<
   state!: State;
   context: unknown;
   static defaultProps?: object;
-  static contextType?: ReactContext<unknown>;
+  static contextType?: ReactContext<any>;
 
   constructor(props: Props) {
     this.props = props;

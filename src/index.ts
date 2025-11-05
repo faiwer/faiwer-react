@@ -2,7 +2,7 @@ export * from './types';
 export * from './hooks/index';
 export * from '~/core/createRoot';
 export * from '~/core/createElement';
-export { Component } from '~/core/classComponent';
+export { Component, Component as PureComponent } from '~/core/classComponent';
 export * from './mocks';
 export { isValidElement } from './core/reconciliation/typeGuards';
 export { Children } from './core/Children';
