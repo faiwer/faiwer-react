@@ -1,6 +1,7 @@
 import { invalidateFiber } from 'faiwer-react/core/reconciliation/invalidateFiber';
 import { type StateSetter, type UseStateItem } from '../types';
 import { getNextHookOrCreate } from './helpers';
+import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 
 /**
  * A hook that allows you to add state to functional components. Returns a

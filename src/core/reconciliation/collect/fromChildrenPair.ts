@@ -54,7 +54,7 @@ export const collectActionsFromChildrenPair = (
       // 1. There was no node with this key before. Create a new one.
       // 2. There was one, but it was very different. Replace it.
       relayoutNeeded = true;
-      actions.push(...createFiberActions(app, r.fiber));
+      actions.push(...createFiberActions(app, r.fiber, fiber));
 
       if (l) {
         // Don't run components from the removing node even if they were invalidated
@@ -103,9 +103,13 @@ const uninvalidateFiberSubTree = (app: App, fiberNode: FiberNode): void => {
  * Returns a list of actions to create from scratch the DOM nodes of the given
  * fiber node.
  */
-const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
-  const fakeParent = createFakeFiberContainer(fiber.parent);
-  fakeParent.parent = fiber.parent;
+const createFiberActions = (
+  app: App,
+  fiber: FiberNode,
+  parent: FiberNode,
+): Action[] => {
+  const fakeParent = createFakeFiberContainer(parent);
+
   // Wrap the given node with a fake <x-container/> node to force `applyActions`
   // to create new DOM nodes in the fake DOM node, not in the mounted container.
   // The Relayout action will move them into the real node and then reassign the
@@ -126,14 +130,16 @@ const createFiberActions = (app: App, fiber: FiberNode): Action[] => {
  * It will be used to store new DOM nodes until the Relayout action repositions
  * them into their real parent.
  */
-const createFakeFiberContainer = (fiber: FiberNode): TagFiberNode => ({
-  ...createFiberNode(fiber),
-  type: 'tag',
-  element: document.createElement('x-container'),
-  tag: FAKE_CONTAINER_TAG,
-  data: { events: {}, styles: null },
-  props: {},
-});
+const createFakeFiberContainer = (parentFiber: FiberNode): TagFiberNode => {
+  return {
+    ...createFiberNode(parentFiber),
+    type: 'tag',
+    element: document.createElement('x-container'),
+    tag: FAKE_CONTAINER_TAG,
+    data: { events: {}, styles: null },
+    props: {},
+  };
+};
 
 /**
  * Converts FiberNode[] to Map<key, { order, fiber }>.
