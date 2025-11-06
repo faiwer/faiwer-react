@@ -1,8 +1,10 @@
-import type { DomNode, FiberNode, Ref, RefSetter } from 'faiwer-react/types';
+import type { DomNode, FiberNode, TagFiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
 import { isBeginOf, isCompactNone, isCompactSingleChild } from '../compact';
 import { NULL_FIBER } from '../reconciliation/fibers';
 import { buildCommentText } from '../reconciliation/comments';
+import { scheduleEffect } from '../reconciliation/effects';
+import { getAppByFiber } from '../reconciliation/app';
 
 /**
  * Determines if a prop name represents an event handler by checking if it
@@ -140,11 +142,26 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
  * When a node leaves the DOM tree, we need to update all associated ref
  * objects and ref handlers.
  */
-export const unsetRef = <T>(ref: Ref<T | null> | RefSetter<T | null>): void => {
+export const unsetRef = (fiber: TagFiberNode, immediate: boolean): void => {
+  const { ref } = fiber;
+
   if (typeof ref === 'function') {
-    ref(null);
+    if (immediate) {
+      ref(null);
+    } else {
+      // It can be a setter (e.g., <div onRef={setContainer}/>). Since we
+      // shouldn't allow invalidating components during commit phase we need
+      // to schedule an async update.
+      scheduleEffect(
+        getAppByFiber(fiber),
+        () => {
+          ref(null);
+        },
+        'refs',
+      );
+    }
   } else {
-    ref.current = null;
+    ref!.current = null;
   }
 };
 

@@ -40,7 +40,10 @@ type UpdateAction =
   | SetRefAction;
 
 // Remove actions
-export type RemoveAction = CommonAction & { type: 'Remove' };
+export type RemoveAction = CommonAction & {
+  type: 'Remove';
+  immediate?: boolean;
+};
 export type RelayoutAction = CommonAction & {
   type: 'Relayout';
   before: FiberMap;

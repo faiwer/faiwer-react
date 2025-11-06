@@ -45,13 +45,14 @@ export const mount = (
 
   postCommit(app, 0);
 
-  return function destroyApp() {
+  return function destroyApp(): void {
     app.invalidatedComponents.clear();
     app.effects.refs = [];
     app.effects.layout = [];
     app.effects.normal = [];
 
-    applyActions(app, [{ type: 'Remove', fiber: app.root }]); // add a test?
+    applyActions(app, [{ type: 'Remove', fiber: app.root, immediate: true }]);
+
     app.state = 'killed';
     removeApp(app.id);
   };
