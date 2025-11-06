@@ -19,12 +19,6 @@ export const scheduleEffect = (
  * Run scheduled effects one-by-one from the given queue.
  */
 export const runEffects = (app: App, mode: EffectMode) => {
-  if (mode === 'layout') {
-    // "refs" effects are essentially layout effects that should be started
-    // before user-defined layout effects.
-    runEffects(app, 'refs');
-  }
-
   const effects = app.effects[mode];
   app.effects[mode] = [];
 

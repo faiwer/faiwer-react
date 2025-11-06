@@ -25,6 +25,11 @@ export type AppState =
    */
   | 'commit'
   /**
+   * The same as `refEffects`, but is executed one step earlier. It contains
+   * calls to ref handlers.
+   */
+  | 'refEffects'
+  /**
    * Runs scheduled normal effects. It's guaranteed that the browser didn't
    * update the UI since the render started. Effect handlers may update
    * components' state. In such a case the normal scheduled effects will be

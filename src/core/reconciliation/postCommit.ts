@@ -16,8 +16,11 @@ export function postCommit(app: App, depth: number) {
   // Run "ref" and "layout" effects. They must be run in the same microtask
   // queue as the commit phase.
   if (app.effects.layout.length > 0 || app.effects.refs.length > 0) {
+    app.state = 'refEffects';
+    runEffects(app, 'refs');
+
     app.state = 'layoutEffects';
-    runEffects(app, 'layout'); // It will also run "ref" effects
+    runEffects(app, 'layout');
 
     if (app.invalidatedComponents.size > 0) {
       // 1+ component was invalidated in an effect

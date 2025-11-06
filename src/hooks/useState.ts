@@ -20,12 +20,24 @@ export const useState = <T>(
   initValue: (T extends Function ? () => T : T) | (() => T),
 ): [T, StateSetter<T>] => {
   const item = getNextHookOrCreate('state', (fiber): UseStateItem => {
+    const app = getAppByFiber(fiber);
     const item: UseStateItem<T> = {
       type: 'state',
       state: (typeof initValue === 'function'
         ? (initValue as () => T)()
         : initValue) as T,
       setter: function setState(valueOrFn) {
+        if (!fiber) {
+          // When a component is removed, we clean up all of its children and
+          // their refs. This setState function may be used as a ref handler.
+          // The ref handler gets scheduled before the parent node is removed,
+          // but executes after removal. In this case, we should skip the
+          // warning since it's expected behavior.
+          if (app.state !== 'refEffects') {
+            console.warn(`Component has been removed. State cannot be updated`);
+          }
+          return;
+        }
         const v = (
           typeof valueOrFn === 'function'
             ? (valueOrFn as (prev: T) => T)(item.state)

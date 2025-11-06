@@ -28,6 +28,7 @@ export const invalidateFiber = (fiber: FiberNode): void => {
     case 'scheduled':
     case 'effects':
     case 'layoutEffects':
+    case 'refEffects':
       app.invalidatedComponents.add(fiber);
       break;
 

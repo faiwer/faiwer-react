@@ -10,6 +10,7 @@ import type { Action, SetRefAction } from 'faiwer-react/types/actions';
 import { collectActionsFromChildrenPair } from './fromChildrenPair';
 import { collectActionsFromComponent } from './fromComponent';
 import { areFiberPropsEq } from '../compare/areFiberPropsEq';
+import { isFiberDead } from '../fibers';
 
 /**
  * `l` and `r` are the same node, but `r` may have some updates. This method
