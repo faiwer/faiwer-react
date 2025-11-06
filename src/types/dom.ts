@@ -46,19 +46,32 @@ type GeneralRemove =
   | 'textContent'
   | 'shadowRoot';
 
+// Some of HTMLElement-based types (e.g., HTMLFormElement) have [K: string] &
+// [K: number] inside. We must filter them out, otherwise it breaks complex
+// types like PropertiesOnly.
+type RemoveIndexSignature<T extends HTMLElement> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+      ? never
+      : typeof Symbol.iterator extends K
+        ? never
+        : K]: T[K];
+};
+
 /**
  * Returns a list of tag-based properties that can probably be set via a JSX tag
  * node.
  **/
 // prettier-ignore
 type PropertiesOnly<T extends HTMLElement> = {
-  [K in keyof T]:
+  [K in keyof RemoveIndexSignature<T>]:
       T[K] extends (...args: any[]) => any ? never
     : ChildNode extends T[K] ? never
     : Element extends T[K] ? never
     : HTMLElement extends T[K] ? never
     : K;
-}[keyof T];
+}[keyof RemoveIndexSignature<T>];
 
 // prettier-ignore
 type TagNativeProps<T extends HTMLElement> =
