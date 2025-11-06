@@ -1,5 +1,5 @@
 import type { App } from 'faiwer-react/types';
-import { validateTree } from './validateTree';
+import { validateApp } from './validateApp';
 import { collectActionsFromApp } from './collect/fromApp';
 import { postCommit } from './postCommit';
 import { applyActions } from './applyActions';
@@ -25,14 +25,14 @@ export function reactRender(app: App, depth = 0) {
     return;
   }
 
-  if (app.testMode) validateTree(app.root);
+  if (app.testMode) validateApp(app);
 
   app.state = 'render';
   const actions = collectActionsFromApp(app);
-  if (app.testMode) validateTree(app.root);
+  if (app.testMode) validateApp(app);
 
   applyActions(app, actions);
-  if (app.testMode) validateTree(app.root);
+  if (app.testMode) validateApp(app);
 
   postCommit(app, depth);
 }

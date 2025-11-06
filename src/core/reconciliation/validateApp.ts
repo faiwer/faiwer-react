@@ -1,10 +1,25 @@
-import type { FiberNode } from 'faiwer-react/types';
+import type { App, FiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
+import { FAKE_CONTAINER_TAG } from './fibers';
+
+export const validateApp = (app: App): void => {
+  for (const fiber of app.invalidatedComponents) {
+    if (!fiber.parent) {
+      throw new Error('Orphan component invalidated');
+    }
+
+    if (fiber.parent.tag === FAKE_CONTAINER_TAG) {
+      throw new Error('Cannot invalidate not-mounted fiber node');
+    }
+  }
+
+  validateTree(app.root);
+};
 
 /**
  * Validates the given fiber node and its subnodes. In case of error it throws.
  */
-export const validateTree = (node: FiberNode, path = ''): void => {
+const validateTree = (node: FiberNode, path = ''): void => {
   // Each rendered node must be associated with at least one real DOM node.
   nullthrows(node.element, `${path}.element`);
 

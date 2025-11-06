@@ -401,14 +401,16 @@ describe('createRoot', () => {
   it('can unmount an app', async () => {
     const rootDomNode = document.createElement('root');
     const onRef = jest.fn();
+    const effect = jest.fn();
 
-    const effect = jest.fn().mockImplementation(() => null);
     const Comp = () => {
-      useEffect(effect, []);
+      useEffect(() => {
+        effect();
+      }, []);
       return <div ref={onRef}>42</div>;
     };
-    const appRoot = createRoot(rootDomNode);
 
+    const appRoot = createRoot(rootDomNode);
     appRoot.render(<Comp />);
     expectHtml(rootDomNode).toBe('<div>42</div>');
 

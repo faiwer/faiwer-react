@@ -6,7 +6,7 @@ import type {
 } from 'faiwer-react/types';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { collectActionsFromNewFiber } from './collect/fromNewFiber';
-import { validateTree } from './validateTree';
+import { validateApp } from './validateApp';
 import { applyActions } from './applyActions';
 import { postCommit } from './postCommit';
 import { removeApp, registerApp } from './app';
@@ -41,7 +41,7 @@ export const mount = (
   const actions: Action[] = collectActionsFromNewFiber(app.root).flat();
 
   applyActions(app, actions);
-  if (app.testMode) validateTree(app.root);
+  if (app.testMode) validateApp(app);
 
   postCommit(app, 0);
 
