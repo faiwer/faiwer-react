@@ -127,7 +127,7 @@ describe('Mounting: tags', () => {
 
   it('sets tag event handlers', () => {
     const onclick = jest.fn();
-    const root = mount(<div onclick={onclick}>Content</div>);
+    const root = mount(<div onClick={onclick}>Content</div>);
     const event = new CustomEvent('click');
     root.querySelector('div')?.dispatchEvent(event);
     expect(onclick).toHaveBeenCalledTimes(1);
@@ -144,7 +144,7 @@ describe('Mounting: tags', () => {
         updateListen = setListen;
 
         return mode === 'undefined' || listen ? (
-          <div onclick={listen ? onclick : undefined}>Content</div>
+          <div onClick={listen ? onclick : undefined}>Content</div>
         ) : (
           <div>Content</div>
         );
@@ -166,7 +166,6 @@ describe('Mounting: tags', () => {
 
     it(`converts camelCase event names to lowercase event names`, () => {
       const fn = jest.spyOn(HTMLElement.prototype, 'addEventListener');
-      // @ts-expect-error -- TODO
       mount(<div onClick={() => null} />);
       expect(fn).toHaveBeenCalledWith('click', expect.any(Function));
     });
@@ -207,7 +206,7 @@ describe('Mounting: tags', () => {
         updateShow = setShow;
 
         return show ? (
-          <div onclick={onclick}>div</div>
+          <div onClick={onclick}>div</div>
         ) : mode === 'replace tag' ? (
           <span />
         ) : (
@@ -279,7 +278,7 @@ describe('Mounting: tags', () => {
 
   it('can render a tag with empty event handler', () => {
     const spy = jest.spyOn(HTMLElement.prototype, 'setAttribute');
-    mount(<div tabIndex={1} onclick={undefined} />);
+    mount(<div tabIndex={1} onClick={undefined} />);
     // onclick shouldn't be handler via `setAttribute`.
     expect(spy).toHaveBeenCalledTimes(1);
   });

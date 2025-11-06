@@ -1,0 +1,12 @@
+// Some of HTMLElement-based types (e.g., HTMLFormElement) have [K: string] &
+// [K: number] inside. We must filter them out, otherwise it breaks complex
+// types like PropertiesOnly.
+export type RemoveIndexSignature<T extends HTMLElement> = {
+  [K in keyof T as string extends K
+    ? never
+    : number extends K
+      ? never
+      : typeof Symbol.iterator extends K
+        ? never
+        : K]: T[K];
+};

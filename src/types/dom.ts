@@ -1,4 +1,6 @@
+import type { RemoveIndexSignature } from './common';
 import type { ElementCommonAttrs, ScalarNode } from './core';
+import type { TagEventHandlers } from './events';
 import type { HtmlRef, RefSetter } from './refs';
 
 /** The list of possible DOM tree node types. */
@@ -15,11 +17,6 @@ export type TagAttrValue =
   // Event handlers & Tag styles
   | Function
   | TagStyles;
-
-// 'onclick' | 'onmousedown' | …
-type EventKeys<T extends HTMLElement> = {
-  [K in keyof T]: K extends `on${string}` ? K : never;
-}[keyof T];
 
 /**
  * Each HTMLElement contains a ton of properties. Most of them shouldn't be used
@@ -46,19 +43,6 @@ type GeneralRemove =
   | 'textContent'
   | 'shadowRoot';
 
-// Some of HTMLElement-based types (e.g., HTMLFormElement) have [K: string] &
-// [K: number] inside. We must filter them out, otherwise it breaks complex
-// types like PropertiesOnly.
-type RemoveIndexSignature<T extends HTMLElement> = {
-  [K in keyof T as string extends K
-    ? never
-    : number extends K
-      ? never
-      : typeof Symbol.iterator extends K
-        ? never
-        : K]: T[K];
-};
-
 /**
  * Returns a list of tag-based properties that can probably be set via a JSX tag
  * node.
@@ -66,7 +50,7 @@ type RemoveIndexSignature<T extends HTMLElement> = {
 // prettier-ignore
 type PropertiesOnly<T extends HTMLElement> = {
   [K in keyof RemoveIndexSignature<T>]:
-      T[K] extends (...args: any[]) => any ? never
+    K extends `on${string}` ? never
     : ChildNode extends T[K] ? never
     : Element extends T[K] ? never
     : HTMLElement extends T[K] ? never
@@ -76,24 +60,7 @@ type PropertiesOnly<T extends HTMLElement> = {
 // prettier-ignore
 type TagNativeProps<T extends HTMLElement> =
   & Partial<Omit<Pick<T, PropertiesOnly<T>>, GeneralRemove>>
-  & { [K in EventKeys<T>]?: DomEventHandlerX<K> };
-
-type EventHandler<E extends Event> = (event: E) => boolean | void;
-
-// prettier-ignore
-type DomEventHandlerX<E extends string> =
-  E extends `ondrag${string}` ? EventHandler<DragEvent>
-  : E extends `onmouse${string}` ? EventHandler<MouseEvent>
-  : E extends `onkey${string}` ? EventHandler<KeyboardEvent>
-  : E extends `onfocus` | `onblur` ? EventHandler<FocusEvent>
-  : E extends `onwheel` ? EventHandler<WheelEvent>
-  : E extends `onpointer${string}` ? EventHandler<PointerEvent>
-  : E extends `ontouch${string}` ? EventHandler<TouchEvent>
-  : E extends `onanimation${string}` ? EventHandler<AnimationEvent>
-  : E extends `ontransition${string}` ? EventHandler<TransitionEvent>
-  : E extends `onload` | `onerror` | `onabort` ? EventHandler<ProgressEvent>
-  : E extends `oninput` | `onchange` | `onsubmit` | `onreset` ? EventHandler<Event> // Could be more specific for forms
-  : EventHandler<Event>;
+  & TagEventHandlers<T>;
 
 // prettier-ignore
 export type TagProps<T extends HTMLElement = HTMLElement> =
