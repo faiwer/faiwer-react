@@ -1,6 +1,7 @@
 import type { FiberNode } from 'faiwer-react/types';
 import { getAppByFiber } from './app';
 import { reactRender } from './render';
+import { isFiberDead } from './fibers';
 
 /**
  * Adds the given component to the update queue (`invalidatedComponents`).
@@ -10,6 +11,9 @@ import { reactRender } from './render';
 export const invalidateFiber = (fiber: FiberNode): void => {
   if (fiber.type !== 'component') {
     throw new Error(`Cannot invalidate a non-component fiber (${fiber.type})`);
+  }
+  if (isFiberDead(fiber)) {
+    throw new Error(`Cannot invalidate a dead component`);
   }
 
   const app = getAppByFiber(fiber);

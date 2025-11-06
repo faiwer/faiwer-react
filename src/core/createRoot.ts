@@ -24,7 +24,7 @@ export function createRoot(root: HTMLElement, options?: AppOptions): AppRoot {
       unmount = mount(root, element, options ?? DEFAULT_OPTIONS);
       created = true;
     },
-    unmount: () => {
+    unmount: (): void => {
       unmount?.();
       created = false;
     },

@@ -7,6 +7,7 @@ import {
   type ComponentFiberNode,
 } from '../types';
 import { getAppByFiber } from './reconciliation/app';
+import { isFiberDead } from './reconciliation/fibers';
 
 /** Component that is rendered right now. */
 let currentFiber: ComponentFiberNode | null;
@@ -44,6 +45,9 @@ export const runComponent = (
 ): JSX.Element => {
   if (fiber.type !== 'component') {
     throw new Error(`Can't run ${fiber.type} as a component`);
+  }
+  if (isFiberDead(fiber)) {
+    throw new Error(`Can't run a dead component`);
   }
 
   currentFiber = fiber;

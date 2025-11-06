@@ -167,6 +167,9 @@ const invalidateContextValue = (
   // Since we can't guarantee that all provider-consumers will be invalidated
   // naturally, we must invalidate them manually:
   for (const childCompFiber of l.data.consumers) {
+    if (isFiberDead(childCompFiber)) {
+      throw new Error(`Can't invalidate a dead context consumer`);
+    }
     app.invalidatedComponents.add(childCompFiber);
   }
 };

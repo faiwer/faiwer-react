@@ -170,6 +170,9 @@ export const unsetRef = (fiber: TagFiberNode, immediate: boolean): void => {
  * can hold references to other objects.
  */
 export const emptyFiberNode = (fiber: FiberNode): void => {
+  // For debug purposes mark dead nodes with a negative number.
+  fiber.id = -fiber.id;
+
   fiber.data = null;
   fiber.element = null;
   fiber.component = null;

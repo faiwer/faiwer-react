@@ -7,6 +7,7 @@ import {
   type ReactContextConsumer,
 } from '../types';
 import { getNextHookOrCreate } from './helpers';
+import { isFiberDead } from 'faiwer-react/core/reconciliation/fibers';
 
 /**
  * Creates a React context object that can be used to pass data through the
@@ -85,6 +86,10 @@ export const useContext = <T>(
   });
 
   if (item.providerFiber) {
+    if (isFiberDead(item.providerFiber)) {
+      throw new Error(`Cannot read from dead context provider`);
+    }
+
     const { tempContext } = getAppByFiber(item.providerFiber);
     const { id } = item.providerFiber;
     if (tempContext.has(id)) {

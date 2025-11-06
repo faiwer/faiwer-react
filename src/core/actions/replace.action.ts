@@ -64,4 +64,6 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
 
   before.props = after.props;
   before.ref = after.ref;
+  // For debug purposes mark dead nodes with a negative number.
+  after.id = -after.id;
 };

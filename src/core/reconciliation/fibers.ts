@@ -58,3 +58,10 @@ export const toFiberChildren = (fiber: FiberNode): FiberNode[] => {
 
   return [fiber];
 };
+
+/**
+ * Return `true` when the given fiber:
+ * - was removed
+ * - was abandoned (its content moved to another node)
+ */
+export const isFiberDead = (fiber: FiberNode) => fiber.id < 0;
