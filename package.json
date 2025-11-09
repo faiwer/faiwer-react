@@ -2,7 +2,14 @@
   "name": "@faiwer/react",
   "version": "0.8.4",
   "description": "A hobby project. A naive and simplified React implementation",
-  "keywords": ["react", "jsx", "hooks", "virtual-dom", "frontend", "ui-library"],
+  "keywords": [
+    "react",
+    "jsx",
+    "hooks",
+    "virtual-dom",
+    "frontend",
+    "ui-library"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/faiwer/faiwer-react.git"
@@ -61,7 +68,8 @@
     "lint-staged": "^16.2.6",
     "oxlint": "^1.16.0",
     "prettier": "^3.6.2",
-    "tsc-alias": "^1.8.16"
+    "tsc-alias": "^1.8.16",
+    "type-testing": "^0.2.0"
   },
   "lint-staged": {
     "**/*.{ts,tsx,md}": [
