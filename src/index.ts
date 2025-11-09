@@ -1,8 +1,3 @@
-// oxlint-disable-next-line triple-slash-reference -- required to import global types in ./dist
-/// <reference path="./jsx.d.ts" />
-// oxlint-disable-next-line triple-slash-reference -- required to import global types in ./dist
-/// <reference path="./react.d.ts" />
-
 export * from './types';
 export * from './types/react';
 export * from './hooks/index';

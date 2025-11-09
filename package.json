@@ -46,7 +46,8 @@
     }
   },
   "scripts": {
-    "build": "npm run clean && npx tsgo -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json && cp src/jsx.d.ts dist/jsx.d.ts",
+    "build": "npm run clean && npx tsgo -p tsconfig.build.json && npx tsc-alias -p tsconfig.build.json && cp src/jsx.d.ts dist/jsx.d.ts && npm run prepend-dts",
+    "prepend-dts": "cp ./src/react.d.ts ./dist && printf '/// <reference path=\"./jsx.d.ts\" />\n/// <reference path=\"./react.d.ts\" />\n' | cat - ./dist/index.d.ts > temp && mv temp ./dist/index.d.ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build",
     "test": "jest",

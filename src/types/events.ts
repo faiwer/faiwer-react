@@ -1,6 +1,10 @@
 import type { RemapKeys, RemoveIndexSignature } from './common';
 
-type PatchEvent<T extends Element, E extends Event> = E & { target: T };
+export type PatchEvent<T extends Element, E extends Event> = E & {
+  target: T;
+  nativeEvent: E;
+  // TODO: Add support ^.
+};
 
 export type EventHandler<T extends Element, E extends Event> = (
   event: PatchEvent<T, E>,

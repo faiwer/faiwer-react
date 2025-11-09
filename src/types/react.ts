@@ -1,7 +1,7 @@
 import type { ReactContext } from './context';
 import { type ReactComponent } from './component';
 import type { UnknownProps } from './core';
-import type { EventHandler } from './events';
+import type { EventHandler, PatchEvent } from './events';
 import type { TagNativeProps } from './attributes';
 
 //
@@ -39,7 +39,7 @@ export type ChangeEvent<T extends Element = Element> =
 export type ChangeEventHandler<T extends Element = Element> =
   EventHandler<T, Event>; // prettier-ignore
 export type KeyboardEvent<T extends Element = Element> =
-  EventHandler<T, globalThis.KeyboardEvent>; // prettier-ignore
+  PatchEvent<T, globalThis.KeyboardEvent>; // prettier-ignore
 export type ReactEventHandler<T extends Element = Element> =
   EventHandler<T, Event>; // prettier-ignore
 

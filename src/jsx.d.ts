@@ -1,11 +1,10 @@
 import type { Component } from './core/classComponent';
+import type { FRAGMENT_TAG } from './core/reconciliation/fibers';
 import {
   type JsxElement,
-  type ReactNode,
   type TagProps,
   type SvgTagProps,
   type SvgRootProps,
-  type FC,
   type ReactKey,
   type ElementType as ET,
 } from './types';

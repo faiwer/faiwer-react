@@ -1,6 +1,7 @@
 import * as ns from './types/react';
 import * as local from './types/index';
 import { UnknownProps } from './types/index';
+import type { FRAGMENT_TAG } from './core/reconciliation/fibers';
 
 export {};
 
@@ -20,7 +21,7 @@ declare global {
     // Events
     type SyntheticEvent<T = Element, E = Event> = ns.SyntheticEvent<T, E>;
     type ClipboardEvent<T = Element> = ns.ClipboardEvent<T>;
-    type FormEvent<T = Element> = ns.FormEvent<T>;
+    type FormEvent<T extends Element = Element> = ns.FormEvent<T>;
     type ChangeEvent<T extends Element = Element> = ns.ChangeEvent<T>;
     type ChangeEventHandler<T extends Element = Element> =
       ns.ChangeEventHandler<T>;
@@ -28,4 +29,6 @@ declare global {
     type ReactEventHandler<T extends Element = Element> =
       ns.ReactEventHandler<T>;
   }
+
+  const React: { Fragment: typeof FRAGMENT_TAG };
 }
