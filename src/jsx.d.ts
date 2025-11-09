@@ -52,6 +52,8 @@ declare global {
       : Props;
 
     interface IntrinsicElements {
+      ['x-fragment']: IntrinsicAttributes & { children: JSX.Element };
+
       // Document structure
       html: TagProps<HTMLHtmlElement>;
       head: TagProps<HTMLHeadElement>;
