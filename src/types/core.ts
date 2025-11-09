@@ -1,4 +1,4 @@
-import type { ReactComponent } from './component';
+import type { Component } from 'faiwer-react/core/classComponent';
 import type { ReactContextProvider } from './context';
 
 /**
@@ -19,7 +19,13 @@ export type UnknownProps = Record<PropertyKey, unknown> & ElementCommonAttrs;
  * everything that can be created in "<" & "/>" brackets: tags, components,
  * fragments, context providers.
  */
-export type ElementType = string /* tag name */ | ReactComponent;
+export type ElementType =
+  // Tag name
+  | string
+  // Functional component
+  | ((props: any) => JsxElement)
+  // Class component
+  | (new (props: any) => Component);
 
 /**
  * JSX values that aren't passed to `createElement`. JSX keeps them intact.

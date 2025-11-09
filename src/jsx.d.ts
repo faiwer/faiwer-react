@@ -4,8 +4,9 @@ import {
   type TagProps,
   type SvgTagProps,
   type SvgRootProps,
-  type ReactComponent,
   type FC,
+  type ReactKey,
+  type ElementType as ET,
 } from './types';
 
 export {};
@@ -13,20 +14,41 @@ export {};
 declare global {
   namespace React {
     export { FC };
+
+    export type ReactNode = JSX.Element;
   }
 
   namespace JSX {
     type Element = JsxElement;
+    type ElementType = ET;
 
     interface ElementClass extends Component<any, any> {
       render: () => JSX.Element;
     }
 
+    interface IntrinsicAttributes {
+      key?: ReactKey | null;
+    }
+
+    // Determines the `children` props name.
+    // <div>… here …</div> (but not <div children={…}/>).
+    interface ElementChildrenAttribute {
+      children: {};
+    }
+
+    // To auto-detect props for class-based components via:
+    // class User { props: T /* <- this */ }
+    interface ElementAttributesProperty {
+      props: {};
+    }
+
     type LibraryManagedAttributes<Component, Props> = Component extends {
       defaultProps: infer Defaults;
     }
-      ? Partial<Pick<Props, keyof Defaults>> &
-          Pick<Props, Exclude<keyof Props, keyof Defaults>>
+      ? Defaults extends Partial<Props>
+        ? Partial<Pick<Props, keyof Defaults & keyof Props>> &
+            Pick<Props, Exclude<keyof Props, keyof Defaults>>
+        : Props
       : Props;
 
     interface IntrinsicElements {
@@ -131,9 +153,6 @@ declare global {
       text: SvgTagProps;
       tspan: SvgTagProps;
       use: SvgTagProps;
-
-      // Fallback for any other element
-      [elemName: string]: TagProps<HTMLElement>;
     }
   }
 }

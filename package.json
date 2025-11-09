@@ -1,6 +1,6 @@
 {
   "name": "@faiwer/react",
-  "version": "0.8.3",
+  "version": "0.8.4",
   "description": "A hobby project. A naive and simplified React implementation",
   "keywords": ["react", "jsx", "hooks", "virtual-dom", "frontend", "ui-library"],
   "repository": {
