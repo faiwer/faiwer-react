@@ -32,6 +32,12 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
   }
   ```
   Or use `"jsx": "preserve"`
+- If you're using `eslint-plugin-react` than configure this in your .eslintrc:
+  ```json
+  "settings": {
+    "react": { "version": "19" } // not 'detect'
+  },
+  ```
 - Good luck. If your project is big enough, I'm pretty sure you got a ton of type errors. Sorry :-)
 
 ### Usage
