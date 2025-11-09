@@ -22,8 +22,9 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 ## Installation
 
 - `npm uninstall react react-dom @types/react`
-- `npm i --save react@npm:@faiwer/react react@npm:@faiwer/react-dom`
-- Update your `tsconfig.json`:
+- `npm i --save react@npm:@faiwer/react`
+- `npm i --save --force react-dom@npm:@faiwer/react-dom`
+- You might need to update your `tsconfig.json` (no necessarily):
   ```json
   "compilerOptions": {
     "jsx": "react-jsx",
@@ -31,6 +32,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
   }
   ```
   Or use `"jsx": "preserve"`
+- Good luck. If your project is big enough, I'm pretty sure you got a ton of type errors. Sorry :-)
 
 ### Usage
 
