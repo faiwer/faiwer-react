@@ -148,6 +148,7 @@ export const unsetRef = (fiber: TagFiberNode, immediate: boolean): void => {
   if (typeof ref === 'function') {
     if (immediate) {
       ref(null);
+      // TODO: add a test ^.
     } else {
       // It can be a setter (e.g., <div onRef={setContainer}/>). Since we
       // shouldn't allow invalidating components during commit phase we need

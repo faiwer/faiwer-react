@@ -91,6 +91,7 @@ export const useContext = <T>(
       },
       destructor: () => {
         providerFiber?.data.consumers.delete(fiber);
+        // TODO: add a test ^.
       },
     };
   });

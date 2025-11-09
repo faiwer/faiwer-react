@@ -85,6 +85,7 @@ const moveHooks = (before: FiberNode, after: ComponentFiberNode): void => {
     if ('move' in hook) {
       // Update internal fiber links
       hook.move(before);
+      // TODO: add a test ^.
     }
   }
 };

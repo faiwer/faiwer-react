@@ -45,9 +45,11 @@ export const useState = <T>(
           // warning since it's expected behavior.
           if (app.state !== 'refEffects') {
             console.warn(`Component has been removed. State cannot be updated`);
+            // TODO: add a test ^.
           }
           return;
         }
+
         const v = (
           typeof valueOrFn === 'function'
             ? (valueOrFn as (prev: T) => T)(item.state)
