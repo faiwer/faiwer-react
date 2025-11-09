@@ -79,6 +79,16 @@ export const useContext = <T>(
       type: 'context',
       ctx,
       providerFiber,
+      move(newFiber) {
+        if (newFiber.type !== 'component') {
+          throw new Error(`useContext can be used only within coponents`);
+        }
+        if (providerFiber) {
+          providerFiber.data.consumers.delete(fiber);
+          providerFiber.data.consumers.add(newFiber);
+        }
+        fiber = newFiber;
+      },
       destructor: () => {
         providerFiber?.data.consumers.delete(fiber);
       },

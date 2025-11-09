@@ -44,10 +44,10 @@ createRoot(container).render(<App />);
 - 1st line
   - Events:
     - "capture"-kind of events
-    - camelCase events
     - custom `onChange` like in ReactDOM
   - Error handling
   - Direct component refs, `forwardRef`, `useImperativeHandle`
+  - support solo-compact mode over bracket-compact mode
 - 2nd line
   - prepare an NPM-package
 - 3rd line

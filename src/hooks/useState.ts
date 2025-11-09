@@ -1,5 +1,5 @@
 import { invalidateFiber } from 'faiwer-react/core/reconciliation/invalidateFiber';
-import { type StateSetter, type UseStateItem } from '../types';
+import { type FiberNode, type StateSetter, type UseStateItem } from '../types';
 import { getNextHookOrCreate } from './helpers';
 import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 
@@ -20,13 +20,22 @@ export const useState = <T>(
    * function is provided, it will only be called once during initialization. */
   initValue: (T extends Function ? () => T : T) | (() => T),
 ): [T, StateSetter<T>] => {
-  const item = getNextHookOrCreate('state', (fiber): UseStateItem => {
+  const item = getNextHookOrCreate('state', (initFiber): UseStateItem => {
+    let fiber: FiberNode | null = initFiber;
     const app = getAppByFiber(fiber);
     const item: UseStateItem<T> = {
       type: 'state',
       state: (typeof initValue === 'function'
         ? (initValue as () => T)()
         : initValue) as T,
+      move: (newFiber) => {
+        fiber = newFiber;
+      },
+      destructor: () => {
+        // Help GC.
+        item.state = null as T;
+        fiber = null;
+      },
       setter: function setState(valueOrFn) {
         if (!fiber) {
           // When a component is removed, we clean up all of its children and

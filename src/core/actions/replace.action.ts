@@ -1,4 +1,9 @@
-import type { FiberNode } from 'faiwer-react/types';
+import type {
+  ComponentFiberNode,
+  ContextFiberNode,
+  FiberNode,
+  UseContextItem,
+} from 'faiwer-react/types';
 import type { ReplaceAction } from 'faiwer-react/types/actions';
 import { getFiberDomNodes } from './helpers';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
@@ -64,6 +69,41 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
 
   before.props = after.props;
   before.ref = after.ref;
+
+  if (after.type === 'component') {
+    moveHooks(before, after);
+  } else if (after.role === 'context') {
+    updateContext(before, after);
+  }
+
   // For debug purposes mark dead nodes with a negative number.
   after.id = -after.id;
+};
+
+const moveHooks = (before: FiberNode, after: ComponentFiberNode): void => {
+  for (const hook of after.data.hooks!) {
+    if ('move' in hook) {
+      // Update internal fiber links
+      hook.move(before);
+    }
+  }
+};
+
+/**
+ * ContextFiberNode's `data.consumers` is a Set of components whose `useContext`
+ * target the given `data.ctx`. At the same time the `useContext` state
+ * preserves a link to the closest parent context provider of the given context
+ * type. That means once we `displace` the context provider we must update the
+ * hook states.
+ */
+const updateContext = (before: FiberNode, after: ContextFiberNode) => {
+  for (const consumer of after.data.consumers) {
+    const useConextItems = consumer.data.hooks!.filter(
+      (hook): hook is UseContextItem =>
+        hook.type === 'context' && hook.ctx === after.data.ctx,
+    );
+    for (const hook of useConextItems) {
+      hook.providerFiber = before as ContextFiberNode;
+    }
+  }
 };

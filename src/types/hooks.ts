@@ -1,11 +1,13 @@
 import type { ReactContext } from './context';
-import type { ContextFiberNode } from './fiber';
+import type { ContextFiberNode, FiberNode } from './fiber';
 import type { Ref } from './refs';
 
 export type UseStateItem<T = unknown> = {
   type: 'state';
   state: T;
   setter: StateSetter<T>;
+  destructor: null | (() => void);
+  move: (newFiber: FiberNode) => void;
 };
 
 export type UseMemoItem = {
@@ -31,6 +33,7 @@ export type UseContextItem<T = unknown> = {
   type: 'context';
   ctx: ReactContext<T>;
   destructor: () => void;
+  move: (newFiber: FiberNode) => void;
   providerFiber: ContextFiberNode | null;
 };
 

@@ -4,7 +4,11 @@ import {
   isFirstFiberRender,
   registerStateItem,
 } from '~/core/components';
-import { type FiberNode, type HookStateItem, type HookDeps } from '../types';
+import {
+  type HookStateItem,
+  type HookDeps,
+  type ComponentFiberNode,
+} from '../types';
 
 /**
  * We could save the given deps as is, but this version allows to avoid memory
@@ -37,7 +41,7 @@ export const checkDeps = (saved: unknown[], deps: unknown[]): boolean => {
  */
 export const getNextHookOrCreate = <T extends { type: HookStateItem['type'] }>(
   type: HookStateItem['type'],
-  fn: (fiber: FiberNode) => T,
+  fn: (fiber: ComponentFiberNode) => T,
 ): T => {
   const firstRender = isFirstFiberRender();
   const fiber = getCurrentComponentFiber();

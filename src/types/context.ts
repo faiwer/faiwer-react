@@ -1,5 +1,5 @@
 import type { ReactComponent } from './component';
-import type { FiberNode } from './fiber';
+import type { ComponentFiberNode } from './fiber';
 
 export type ReactContextProvider<T = unknown> =
   // Fake. It's not callable. React fakes it too. JSX requires each node
@@ -27,5 +27,5 @@ export type ReactContext<T = unknown> = {
 /** `.data` of the `ContextFiberNode` */
 export type ContextState<T = unknown> = {
   ctx: ReactContext<T>;
-  consumers: Set<FiberNode>;
+  consumers: Set<ComponentFiberNode>;
 };
