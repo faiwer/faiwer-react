@@ -21,7 +21,8 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## Installation
 
-- `npm i --save @faiwer/react`
+- `npm uninstall react react-dom @types/react`
+- `npm i --save react@npm:@faiwer/react react@npm:@faiwer/react-dom`
 - Update your `tsconfig.json`:
   ```json
   "compilerOptions": {
@@ -29,6 +30,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
     "jsxImportSource": "@faiwer/react"
   }
   ```
+  Or use `"jsx": "preserve"`
 
 ### Usage
 
@@ -51,6 +53,7 @@ createRoot(container).render(<App />);
 - 2nd line
   - prepare an NPM-package
 - 3rd line
+  - HMR
   - `RunComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
   - `useReducer`
 
@@ -58,7 +61,7 @@ createRoot(container).render(<App />);
 
 … and probably never will:
 
-- Class Components
+- Class Components: `getSnapshotBeforeUpdate`
 - Synthetic events
 - Portals:
   - Event bubbling from portals
