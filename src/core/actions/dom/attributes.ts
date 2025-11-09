@@ -14,6 +14,11 @@ export const setHtmlAttribute = (
     return;
   }
 
+  if (name === 'value') {
+    (element as HTMLInputElement).value = value == null ? '' : String(value);
+    return;
+  }
+
   element.setAttribute(name === 'className' ? 'class' : name, String(value));
 };
 
@@ -26,7 +31,6 @@ export const BOOL_ATTRS = new Set([
   'contentEditable',
   'spellCheck',
   'draggable',
-  'value',
   'autoReverse',
   'externalResourcesRequired',
   'focusable',
