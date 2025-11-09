@@ -15,7 +15,7 @@ export type RefSetter<T> = (v: T) => void;
  * const ref = useRef<HTMLDivElement>()
  * <div ref={ref}/>
  **/
-export type HtmlRef<T extends HTMLElement | SVGElement> = Ref<
+export type HtmlRef<T extends Element> = Ref<
   | T // DOM node is mounted
   | null // DOM node is destroyed
   | undefined // Initial value of useRef<HTMLElement>()

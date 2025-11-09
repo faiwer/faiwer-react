@@ -73,6 +73,7 @@ class ClassComponent extends Component {}
 // @ts-expect-error
 <div onclick={(event) => event.type.length} />;
 <div onClick={(event) => event.target.tagName} />;
+<input onPaste={(event) => event.clipboardData.items} />;
 
 //
 // React. Compatibility
@@ -115,3 +116,8 @@ declare let _F6: React.ComponentProps<typeof User>;
 _F6 = { id: 32 };
 // @ts-expect-error
 _F6 = { id: '32' };
+
+declare let F7: React.ComponentType<{ id: number }>;
+<F7 id={1} />;
+// @ts-expect-error
+<F7 />;

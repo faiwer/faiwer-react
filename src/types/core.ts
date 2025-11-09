@@ -25,7 +25,7 @@ export type ElementType =
   // Functional component
   | ((props: any) => JsxElement)
   // Class component
-  | (new (props: any) => Component);
+  | (new (props: any) => Component<any, any>);
 
 /**
  * JSX values that aren't passed to `createElement`. JSX keeps them intact.

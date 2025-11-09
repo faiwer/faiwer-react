@@ -18,7 +18,7 @@ import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 export const useState = <T>(
   /** The initial state value or a function that returns the initial state. If a
    * function is provided, it will only be called once during initialization. */
-  initValue: (T extends Function ? () => T : T) | (() => T),
+  initValue: ((() => T) | T) | (() => T),
 ): [T, StateSetter<T>] => {
   const item = getNextHookOrCreate('state', (initFiber): UseStateItem => {
     let fiber: FiberNode | null = initFiber;

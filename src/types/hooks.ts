@@ -53,11 +53,7 @@ export type HookStore = HookStateItem[];
 export type HookDeps = unknown[];
 
 /** const [, setter] = useState(...) */
-export type StateSetter<T> = (
-  valueOrFn: // prettier-ignore
-  | (T extends Function ? (prev: T) => T : T)
-    | ((prev: T) => T),
-) => void;
+export type StateSetter<T> = (valueOrFn: T | ((prev: T) => T)) => void;
 
 /**
  * In this library useEffect & useLayoutEffect are a little more complex. They

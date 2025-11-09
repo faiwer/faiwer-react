@@ -1,7 +1,8 @@
-import type { RemapKeys, RemoveIndexSignature } from './common';
+import type { Ensure, RemapKeys, RemoveIndexSignature } from './common';
 
 export type PatchEvent<T extends Element, E extends Event> = E & {
   target: T;
+  currentTarget: Element;
   nativeEvent: E;
   // TODO: Add support ^.
 };
@@ -9,6 +10,17 @@ export type PatchEvent<T extends Element, E extends Event> = E & {
 export type EventHandler<T extends Element, E extends Event> = (
   event: PatchEvent<T, E>,
 ) => void;
+
+// prettier-ignore
+type EventByName<E extends string> =
+  E extends `onpaste` | 'oncopy' | 'oncut'
+    ? Ensure<ClipboardEvent, 'clipboardData'>
+  : E extends `ondrag${string}` ? DragEvent
+  : E extends `mouse${string}` ? MouseEvent
+  : E extends `onkey${string}` ? KeyboardEvent
+  : E extends `ontouch${string}` ? TouchEvent
+  : E extends `onwheel` ? WheelEvent
+  : Event;
 
 // prettier-ignore
 type DomEventHandlerX<T extends Element, E extends string> =
@@ -22,7 +34,7 @@ type DomEventHandlerX<T extends Element, E extends string> =
   : E extends `onanimation${string}` ? EventHandler<T, AnimationEvent>
   : E extends `ontransition${string}` ? EventHandler<T, TransitionEvent>
   : E extends `onload` | `onerror` | `onabort` ? EventHandler<T, ProgressEvent>
-  : EventHandler<T, Event>;
+  : EventHandler<T, EventByName<E>>;
 
 // prettier-ignore
 type ToCamelCase<T extends string> = T extends `onmouse${infer Rest}`

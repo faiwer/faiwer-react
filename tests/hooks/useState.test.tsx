@@ -59,7 +59,7 @@ describe('Hooks: useState', () => {
 
     let prev: Function;
     await act(() =>
-      updateState((prevValue) => {
+      updateState((prevValue: typeof prev) => {
         prev = prevValue;
         return (v: number) => v ** 3;
       }),

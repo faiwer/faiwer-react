@@ -14,3 +14,7 @@ export type RemoveIndexSignature<T> = {
 export type RemapKeys<T, KeyMap extends Record<keyof any, keyof any>> = {
   [K in keyof T as K extends keyof KeyMap ? KeyMap[K] : K]?: T[K];
 };
+
+export type Ensure<T, K extends keyof T> =
+  & Exclude<T, K>
+  & { [Key in K]: NonNullable<T[K]> }; // prettier-ignore

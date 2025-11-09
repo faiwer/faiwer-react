@@ -78,5 +78,6 @@ type PropertiesOnly<T extends Element> = {
 
 // prettier-ignore
 export type TagNativeProps<T extends Element> =
+  & { className?: string } // Wrongly typed in SVGElement
   & RemapAttrs<Partial<Omit<Pick<T, PropertiesOnly<T>>, GeneralRemove>>>
   & TagEventHandlers<T>;

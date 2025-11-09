@@ -18,7 +18,7 @@ export type TagAttrValue =
   | TagStyles;
 
 // prettier-ignore
-export type TagProps<T extends HTMLElement = HTMLElement> =
+export type TagProps<T extends Element = HTMLElement> =
   & TagNativeProps<T>
   & ElementCommonAttrs
   & {
@@ -31,7 +31,7 @@ export type TagProps<T extends HTMLElement = HTMLElement> =
 /** A map like { fontSize: '12px' }. */
 export type TagStyles =
   & { [K in keyof CSSStyleDeclaration]?: string | number; } // prettier-ignore
-  & { [K in `--${string}`]: string | number }; // prettier-ignore
+  & { [K in `--${string}`]: string | number | null }; // prettier-ignore
 
 export type SvgRootProps = TagProps<HTMLElement> & {
   xmlns?: string;
