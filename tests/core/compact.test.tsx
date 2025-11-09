@@ -58,7 +58,12 @@ describe('Compact rendering', () => {
     it(`renders an !--:empty html-comment for an empty ${mode}`, () => {
       const Empty = () => [];
       const middle =
-        mode === 'fragment' ? <Fragment key="fragment" /> : <Empty />;
+        mode === 'fragment' ? (
+          // @ts-expect-error
+          <Fragment key="fragment" />
+        ) : (
+          <Empty />
+        );
       const root = mount(['before!', middle, '!after']);
       expectHtmlFull(root).toBe('before!<!--r:empty:1-->!after');
     });
@@ -197,6 +202,7 @@ describe('Compact rendering', () => {
       updateShow = setKey;
       return (
         <div>
+          {/* @ts-expect-error */}
           <Fragment key={key} />
         </div>
       );

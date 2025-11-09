@@ -276,6 +276,18 @@ describe('Mounting: tags', () => {
     expect(spy).toHaveBeenCalledTimes(1);
   });
 
+  itRenders(
+    'remaps camelCased attributes',
+    <input autoFocus />,
+    '<input autofocus="">',
+  );
+
+  it(`doesn't treat "value" as an attribute`, () => {
+    const root = mount(<input value="42" />);
+    expectHtml(root).toBe('<input>');
+    expect(root.querySelector('input')?.value).toBe('42');
+  });
+
   it('can render a tag with empty event handler', () => {
     const spy = jest.spyOn(HTMLElement.prototype, 'setAttribute');
     mount(<div tabIndex={1} onClick={undefined} />);

@@ -1,8 +1,4 @@
-import type { RemoveIndexSignature } from './common';
-
-type RemapKeys<T, KeyMap extends Record<keyof any, keyof any>> = {
-  [K in keyof T as K extends keyof KeyMap ? KeyMap[K] : K]?: T[K];
-};
+import type { RemapKeys, RemoveIndexSignature } from './common';
 
 type EventHandler<E extends Event> = (event: E) => void;
 
@@ -35,17 +31,17 @@ type ToCamelCase<T extends string> = T extends `onmouse${infer Rest}`
   : T; // fallback
 
 // 'onclick' | 'onmousedown' | …
-type EventKeys<T extends HTMLElement> = {
+type EventKeys<T extends Element> = {
   [K in keyof RemoveIndexSignature<T>]: K extends `on${string}` ? K : never;
 }[keyof RemoveIndexSignature<T>];
 
 // { onclick: (evt: PointerEvent) => void }
-type EventHandlers<T extends HTMLElement> = {
+type EventHandlers<T extends Element> = {
   [K in EventKeys<T>]: DomEventHandlerX<K>;
 };
 
 // { onclick: onClick, … }
-type mapLowerCaseToCamelCase<T extends HTMLElement> = {
+type mapLowerCaseToCamelCase<T extends Element> = {
   [K in EventKeys<T>]: ToCamelCase<K>;
 };
 
@@ -54,7 +50,7 @@ type mapLowerCaseToCamelCase<T extends HTMLElement> = {
  * @example
  * { onClick: (evt: PointerEvents) => void }
  */
-export type TagEventHandlers<T extends HTMLElement> = RemapKeys<
+export type TagEventHandlers<T extends Element> = RemapKeys<
   EventHandlers<T>,
   mapLowerCaseToCamelCase<RemoveIndexSignature<T>>
 >;

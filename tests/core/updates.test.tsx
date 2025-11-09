@@ -518,6 +518,7 @@ describe('Updates', () => {
       const [Tag, setTag] = useState<'A' | 'B' | 'C'>('A');
       updateMode = setTag;
 
+      // @ts-expect-error - A,B,C are not valid tags.
       return <Tag ref={onRef[Tag]}>{Tag}</Tag>;
     };
 
