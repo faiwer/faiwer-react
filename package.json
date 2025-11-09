@@ -68,8 +68,7 @@
     "lint-staged": "^16.2.6",
     "oxlint": "^1.16.0",
     "prettier": "^3.6.2",
-    "tsc-alias": "^1.8.16",
-    "type-testing": "^0.2.0"
+    "tsc-alias": "^1.8.16"
   },
   "lint-staged": {
     "**/*.{ts,tsx,md}": [

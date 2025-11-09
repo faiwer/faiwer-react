@@ -10,7 +10,7 @@ import {
   type NullFiberNode,
   type TextFiberNode,
   type FragmentFiberNode,
-  type FC,
+  type ReactComponent,
 } from '../types';
 import { runComponent } from './components';
 import {
@@ -121,7 +121,7 @@ export const jsxElementToFiberNode = (
     const fiber: ComponentFiberNode = {
       ...createFiberNode(parent),
       type: 'component',
-      component: jsxElement.type as FC,
+      component: jsxElement.type as ReactComponent,
       key,
       props,
       data: { hooks: null },

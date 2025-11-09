@@ -1,4 +1,4 @@
-import { Component, Fragment } from 'faiwer-react';
+import { Component, createContext, Fragment } from 'faiwer-react';
 
 declare const Blank: () => JSX.Element;
 declare const User: (props: { id: number }) => JSX.Element;
@@ -72,3 +72,46 @@ class ClassComponent extends Component {}
 <div onClick={(event) => event.type.length} />;
 // @ts-expect-error
 <div onclick={(event) => event.type.length} />;
+<div onClick={(event) => event.target.tagName} />;
+
+//
+// React. Compatibility
+//
+
+declare let _F1: React.FC<{ id: number }>;
+_F1 = User;
+// @ts-expect-error
+_F1 = ({ id }: { id: string }) => id;
+
+declare let _F5: React.ComponentType<{ id: number }>;
+_F5 = User;
+// @ts-expect-error
+_F5 = ({ id }: { id: string }) => id;
+
+declare let _F2: React.ReactNode;
+for (const n of [
+  1,
+  '1',
+  true,
+  null,
+  undefined,
+  <Blank />,
+  <ClassComponent />,
+]) {
+  _F2 = n;
+}
+
+declare let _F3: React.Context<number>;
+_F3 = createContext(42);
+// @ts-expect-error
+_F3 = createContext('42');
+
+declare let _F4: React.CSSProperties;
+_F4 = { display: 'none', fontSize: '12px;' };
+// @ts-expect-error
+_F4 = { ['font-size']: '12px;' };
+
+declare let _F6: React.ComponentProps<typeof User>;
+_F6 = { id: 32 };
+// @ts-expect-error
+_F6 = { id: '32' };

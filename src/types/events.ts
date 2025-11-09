@@ -1,20 +1,24 @@
 import type { RemapKeys, RemoveIndexSignature } from './common';
 
-type EventHandler<E extends Event> = (event: E) => void;
+type PatchEvent<T extends Element, E extends Event> = E & { target: T };
+
+export type EventHandler<T extends Element, E extends Event> = (
+  event: PatchEvent<T, E>,
+) => void;
 
 // prettier-ignore
-type DomEventHandlerX<E extends string> =
-  E extends `ondrag${string}` ? EventHandler<DragEvent>
-  : E extends `onmouse${string}` ? EventHandler<MouseEvent>
-  : E extends `onkey${string}` ? EventHandler<KeyboardEvent>
-  : E extends `onfocus` | `onblur` ? EventHandler<FocusEvent>
-  : E extends `onwheel` ? EventHandler<WheelEvent>
-  : E extends 'onclick' | `onpointer${string}` ? EventHandler<PointerEvent>
-  : E extends `ontouch${string}` ? EventHandler<TouchEvent>
-  : E extends `onanimation${string}` ? EventHandler<AnimationEvent>
-  : E extends `ontransition${string}` ? EventHandler<TransitionEvent>
-  : E extends `onload` | `onerror` | `onabort` ? EventHandler<ProgressEvent>
-  : EventHandler<Event>;
+type DomEventHandlerX<T extends Element, E extends string> =
+  E extends `ondrag${string}` ? EventHandler<T, DragEvent>
+  : E extends `onmouse${string}` ? EventHandler<T, MouseEvent>
+  : E extends `onkey${string}` ? EventHandler<T, KeyboardEvent>
+  : E extends `onfocus` | `onblur` ? EventHandler<T, FocusEvent>
+  : E extends `onwheel` ? EventHandler<T, WheelEvent>
+  : E extends 'onclick' | `onpointer${string}` ? EventHandler<T, PointerEvent>
+  : E extends `ontouch${string}` ? EventHandler<T, TouchEvent>
+  : E extends `onanimation${string}` ? EventHandler<T, AnimationEvent>
+  : E extends `ontransition${string}` ? EventHandler<T, TransitionEvent>
+  : E extends `onload` | `onerror` | `onabort` ? EventHandler<T, ProgressEvent>
+  : EventHandler<T, Event>;
 
 // prettier-ignore
 type ToCamelCase<T extends string> = T extends `onmouse${infer Rest}`
@@ -37,7 +41,7 @@ type EventKeys<T extends Element> = {
 
 // { onclick: (evt: PointerEvent) => void }
 type EventHandlers<T extends Element> = {
-  [K in EventKeys<T>]: DomEventHandlerX<K>;
+  [K in EventKeys<T>]: DomEventHandlerX<T, K>;
 };
 
 // { onclick: onClick, … }

@@ -1,6 +1,5 @@
-import type { RemoveIndexSignature } from './common';
+import type { TagNativeProps } from './attributes';
 import type { ElementCommonAttrs, ScalarNode } from './core';
-import type { TagEventHandlers } from './events';
 import type { HtmlRef, RefSetter } from './refs';
 
 /** The list of possible DOM tree node types. */
@@ -17,50 +16,6 @@ export type TagAttrValue =
   // Event handlers & Tag styles
   | Function
   | TagStyles;
-
-/**
- * Each HTMLElement contains a ton of properties. Most of them shouldn't be used
- * in JSX tag nodes. This type matches most inapplicable generic properties.
- */
-type GeneralRemove =
-  | `DOCUMENT_${string}`
-  | `${string}_NODE`
-  | `client${string}`
-  | `offset${string}`
-  | `node${string}`
-  | `inner${string}`
-  | `scroll${string}`
-  | `set${string}`
-  | `outer${string}`
-  | 'children'
-  | 'attributes'
-  | 'childNodes'
-  | 'classList'
-  | 'tagName'
-  | 'style'
-  | `key`
-  | `dataset`
-  | 'textContent'
-  | 'shadowRoot';
-
-/**
- * Returns a list of tag-based properties that can probably be set via a JSX tag
- * node.
- **/
-// prettier-ignore
-type PropertiesOnly<T extends HTMLElement> = {
-  [K in keyof RemoveIndexSignature<T>]:
-    K extends `on${string}` ? never
-    : ChildNode extends T[K] ? never
-    : Element extends T[K] ? never
-    : HTMLElement extends T[K] ? never
-    : K;
-}[keyof RemoveIndexSignature<T>];
-
-// prettier-ignore
-type TagNativeProps<T extends HTMLElement> =
-  & Partial<Omit<Pick<T, PropertiesOnly<T>>, GeneralRemove>>
-  & TagEventHandlers<T>;
 
 // prettier-ignore
 export type TagProps<T extends HTMLElement = HTMLElement> =

@@ -1,6 +1,7 @@
 import type { Component } from './core/classComponent';
 import {
   type JsxElement,
+  type ReactNode,
   type TagProps,
   type SvgTagProps,
   type SvgRootProps,
@@ -12,12 +13,6 @@ import {
 export {};
 
 declare global {
-  namespace React {
-    export { FC };
-
-    export type ReactNode = JSX.Element;
-  }
-
   namespace JSX {
     type Element = JsxElement;
     type ElementType = ET;
@@ -82,8 +77,12 @@ declare global {
       ol: TagProps<HTMLOListElement>;
       li: TagProps<HTMLLIElement>;
       dl: TagProps<HTMLDListElement>;
+      dt: TagProps<HTMLElement>;
+      dd: TagProps<HTMLElement>;
       hr: TagProps<HTMLHRElement>;
       br: TagProps<HTMLBRElement>;
+      em: TagProps<HTMLElement>;
+      i: TagProps<HTMLElement>;
 
       // Inline text semantics
       a: TagProps<HTMLAnchorElement>;
