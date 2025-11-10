@@ -1,6 +1,6 @@
 import type { FiberNode } from 'faiwer-react/types';
 import { getParentElement } from './helpers';
-import { applyAction } from './applyAction';
+import { createCommentAction } from './createComment.action';
 
 /**
  * Handles two scenarios:
@@ -18,7 +18,7 @@ export function createTagAction(fiber: FiberNode): void {
     // This is a portal, not a regular tag. We shouldn't create it since it
     // already exists outside the app's DOM subtree. Instead, create a
     // <!--r:portal:id--> comment node.
-    applyAction({ type: 'CreateComment', fiber, mode: 'portal' });
+    createCommentAction(fiber, { mode: 'portal' });
   } else if (fiber.tag !== 'root') {
     // 'root' is a special case - it's the node where the app is mounted.
     const tag = SVG_TAGS.has(fiber.tag)

@@ -9,7 +9,7 @@ import { buildComment } from '../reconciliation/comments';
  */
 export function createCommentAction(
   fiber: FiberNode,
-  { mode }: CreateCommentAction,
+  { mode }: Pick<CreateCommentAction, 'mode'>,
 ) {
   // Only two scenarios lead here:
   // - First render of a fragment or component. The parent's element is a

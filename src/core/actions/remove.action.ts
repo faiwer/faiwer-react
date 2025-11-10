@@ -5,19 +5,21 @@ import type {
 } from 'faiwer-react/types';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
-import { applyAction } from './applyAction';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 
 /**
  * This action can be called directly (<div/> -> []), or indirectly (<div/> ->
  * false) from the replace action. `replaced` is `true` in the 2nd scenario.
  */
-export function removeAction(fiber: FiberNode, { immediate }: RemoveAction) {
+export function removeAction(
+  fiber: FiberNode,
+  { immediate }: Pick<RemoveAction, 'immediate'> = {},
+) {
   for (const child of fiber.children) {
     // Recursively remove all children before removing the parent node. This is
     // critical for components with effects - we must run cleanup effects
     // before removing their parent nodes.
-    applyAction({ type: 'Remove', fiber: child, immediate });
+    removeAction(child, { immediate });
   }
 
   if (fiber.type === 'component') {

@@ -8,7 +8,7 @@ import type { ReplaceAction } from 'faiwer-react/types/actions';
 import { getFiberDomNodes } from './helpers';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { nullthrows } from 'faiwer-react/utils';
-import { applyAction } from './applyAction';
+import { removeAction } from './remove.action';
 
 /**
  * Handles fiber replacement when a component with the same key renders a
@@ -43,7 +43,7 @@ export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
     prev = n;
   }
 
-  applyAction({ type: 'Remove', fiber });
+  removeAction(fiber);
   fiber.parent = parent; // undo `parent = null` (done in "Remove").
 
   displaceFiber(fiber, newFiber);
