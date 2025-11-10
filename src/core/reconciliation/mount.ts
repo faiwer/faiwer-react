@@ -12,6 +12,7 @@ import { postCommit } from './postCommit';
 import { removeApp, registerApp } from './app';
 import type { Action } from 'faiwer-react/types/actions';
 import { createFiberNode, toFiberChildren } from './fibers';
+import { Queue } from './queue';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
@@ -28,7 +29,7 @@ export const mount = (
     id: appId,
     root: createRootFiber(appId),
     effects: { refs: [], layout: [], normal: [] },
-    invalidatedComponents: new Set(),
+    invalidatedComponents: new Queue(),
     state: 'render',
     testMode: !!options.testMode,
     tempContext: new Map(),
@@ -46,7 +47,7 @@ export const mount = (
   postCommit(app, 0);
 
   return function destroyApp(): void {
-    app.invalidatedComponents.clear();
+    app.invalidatedComponents = new Queue();
     app.effects.refs = [];
     app.effects.layout = [];
     app.effects.normal = [];

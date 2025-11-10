@@ -3,7 +3,7 @@ import { nullthrows } from 'faiwer-react/utils';
 import { FAKE_CONTAINER_TAG } from './fibers';
 
 export const validateApp = (app: App): void => {
-  for (const fiber of app.invalidatedComponents) {
+  app.invalidatedComponents.traverse((fiber) => {
     if (!fiber.parent) {
       throw new Error('Orphan component invalidated');
     }
@@ -11,7 +11,7 @@ export const validateApp = (app: App): void => {
     if (fiber.parent.tag === FAKE_CONTAINER_TAG) {
       throw new Error('Cannot invalidate not-mounted fiber node');
     }
-  }
+  });
 
   validateTree(app.root);
 };

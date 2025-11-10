@@ -1,4 +1,4 @@
-import type { App, FiberNode } from 'faiwer-react/types';
+import type { FiberNode, UnknownProps } from 'faiwer-react/types';
 import type { Action } from 'faiwer-react/types/actions';
 import { runComponent } from '../../components';
 import { jsxElementToFiberNode } from '../../reactNodeToFiberNode';
@@ -12,17 +12,11 @@ import { toFiberChildren } from '../fibers';
  * Throws when the given component is not invalidated.
  */
 export const collectActionsFromComponent = (
-  app: App,
   fiber: FiberNode,
-  /** When given this node's props are used to run the component. */
-  updated: FiberNode | null,
+  /** Custom props (when `fiber.props` are stale). */
+  props: UnknownProps | null,
 ): Action[] => {
-  if (!app.invalidatedComponents.has(fiber)) {
-    throw new Error(`Component is not scheduled to update`);
-  }
-
-  app.invalidatedComponents.delete(fiber);
-  const newReactChildren: JSX.Element = runComponent(fiber, updated);
+  const newReactChildren: JSX.Element = runComponent(fiber, props);
   const newFiber: FiberNode = jsxElementToFiberNode(
     newReactChildren,
     fiber,

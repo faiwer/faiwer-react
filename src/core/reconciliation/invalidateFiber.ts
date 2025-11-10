@@ -20,7 +20,7 @@ export const invalidateFiber = (fiber: FiberNode): void => {
 
   switch (app.state) {
     case 'idle':
-      app.invalidatedComponents.add(fiber);
+      app.invalidatedComponents.add(fiber, null);
       app.state = 'scheduled';
       queueMicrotask(() => reactRender(app));
       break;
@@ -29,7 +29,7 @@ export const invalidateFiber = (fiber: FiberNode): void => {
     case 'effects':
     case 'layoutEffects':
     case 'refEffects':
-      app.invalidatedComponents.add(fiber);
+      app.invalidatedComponents.add(fiber, null);
       break;
 
     case 'render':

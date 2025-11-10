@@ -1,5 +1,6 @@
 import type { FiberNode } from './fiber';
 import type { EffectMode } from './hooks';
+import type { Queue } from 'faiwer-react/core/reconciliation/queue';
 
 export type AppState =
   /** Waiting for updates */
@@ -56,7 +57,7 @@ export type App = {
   /** The lists of pending effect handlers. */
   effects: Record<EffectMode, Array<() => void>>;
   /** The list of components to rerender. */
-  invalidatedComponents: Set<FiberNode>;
+  invalidatedComponents: Queue;
   /** If `true`, extra validators are applied. */
   testMode: boolean;
   /**

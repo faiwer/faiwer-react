@@ -19,6 +19,6 @@ export const removeApp = (id: number): void => {
     // Help with garbage collection.
     app.root = app.tempContext = null;
     app.effects = { normal: [] };
-    app.invalidatedComponents = { size: 0 };
+    app.invalidatedComponents = { isEmpty: () => true };
   }
 };

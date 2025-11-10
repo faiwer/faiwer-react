@@ -22,7 +22,7 @@ export function postCommit(app: App, depth: number) {
     app.state = 'layoutEffects';
     runEffects(app, 'layout');
 
-    if (app.invalidatedComponents.size > 0) {
+    if (!app.invalidatedComponents.isEmpty()) {
       // 1+ component was invalidated in an effect
       if (app.effects.normal.length > 0) {
         // Layout effect component invalidations should be applied within the
@@ -47,7 +47,7 @@ export function postCommit(app: App, depth: number) {
   setTimeout(() => {
     runEffects(app, 'normal');
 
-    if (app.invalidatedComponents.size > 0) {
+    if (!app.invalidatedComponents.isEmpty()) {
       app.state = 'scheduled';
       setTimeout(() => reactRender(app), 0);
       return;

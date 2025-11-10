@@ -8,7 +8,6 @@ import type {
 } from 'faiwer-react/types';
 import type { Action, SetRefAction } from 'faiwer-react/types/actions';
 import { collectActionsFromChildrenPair } from './fromChildrenPair';
-import { collectActionsFromComponent } from './fromComponent';
 import { areFiberPropsEq } from '../compare/areFiberPropsEq';
 import { isFiberDead } from '../fibers';
 
@@ -68,7 +67,7 @@ export const collectActionsFromFiberPair = (
 
     case 'component':
       // One of the l-component props was updated -> run the component.
-      app.invalidatedComponents.add(l);
+      app.invalidatedComponents.add(l, r.props);
       if (!eqProps) {
         actions.push({
           type: 'SetProps', // just l.props = r.props
@@ -76,13 +75,6 @@ export const collectActionsFromFiberPair = (
           props: r.props,
         });
       }
-      actions.push(
-        ...collectActionsFromComponent(
-          app,
-          l,
-          r, // use r's version of props to run the component
-        ),
-      );
       break;
 
     case 'fragment': {
@@ -171,6 +163,6 @@ const invalidateContextValue = (
     if (isFiberDead(childCompFiber)) {
       throw new Error(`Can't invalidate a dead context consumer`);
     }
-    app.invalidatedComponents.add(childCompFiber);
+    app.invalidatedComponents.add(childCompFiber, null);
   }
 };
