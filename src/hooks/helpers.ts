@@ -59,7 +59,7 @@ export const getNextHookOrCreate = <T extends { type: HookStateItem['type'] }>(
   const item = firstRender ? fiber.data.hooks.at(-1)! : getNextFiberState();
   if (item.type !== type) {
     throw new Error(
-      `The order of the hooks is violated. Expected: ${type}, got: ${item.type}`,
+      `The hook order is violated. Expected: ${type}, got: ${item.type}`,
     );
   }
 

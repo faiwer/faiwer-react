@@ -58,6 +58,12 @@ export const runComponent = (
 
   let jsxElement: JSX.Element = fiber.component!(props ?? fiber.props);
 
+  if (!firstFiberRender && hookIdx !== fiber.data.hooks.length - 1) {
+    throw new Error(
+      `The hook order is violated. There were ${fiber.data.hooks.length} hooks in the previous render. Now only ${hookIdx + 1}`,
+    );
+  }
+
   currentFiber = null;
   firstFiberRender = false;
 

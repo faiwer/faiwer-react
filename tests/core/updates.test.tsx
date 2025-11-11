@@ -334,7 +334,7 @@ describe('Updates', () => {
 
     const show = useStateX<boolean>();
     const Parent = () => {
-      return show.use(true) && Child();
+      return show.use(true) && <Child />;
     };
 
     const root = mount(<Parent />);
