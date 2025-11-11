@@ -1,6 +1,9 @@
 import type { FiberNode } from 'faiwer-react/types';
 import { getParentElement } from './helpers';
 import { createCommentAction } from './createComment.action';
+import { setAttrAction } from './setAttr.action';
+import type { CreateTagAction } from 'faiwer-react/types/actions';
+import { setRefAction } from './setRef.action';
 
 /**
  * Handles two scenarios:
@@ -9,7 +12,10 @@ import { createCommentAction } from './createComment.action';
  *
  * This doesn't create child nodes or set attributes/event handlers.
  */
-export function createTagAction(fiber: FiberNode): void {
+export function createTagAction(
+  fiber: FiberNode,
+  { attrs, ref }: CreateTagAction,
+): void {
   if (fiber.type !== 'tag') {
     throw new Error(`createTagAction supports only tag-fiber-nodes.`);
   }
@@ -26,8 +32,18 @@ export function createTagAction(fiber: FiberNode): void {
       : document.createElement(fiber.tag);
     fiber.element = tag;
     getParentElement(fiber).appendChild(fiber.element);
+
+    for (const [name, value] of Object.entries(attrs ?? EMPTY)) {
+      setAttrAction(fiber, { name, value });
+    }
+
+    if (ref) {
+      setRefAction(fiber, { ref, dontUnsetRef: true });
+    }
   }
 }
+
+const EMPTY: NonNullable<CreateTagAction['attrs']> = {};
 
 const SVG_TAGS = new Set([
   // Core SVG Elements:

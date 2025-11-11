@@ -8,7 +8,11 @@ type CommonAction = {
 };
 
 // Create actions
-type CreateTagAction = CommonAction & { type: 'CreateTag' };
+export type CreateTagAction = CommonAction & {
+  type: 'CreateTag';
+  attrs: null | Record<string, TagAttrValue>;
+  ref: SetRefAction['ref'];
+};
 type CreateTextAction = CommonAction & { type: 'CreateText' };
 export type CreateCommentAction = CommonAction & {
   type: 'CreateComment';

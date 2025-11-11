@@ -14,7 +14,7 @@ import { setHtmlAttribute } from './dom/attributes';
  */
 export function setAttrAction(
   fiber: FiberNode,
-  { name, value }: SetAttrAction,
+  { name, value }: Pick<SetAttrAction, 'name' | 'value'>,
 ) {
   if (fiber.type !== 'tag') {
     throw new Error(`Can't apply SetAttr to a ${fiber.type} node`);

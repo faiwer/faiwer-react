@@ -14,7 +14,7 @@ import { getAppByFiber } from '../reconciliation/app';
  */
 export function setRefAction(
   fiber: FiberNode,
-  { ref, dontUnsetRef }: SetRefAction,
+  { ref, dontUnsetRef }: Pick<SetRefAction, 'ref' | 'dontUnsetRef'>,
 ) {
   if (fiber.type !== 'tag') {
     throw new Error(`setRefAction is not compatible with ${fiber.type} nodes`);
