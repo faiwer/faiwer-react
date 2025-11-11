@@ -1,14 +1,3 @@
-import type { ReactComponent, UnknownProps } from './types';
-
-/**
- * Currently a no-op that returns the component unchanged. In the future,
- * ref forwarding won't be needed since refs will be passed as regular props
- * to components.
- */
-export const forwardRef = <T extends UnknownProps>(
-  Component: ReactComponent<T>,
-): typeof Component => Component;
-
 /**
  * Mock implementation of React's startTransition. This engine doesn't support
  * concurrent features or update prioritization, so transitions are executed

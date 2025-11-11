@@ -2,7 +2,7 @@ import type { ComponentState, ReactComponent } from './component';
 import type { ContextState } from './context';
 import type { UnknownProps, ReactKey } from './core';
 import type { DomNode, TagStyles } from './dom';
-import type { Ref, RefSetter } from './refs';
+import type { RefObject, RefSetter } from './refs';
 
 /**
  * A single node in the Fiber tree.
@@ -180,7 +180,7 @@ export type TagFiberNode<T = Element> = CommonFiber & {
   key: ReactKey | null;
   element: T | null;
   data: TagState;
-  ref: RefSetter<T | null> | Ref<T | null> | null;
+  ref: RefSetter<T> | RefObject<T | null> | null;
   props: Record<PropertyKey, unknown>;
   // Unused fields:
   role: null;

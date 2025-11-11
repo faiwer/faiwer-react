@@ -1,6 +1,6 @@
 import type { ReactContext } from './context';
 import type { ContextFiberNode, FiberNode } from './fiber';
-import type { Ref } from './refs';
+import type { RefObject } from './refs';
 
 export type UseStateItem<T = unknown> = {
   type: 'state';
@@ -18,7 +18,7 @@ export type UseMemoItem = {
 
 export type UseRefItem<T = unknown> = {
   type: 'ref';
-  value: Ref<T>;
+  value: RefObject<T>;
 };
 
 export type UseEffectItem = {

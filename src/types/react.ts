@@ -4,7 +4,7 @@ import type { ElementCommonAttrs, UnknownProps } from './core';
 import type { EventHandler, PatchEvent } from './events';
 import type { TagNativeProps } from './attributes';
 import type { TagProps, TagStyles } from './dom';
-import type { HtmlRef, RefSetter } from './refs';
+import type { Ref } from './refs';
 
 //
 // Core
@@ -55,5 +55,5 @@ export type TextareaHTMLAttributes<T extends Element = HTMLTextAreaElement> =
 export type InputHTMLAttributes<T extends Element = HTMLInputElement> =
   TagProps<T>;
 export type RefAttributes<T extends Element> =
-  & { ref?: HtmlRef<T> | RefSetter<T | null>; }
+  & { ref?: Ref<T>; }
   & ElementCommonAttrs; // prettier-ignore

@@ -1,5 +1,5 @@
 import {
-  type Ref,
+  type RefObject,
   type RefSetter,
   type FiberNode,
   type ContextFiberNode,
@@ -123,7 +123,7 @@ export const jsxElementToFiberNode = (
       type: 'component',
       component: jsxElement.type as ReactComponent,
       key,
-      props,
+      props: jsxElement.props,
       data: { hooks: null },
     };
     if (unwrapComponents) {
@@ -164,7 +164,7 @@ function validateContextProviderProps(
 
 function validateRef<T = unknown>(
   src: unknown,
-): asserts src is null | Ref<T | null> | RefSetter<T | null> {
+): asserts src is null | RefObject<T | null> | RefSetter<T | null> {
   if (
     src === null ||
     // Unfortunately, there's no way to validate the function.

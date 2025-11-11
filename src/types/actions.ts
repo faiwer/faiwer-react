@@ -1,7 +1,7 @@
 import type { CommentMode, UnknownProps } from './core';
 import type { TagAttrValue } from './dom';
 import type { FiberMap, FiberNode } from './fiber';
-import type { Ref, RefSetter } from './refs';
+import type { RefObject, RefSetter } from './refs';
 
 type CommonAction = {
   fiber: FiberNode;
@@ -29,7 +29,7 @@ export type SetAttrAction = CommonAction & {
 };
 export type SetRefAction = CommonAction & {
   type: 'SetRef';
-  ref: Ref<unknown> | RefSetter<unknown> | null;
+  ref: RefObject<unknown> | RefSetter<unknown> | null;
   // We shouldn't clear refs on the first render.
   dontUnsetRef?: boolean;
 };

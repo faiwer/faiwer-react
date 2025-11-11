@@ -1,6 +1,6 @@
 import type { TagNativeProps } from './attributes';
 import type { ElementCommonAttrs, ScalarNode } from './core';
-import type { HtmlRef, RefSetter } from './refs';
+import type { Ref } from './refs';
 
 /** The list of possible DOM tree node types. */
 export type DomNode = Element | Text | Comment;
@@ -22,7 +22,7 @@ export type TagProps<T extends Element = HTMLElement> =
   & TagNativeProps<T>
   & ElementCommonAttrs
   & {
-    ref?: HtmlRef<T> | RefSetter<T | null>;
+    ref?: Ref<T>;
     style?: string | null | undefined | TagStyles
   }
   & Record<`data-${string}`, ScalarNode>

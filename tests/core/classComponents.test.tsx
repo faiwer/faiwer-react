@@ -3,7 +3,7 @@ import {
   Component,
   createContext,
   useState,
-  type Ref,
+  type RefObject,
   type StateSetter,
   type UnknownProps,
 } from 'faiwer-react';
@@ -48,8 +48,8 @@ describe('Class components', () => {
   const genWithRef = <Props extends UnknownProps, State extends UnknownProps>(
     initialState: State,
     Source: ComponentClass<Props, State>,
-  ): [Ref<Component<Props, State>>, ComponentClass<Props, State>] => {
-    let ref: Ref<Component<Props, State>> = {
+  ): [RefObject<Component<Props, State>>, ComponentClass<Props, State>] => {
+    let ref: RefObject<Component<Props, State>> = {
       current: null as unknown as Component<Props, State>,
     };
 

@@ -1,14 +1,20 @@
 import {
   useState,
   type RefSetter,
-  type Ref,
+  type RefObject,
   type StateSetter,
   useRef,
   useLayoutEffect,
+  type Ref,
 } from '~/index';
 import { act } from '~/testing';
 
-import { createToggler, useRerender, waitFor } from '../helpers';
+import {
+  createToggler,
+  createTogglerX,
+  useRerender,
+  waitFor,
+} from '../helpers';
 import { expectHtml, mount } from '../helpers';
 
 describe('Hooks: refs', () => {
@@ -16,7 +22,7 @@ describe('Hooks: refs', () => {
     let refs: unknown[] = [];
     let rerender: StateSetter<number>;
     const Comp = () => {
-      refs.push(useRef());
+      refs.push(useRef(null));
       rerender = useRerender();
       return null;
     };
@@ -28,11 +34,11 @@ describe('Hooks: refs', () => {
   });
 
   it('sets the ref', async () => {
-    let ref: Ref<HTMLDivElement | undefined>;
+    let ref: RefObject<HTMLDivElement | null>;
     const div = createToggler();
 
     const Comp = () => {
-      ref = useRef<HTMLDivElement>();
+      ref = useRef<HTMLDivElement>(null);
 
       const [show, setShow] = useState(true);
       div.show = () => setShow(true);
@@ -88,7 +94,7 @@ describe('Hooks: refs', () => {
   });
 
   it('reassigns ref when the ref handlers are changed', async () => {
-    type State = [RefSetter<HTMLDivElement | null>, Ref<HTMLDivElement | null>];
+    type State = [RefSetter<HTMLDivElement>, RefObject<HTMLDivElement | null>];
     let updateOnRefs: StateSetter<State>;
 
     const toStr = (v: HTMLDivElement | null): string => v?.tagName ?? 'null';
@@ -103,7 +109,7 @@ describe('Hooks: refs', () => {
     };
 
     const logsRefs: string[][] = [];
-    const genRef = (): Ref<HTMLDivElement | null> => {
+    const genRef = (): RefObject<HTMLDivElement | null> => {
       const arr: string[] = [];
       logsRefs.push(arr);
       return {
@@ -203,6 +209,43 @@ describe('Hooks: refs', () => {
 
       await act(() => updateShow(true));
       check(3, 'DIV');
+    });
+  }
+
+  for (const mode of ['object', 'fn']) {
+    it(`supports components ${mode} refs`, async () => {
+      const Child = ({ ref }: { ref: Ref<HTMLDivElement> }) => (
+        <div ref={ref} />
+      );
+
+      let ref: Ref<HTMLDivElement>;
+      const onRef = jest.fn();
+      const div = expect.objectContaining({ tagName: 'DIV' });
+
+      let child = createTogglerX();
+      const Parent = () => {
+        ref = mode === 'fn' ? onRef : useRef<HTMLDivElement | null>(null);
+        return child.useToggler() && <Child ref={ref} />;
+      };
+
+      mount(<Parent />);
+      await Promise.resolve();
+
+      const check = (defined: boolean): void => {
+        if (mode === 'fn') {
+          expect(onRef.mock.lastCall).toEqual(defined ? [div] : [null]);
+        } else {
+          expect((ref as RefObject<any>).current).toEqual(defined ? div : null);
+        }
+      };
+
+      check(true);
+
+      await act(() => child.hide!());
+      check(false);
+
+      await act(() => child.show!());
+      check(true);
     });
   }
 });
