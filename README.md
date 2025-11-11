@@ -21,14 +21,13 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 ## Installation
 
-- `npm uninstall react react-dom @types/react`
+- `npm uninstall react react-dom @types/react @types/react-dom`
 - `npm i --save react@npm:@faiwer/react`
 - `npm i --save --force react-dom@npm:@faiwer/react-dom`
 - You might need to update your `tsconfig.json` (no necessarily):
   ```json
   "compilerOptions": {
     "jsx": "react-jsx",
-    "jsxImportSource": "@faiwer/react"
   }
   ```
   Or use `"jsx": "preserve"`
@@ -56,7 +55,7 @@ createRoot(container).render(<App />);
     - "capture"-kind of events
     - custom `onChange` like in ReactDOM
   - Error handling
-  - Direct component refs, `forwardRef`, `useImperativeHandle`
+  - `useImperativeHandle`
   - support solo-compact mode over bracket-compact mode
 - 2nd line
   - prepare an NPM-package
