@@ -1,7 +1,5 @@
 import {
   createRoot,
-  useState,
-  type StateSetter,
   useEffect,
   ElementNode,
   Fragment,
@@ -10,7 +8,7 @@ import {
   type ReactComponent,
 } from '~/index';
 import { act } from '~/testing';
-import { expectHtml, mount } from '../helpers';
+import { expectHtml, mount, useStateX } from '../helpers';
 import { wait, waitFor } from '../helpers';
 
 describe('createElement', () => {
@@ -137,14 +135,12 @@ describe('Mounting: tags', () => {
   for (const mode of ['undefined', 'absent prop']) {
     it(`unsets tag event handlers. mode: ${mode}`, async () => {
       const onclick = jest.fn();
-      let updateListen: StateSetter<boolean>;
+      const listen = useStateX<boolean>();
 
       const Component = () => {
-        const [listen, setListen] = useState(true);
-        updateListen = setListen;
-
-        return mode === 'undefined' || listen ? (
-          <div onClick={listen ? onclick : undefined}>Content</div>
+        const listenValue = listen.use(true);
+        return mode === 'undefined' || listenValue ? (
+          <div onClick={listenValue ? onclick : undefined}>Content</div>
         ) : (
           <div>Content</div>
         );
@@ -155,11 +151,11 @@ describe('Mounting: tags', () => {
       root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(1);
 
-      await act(() => updateListen(false));
+      await act(() => listen.set(false));
       root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(1); // Wasn't called.
 
-      await act(() => updateListen(true));
+      await act(() => listen.set(true));
       root.querySelector('div')!.dispatchEvent(event);
       expect(onclick).toHaveBeenCalledTimes(2); // Was called again.
     });
@@ -171,14 +167,12 @@ describe('Mounting: tags', () => {
     });
 
     it(`unsets tag attributes. mode: ${mode}`, async () => {
-      let updateWithAttr: StateSetter<boolean>;
+      const withAttr = useStateX<boolean>();
 
       const Component = () => {
-        const [withAttr, setWithAttr] = useState(true);
-        updateWithAttr = setWithAttr;
-
-        return mode === 'undefined' || withAttr ? (
-          <div tabIndex={withAttr ? 42 : undefined}>Content</div>
+        const withAttrValue = withAttr.use(true);
+        return mode === 'undefined' || withAttrValue ? (
+          <div tabIndex={withAttrValue ? 42 : undefined}>Content</div>
         ) : (
           <div>Content</div>
         );
@@ -188,10 +182,10 @@ describe('Mounting: tags', () => {
       const tag = root.querySelector('div');
       expect(tag?.getAttribute('tabIndex')).toBe('42');
 
-      await act(() => updateWithAttr(false));
+      await act(() => withAttr.set(false));
       expect(tag?.hasAttribute('tabIndex')).toBe(false);
 
-      await act(() => updateWithAttr(true));
+      await act(() => withAttr.set(true));
       expect(tag?.getAttribute('tabIndex')).toBe('42');
     });
   }
@@ -199,13 +193,10 @@ describe('Mounting: tags', () => {
   for (const mode of ['replace tag', 'remove tag']) {
     it(`removes event handlers on tag removal: ${mode}`, async () => {
       const onclick = jest.fn();
-      let updateShow: StateSetter<boolean>;
+      const show = useStateX<boolean>();
 
       const Comp = () => {
-        const [show, setShow] = useState(true);
-        updateShow = setShow;
-
-        return show ? (
+        return show.use(true) ? (
           <div onClick={onclick}>div</div>
         ) : mode === 'replace tag' ? (
           <span />
@@ -230,7 +221,7 @@ describe('Mounting: tags', () => {
       const removeSpy = jest.spyOn(div, 'removeEventListener');
       expectHtml(div).toBe('div');
 
-      await act(() => updateShow(false));
+      await act(() => show.set(false));
       expect(onAddEvent).toHaveBeenCalledTimes(1);
       expect(removeSpy).toHaveBeenCalledTimes(1);
       expect(removeSpy).toHaveBeenCalledWith('click', eventHandler!);
@@ -253,13 +244,9 @@ describe('Mounting: tags', () => {
 
   // It's can be critical when assinging a value causes some effects.
   it(`doesn't reassign an attribute when its stringified value is intact`, async () => {
-    let updateTabIndex: StateSetter<string | number>;
+    const tabIndex = useStateX<string | number>();
 
-    const Comp = () => {
-      const [tabIndex, setTabIndex] = useState<string | number>(42);
-      updateTabIndex = setTabIndex;
-      return <div tabIndex={tabIndex as number} />;
-    };
+    const Comp = () => <div tabIndex={tabIndex.use(42) as number} />;
 
     const root = mount(<Comp />);
     expectHtml(root).toBe('<div tabindex="42"></div>');
@@ -267,11 +254,11 @@ describe('Mounting: tags', () => {
     const div = root.querySelector('div')!;
     const spy = jest.spyOn(div, 'setAttribute');
 
-    await act(() => updateTabIndex('42'));
+    await act(() => tabIndex.set('42'));
     expectHtml(root).toBe('<div tabindex="42"></div>');
     expect(spy).toHaveBeenCalledTimes(0);
 
-    await act(() => updateTabIndex(24));
+    await act(() => tabIndex.set(24));
     expectHtml(root).toBe('<div tabindex="24"></div>');
     expect(spy).toHaveBeenCalledTimes(1);
   });
@@ -456,11 +443,11 @@ describe('createRoot', () => {
   it('supports multiple apps simultaneously', async () => {
     type App = 'app1' | 'app2';
     const called: Record<App, number> = { app1: 0, app2: 0 };
-    const updatePrefix: Partial<Record<App, StateSetter<string>>> = {};
+    const prefixApp1 = useStateX<string>();
+    const prefixApp2 = useStateX<string>();
 
     const Comp = ({ app }: { app: App }) => {
-      let [prefix, setPrefix] = useState('');
-      updatePrefix[app] = setPrefix;
+      const prefix = app === 'app1' ? prefixApp1.use('') : prefixApp2.use('');
 
       useEffect(() => {
         ++called[app];
@@ -483,8 +470,8 @@ describe('createRoot', () => {
     });
 
     await act(() => {
-      updatePrefix['app1']!('p1-');
-      updatePrefix['app2']!('p2-');
+      prefixApp1.set('p1-');
+      prefixApp2.set('p2-');
     });
     await waitFor(() => {
       expectHtml(root1).toBe('p1-app1');

@@ -2,12 +2,10 @@
 import {
   Component,
   createContext,
-  useState,
   type RefObject,
-  type StateSetter,
   type UnknownProps,
 } from 'faiwer-react';
-import { expectHtml, mount, waitFor } from '../helpers';
+import { expectHtml, mount, useStateX, waitFor } from '../helpers';
 import type { ComponentClass } from 'faiwer-react/core/classComponent';
 
 describe('Class components', () => {
@@ -115,17 +113,15 @@ describe('Class components', () => {
       }
     }
 
-    let updateAge: StateSetter<number>;
+    const age = useStateX<number>();
     const Wrapper = () => {
-      const [age, setAge] = useState(75);
-      updateAge = setAge;
-      return <User age={age} />;
+      return <User age={age.use(75)} />;
     };
 
     const root = mount(<Wrapper />);
     expectHtml(root).toBe(`<div>I'm 75 years old</div>`);
 
-    updateAge!(34);
+    age.set(34);
     await waitFor(() => {
       expectHtml(root).toBe(`<div>I'm 34 years old</div>`);
     });
@@ -179,18 +175,14 @@ describe('Class components', () => {
       }
     }
 
-    let updateShow: StateSetter<boolean>;
-    const Wrapper = () => {
-      const [show, setShow] = useState(true);
-      updateShow = setShow;
-      return show && <User />;
-    };
+    const user = useStateX<boolean>();
+    const Wrapper = () => user.use(true) && <User />;
 
     const root = mount(<Wrapper />);
     expectHtml(root).toBe('42');
     expect(onUnmount).toHaveBeenCalledTimes(0);
 
-    updateShow!(false);
+    user.set(false);
     await waitFor(() => {
       expect(onUnmount).toHaveBeenCalledTimes(1);
       expectHtml(root).toBe('');
@@ -218,12 +210,8 @@ describe('Class components', () => {
       },
     );
 
-    let updateId: StateSetter<number>;
-    const Wrapper = () => {
-      const [id, setId] = useState(1);
-      updateId = setId;
-      return <User id={id} />;
-    };
+    const id = useStateX<number>();
+    const Wrapper = () => <User id={id.use(1)} />;
 
     const root = mount(<Wrapper />);
     expectHtml(root).toBe('1, 20');
@@ -236,7 +224,7 @@ describe('Class components', () => {
     expectHtml(root).toBe('1, 21');
     expect(didUpdate).toHaveBeenCalledWith({ id: 1 }, { age: 20 });
 
-    updateId!(2);
+    id.set(2);
     await waitFor(() => {
       expect(didUpdate).toHaveBeenCalledTimes(2);
     });
@@ -255,21 +243,17 @@ describe('Class components', () => {
       }
     }
 
-    let updateV: StateSetter<number>;
-    const Wrapper = () => {
-      const [v, setV] = useState(20);
-      updateV = setV;
-      return (
-        <ctx.Provider value={v}>
-          <User />
-        </ctx.Provider>
-      );
-    };
+    const value = useStateX<number>();
+    const Wrapper = () => (
+      <ctx.Provider value={value.use(20)}>
+        <User />
+      </ctx.Provider>
+    );
 
     const root = mount(<Wrapper />);
     expectHtml(root).toBe(`<div>20</div>`);
 
-    updateV!(444);
+    value.set(444);
     await waitFor(() => {
       expectHtml(root).toBe(`<div>444</div>`);
     });
@@ -296,12 +280,8 @@ describe('Class components', () => {
       }
     }
 
-    let updateAge: StateSetter<number>;
-    const Wrapper = () => {
-      const [age, setAge] = useState(20);
-      updateAge = setAge;
-      return <User age={age} />;
-    };
+    const age = useStateX<number>();
+    const Wrapper = () => <User age={age.use(20)} />;
 
     // 1st render
     const root = mount(<Wrapper />);
@@ -311,7 +291,7 @@ describe('Class components', () => {
     );
 
     // 2nd render
-    updateAge!(44);
+    age.set(44);
     await waitFor(() => {
       expectHtml(root).toBe(
         `<div>Hey, I'm Karl. I am 44 years old. ` +

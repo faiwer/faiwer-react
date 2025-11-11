@@ -1,6 +1,6 @@
-import { useState, Fragment, ReactComponent, type StateSetter } from '~/index';
+import { Fragment, ReactComponent } from '~/index';
 import { act } from '~/testing';
-import { expectHtmlFull, mount } from '../helpers';
+import { expectHtmlFull, mount, useStateX } from '../helpers';
 
 describe('Compact rendering', () => {
   for (const mode of ['fragment', 'component']) {
@@ -31,14 +31,10 @@ describe('Compact rendering', () => {
         const middleEmpty: JSX.Element =
           mode === 'fragment' ? [] : <Comp empty={true} />;
 
-        let showContent: () => void;
-        let hideContent: () => void;
-        const Wrapper = () => {
-          const [show, setShow] = useState(true);
-          showContent = () => setShow(true);
-          hideContent = () => setShow(false);
-          return <div>before!{show ? middle : middleEmpty}!after</div>;
-        };
+        const show = useStateX<boolean>();
+        const Wrapper = () => (
+          <div>before!{show.use(true) ? middle : middleEmpty}!after</div>
+        );
 
         const wrapperDomNode = mount(<Wrapper />).childNodes[0] as HTMLElement;
         const middleHtml =
@@ -47,10 +43,10 @@ describe('Compact rendering', () => {
             : 'only';
         expectHtmlFull(wrapperDomNode).toBe(`before!${middleHtml}!after`);
 
-        await act(() => hideContent!());
+        await act(() => show.set(false));
         expectHtmlFull(wrapperDomNode).toBe(`before!<!--r:empty:1-->!after`);
 
-        await act(() => showContent!());
+        await act(() => show.set(true));
         expectHtmlFull(wrapperDomNode).toBe(`before!${middleHtml}!after`);
       });
     }
@@ -114,14 +110,11 @@ describe('Compact rendering', () => {
   });
 
   it('correctly inserts more nodes to a fragment', async () => {
-    let updateSolo: StateSetter<boolean>;
+    const solo = useStateX<boolean>();
     const Child = () => null;
 
     const Parent = () => {
-      const [solo, setSolo] = useState<boolean>(true);
-      updateSolo = setSolo;
-
-      return solo ? (
+      return solo.use(true) ? (
         <Fragment key="fragment">
           <Child key="1" />
         </Fragment>
@@ -136,7 +129,7 @@ describe('Compact rendering', () => {
     const root = mount(<Parent />);
     expectHtmlFull(root).toBe(`<!--r:null:1-->`);
 
-    await act(() => updateSolo(false));
+    await act(() => solo.set(false));
     expectHtmlFull(root).toBe(
       `<!--r:begin:1-->` + // Parent
         `<!--r:begin:2-->` + // Fragment
@@ -148,16 +141,14 @@ describe('Compact rendering', () => {
   });
 
   it('recursively re-compacts parent nodes when the only child is replaced', async () => {
-    let updateKey: StateSetter<number>;
+    const key = useStateX<number>();
     const Child: ReactComponent<{ v: number }> = ({ v }) => v;
 
     const Parent = () => {
-      const [key, setKey] = useState<number>(1);
-      updateKey = setKey;
-
+      const keyValue = key.use(1);
       return (
         <Fragment key="fragment">
-          <Child key={key} v={key} />
+          <Child key={keyValue} v={keyValue} />
         </Fragment>
       );
     };
@@ -165,7 +156,7 @@ describe('Compact rendering', () => {
     const root = mount(<Parent />);
     expectHtmlFull(root).toBe(`1`);
 
-    await act(() => updateKey(2));
+    await act(() => key.set(2));
     expectHtmlFull(root).toBe('2');
   });
 
@@ -173,21 +164,17 @@ describe('Compact rendering', () => {
   // `displaceFiber` didn't update the `fiber.id`. Thus `isEndOf` didn't work
   // because the fiber's `id` and !--IDs were different.
   it('properly handles replacing the only child with a fragment', async () => {
-    let updateIdx: StateSetter<number>;
+    const idx = useStateX<number>();
 
     const Child1 = () => 'a';
     const Child2 = () => ['b', 'c'];
 
-    const Comp = () => {
-      const [idx, setIdx] = useState(1);
-      updateIdx = setIdx;
+    const Comp = () => (idx.use(1) === 1 ? <Child1 /> : <Child2 />);
 
-      return idx === 1 ? <Child1 /> : <Child2 />;
-    };
     const root = mount(<Comp />);
     expectHtmlFull(root).toBe('a');
 
-    await act(() => updateIdx(2));
+    await act(() => idx.set(2));
 
     expectHtmlFull(root).toBe(
       '<!--r:begin:1--><!--r:begin:2-->bc<!--r:end:2--><!--r:end:1-->',
@@ -195,23 +182,19 @@ describe('Compact rendering', () => {
   });
 
   it('can replace one !--empty fragment with another', async () => {
-    let updateShow: StateSetter<string>;
+    const key = useStateX<string>();
 
-    const Comp = () => {
-      const [key, setKey] = useState('first');
-      updateShow = setKey;
-      return (
-        <div>
-          {/* @ts-expect-error */}
-          <Fragment key={key} />
-        </div>
-      );
-    };
+    const Comp = () => (
+      <div>
+        {/* @ts-expect-error */}
+        <Fragment key={key.use('first')} />
+      </div>
+    );
 
     const root = mount(<Comp />);
     expectHtmlFull(root).toBe('<div><!--r:empty:1--></div>');
 
-    await act(() => updateShow!('second'));
+    await act(() => key.set('second'));
     expectHtmlFull(root).toBe('<div><!--r:empty:1--></div>');
   });
 });

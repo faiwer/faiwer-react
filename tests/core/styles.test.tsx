@@ -1,5 +1,4 @@
-import { useState, type StateSetter } from 'faiwer-react';
-import { expectHtml, mount } from '../helpers';
+import { expectHtml, mount, useStateX } from '../helpers';
 import { act } from 'faiwer-react/testing';
 
 describe('styles', () => {
@@ -72,13 +71,10 @@ describe('styles', () => {
   });
 
   it('it sync styles on rerenders', async () => {
-    let updateChanged: StateSetter<boolean>;
+    const changed = useStateX<boolean>();
 
     const Comp = () => {
-      const [changed, setChanged] = useState(false);
-      updateChanged = setChanged;
-
-      return changed ? (
+      return changed.use(false) ? (
         <>
           <div style="color: red; border-width: 1px; --a: 0" />
           <span style={{ color: 'red', borderWidth: '1px', ['--a']: 0 }} />
@@ -98,14 +94,14 @@ describe('styles', () => {
         `<span style="${initialCSS}"></span>`,
     );
 
-    await act(() => updateChanged(true));
+    await act(() => changed.set(true));
     const changedCSS = `color: red; border-width: 1px; --a: 0;`;
     expectHtml(root).toBe(
       `<div style="${changedCSS}"></div>` +
         `<span style="${changedCSS}"></span>`,
     );
 
-    await act(() => updateChanged(false));
+    await act(() => changed.set(false));
     expectHtml(root).toBe(
       `<div style="${initialCSS}"></div>` +
         `<span style="${initialCSS}"></span>`,
@@ -113,23 +109,21 @@ describe('styles', () => {
   });
 
   it('removes styles when set to null', async () => {
-    let updateShow: StateSetter<boolean>;
+    const show = useStateX<boolean>();
 
     const Comp = () => {
-      const [show, setShow] = useState(true);
-      updateShow = setShow;
-
+      const showValue = show.use(true);
       return (
         <>
-          <div style={show ? 'color: red' : null} />
-          <span style={show ? { color: 'red' } : undefined} />
+          <div style={showValue ? 'color: red' : null} />
+          <span style={showValue ? { color: 'red' } : undefined} />
         </>
       );
     };
 
     const root = mount(<Comp />);
 
-    await act(() => updateShow!(false));
+    await act(() => show.set(false));
     expectHtml(root).toBe(`<div></div><span></span>`);
   });
 });

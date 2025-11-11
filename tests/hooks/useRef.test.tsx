@@ -1,5 +1,4 @@
 import {
-  useState,
   type RefSetter,
   type RefObject,
   type StateSetter,
@@ -10,13 +9,7 @@ import {
 } from '~/index';
 import { act } from '~/testing';
 
-import {
-  createToggler,
-  createTogglerX,
-  useRerender,
-  useStateX,
-  waitFor,
-} from '../helpers';
+import { useRerender, useStateX, waitFor } from '../helpers';
 import { expectHtml, mount } from '../helpers';
 
 describe('Hooks: refs', () => {
@@ -37,16 +30,11 @@ describe('Hooks: refs', () => {
 
   it('sets the ref', async () => {
     let ref: RefObject<HTMLDivElement | null>;
-    const div = createToggler();
+    const show = useStateX<boolean>();
 
     const Comp = () => {
       ref = useRef<HTMLDivElement>(null);
-
-      const [show, setShow] = useState(true);
-      div.show = () => setShow(true);
-      div.hide = () => setShow(false);
-
-      return show && <div ref={ref}>1</div>;
+      return show.use(true) && <div ref={ref}>1</div>;
     };
 
     const root = mount(<Comp />);
@@ -54,26 +42,20 @@ describe('Hooks: refs', () => {
     expect(ref!.current?.tagName).toBe('DIV');
     expect(ref!.current?.parentElement?.tagName).toBe('ROOT');
 
-    await act(() => div.hide!());
+    await act(() => show.set(false));
     expectHtml(root).toBe('');
     expect(ref!.current).toBe(null);
 
-    await act(() => div.show!());
+    await act(() => show.set(true));
     expect(ref!.current?.tagName).toBe('DIV');
     expect(ref!.current?.parentElement?.tagName).toBe('ROOT');
   });
 
   it('calls the ref-handler', async () => {
-    const div = createToggler();
     const onRef = jest.fn();
+    const show = useStateX<boolean>();
 
-    const Comp = () => {
-      const [show, setShow] = useState(true);
-      div.show = () => setShow(true);
-      div.hide = () => setShow(false);
-
-      return show && <div ref={onRef}>1</div>;
-    };
+    const Comp = () => show.use(true) && <div ref={onRef}>1</div>;
 
     const root = mount(<Comp />);
     expectHtml(root).toBe('<div>1</div>');
@@ -82,13 +64,13 @@ describe('Hooks: refs', () => {
     expect(node1!.tagName).toBe('DIV');
     expect(node1!.parentElement?.tagName).toBe('ROOT');
 
-    await act(() => div.hide!());
+    await act(() => show.set(false));
     expectHtml(root).toBe('');
     expect(onRef).toHaveBeenCalledTimes(2);
     const [node2] = onRef.mock.calls.at(-1) as null[];
     expect(node2).toBe(null);
 
-    await act(() => div.show!());
+    await act(() => show.set(true));
     expect(onRef).toHaveBeenCalledTimes(3);
     const [node3] = onRef.mock.calls.at(-1) as HTMLElement[];
     expect(node3!.tagName).toBe('DIV');
@@ -97,7 +79,8 @@ describe('Hooks: refs', () => {
 
   it('reassigns ref when the ref handlers are changed', async () => {
     type State = [RefSetter<HTMLDivElement>, RefObject<HTMLDivElement | null>];
-    let updateOnRefs: StateSetter<State>;
+    const onRefs = useStateX<State>();
+    // let updateOnRefs: StateSetter<State>;
 
     const toStr = (v: HTMLDivElement | null): string => v?.tagName ?? 'null';
 
@@ -122,11 +105,7 @@ describe('Hooks: refs', () => {
     };
 
     const Comp = () => {
-      const [[fn, ref], setOnRefs] = useState<State>(() => [
-        genOnRef(),
-        genRef(),
-      ]);
-      updateOnRefs = setOnRefs;
+      const [fn, ref] = onRefs.use(() => [genOnRef(), genRef()]);
       return (
         <div>
           <div ref={fn} />
@@ -142,7 +121,7 @@ describe('Hooks: refs', () => {
     expect(snapshot(logsFn)).toBe('DIV');
     expect(snapshot(logsRefs)).toBe('DIV');
 
-    await act(() => updateOnRefs!([genOnRef(), genRef()]));
+    await act(() => onRefs.set([genOnRef(), genRef()]));
     // React runs the prev handler with the null value, even if the tag is intact.
     // Keeping this strange behavior for consistency.
     expect(snapshot(logsFn)).toBe('DIV-null|DIV');
@@ -150,7 +129,7 @@ describe('Hooks: refs', () => {
   });
 
   it('can reassign the same ref to a new node', async () => {
-    let updateKey: StateSetter<number>;
+    const key = useStateX<number>();
     const values: Array<string | null> = [];
     const onRef = jest
       .fn()
@@ -159,17 +138,16 @@ describe('Hooks: refs', () => {
       );
 
     const Comp = () => {
-      const [key, setKey] = useState(1);
-      updateKey = setKey;
+      const currentKey = key.use(1);
       return (
-        <div key={key} ref={onRef}>
-          {key}
+        <div key={currentKey} ref={onRef}>
+          {currentKey}
         </div>
       );
     };
 
     mount(<Comp />);
-    await act(() => updateKey!(2));
+    await act(() => key.set(2));
     await waitFor(() => {
       expect(values).toEqual(['1', null, '2']);
     });
@@ -179,15 +157,14 @@ describe('Hooks: refs', () => {
     it(`runs ref-handlers before running layout effects. Mode: ${mode}`, async () => {
       const onRef = jest.fn();
       const onLayoutEffect = jest.fn();
-      let updateShow: StateSetter<boolean>;
+      const show = useStateX<boolean>();
 
       const Comp = () => {
-        const [show, setShow] = useState(true);
-        updateShow = setShow;
+        const isShowing = show.use(true);
 
         useLayoutEffect(onLayoutEffect);
-        return mode === 'remove ref' || show ? (
-          <div ref={show ? onRef : undefined} />
+        return mode === 'remove ref' || isShowing ? (
+          <div ref={isShowing ? onRef : undefined} />
         ) : mode === 'empty node' ? (
           []
         ) : null;
@@ -206,10 +183,10 @@ describe('Hooks: refs', () => {
 
       check(1, 'DIV');
 
-      await act(() => updateShow(false));
+      await act(() => show.set(false));
       check(2, null);
 
-      await act(() => updateShow(true));
+      await act(() => show.set(true));
       check(3, 'DIV');
     });
   }
@@ -224,10 +201,10 @@ describe('Hooks: refs', () => {
       const onRef = jest.fn();
       const div = expect.objectContaining({ tagName: 'DIV' });
 
-      let child = createTogglerX();
+      const child = useStateX<boolean>();
       const Parent = () => {
         ref = mode === 'fn' ? onRef : useRef<HTMLDivElement | null>(null);
-        return child.useToggler() && <Child ref={ref} />;
+        return child.use(true) && <Child ref={ref} />;
       };
 
       mount(<Parent />);
@@ -243,10 +220,10 @@ describe('Hooks: refs', () => {
 
       check(true);
 
-      await act(() => child.hide!());
+      await act(() => child.set(false));
       check(false);
 
-      await act(() => child.show!());
+      await act(() => child.set(true));
       check(true);
     });
 
@@ -265,7 +242,7 @@ describe('Hooks: refs', () => {
 
       const show = useStateX<boolean>();
       const Parent = () =>
-        show.useState(true)[0] && <Child ref={mode === 'fn' ? onRef : ref} />;
+        show.use(true) && <Child ref={mode === 'fn' ? onRef : ref} />;
 
       mount(<Parent />);
       expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);

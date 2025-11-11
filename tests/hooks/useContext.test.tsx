@@ -1,12 +1,10 @@
 import {
-  useState,
   createContext,
   useContext,
-  type StateSetter,
   type ReactComponentWithChildren,
   useLayoutEffect,
 } from '~/index';
-import { createToggler, expectHtml, mount, useRerender } from '../helpers';
+import { expectHtml, mount, useRerender, useStateX } from '../helpers';
 import { act } from '~/testing';
 import { Fragment } from 'faiwer-react/jsx-runtime';
 
@@ -36,23 +34,19 @@ describe('Hooks: useContext', () => {
     });
 
     it(`uses the fresh value from the provider. ${mode}`, async () => {
-      let setContextValue: (v: number) => void;
-      const Parent = () => {
-        const [state, setState] = useState(42);
-        setContextValue = setState;
-        return (
-          <ctx.Provider value={state}>
-            <div>
-              <Child />
-            </div>
-          </ctx.Provider>
-        );
-      };
+      const contextValue = useStateX<number>();
+      const Parent = () => (
+        <ctx.Provider value={contextValue.use(42)}>
+          <div>
+            <Child />
+          </div>
+        </ctx.Provider>
+      );
 
       const root = mount(<Parent />);
       expectHtml(root).toBe('<div>42</div>');
 
-      setContextValue!(43);
+      contextValue.set(43);
       await Promise.resolve();
       expectHtml(root).toBe('<div>43</div>');
     });
@@ -76,10 +70,9 @@ describe('Hooks: useContext', () => {
         return useContext(ctx);
       };
 
-      let updateChildKey: StateSetter<number>;
+      const childKey = useStateX<number>();
       const Parent = () => {
-        const [key, setKey] = useState(1);
-        updateChildKey = setKey;
+        const key = childKey.use(1);
         return (
           <ctx.Provider value={key}>
             <Child key={key} />
@@ -91,35 +84,28 @@ describe('Hooks: useContext', () => {
       expectHtml(root).toBe('1');
       expect(childRendered).toBe(1);
 
-      await act(() => updateChildKey(2));
+      await act(() => childKey.set(2));
       expectHtml(root).toBe('2');
       expect(childRendered).toBe(2); // not 3.
     });
 
     it(`providers can be (un)mounted dynamically. ${mode}`, async () => {
-      const provider = createToggler();
-      const Comp = () => {
-        const [mounted, setMounted] = useState(true);
-        provider.show = () => setMounted(true);
-        provider.hide = () => setMounted(false);
-
-        return (
-          mounted && (
-            <ctx.Provider value={1}>
-              <Child />
-              <Child />
-            </ctx.Provider>
-          )
+      const mounted = useStateX<boolean>();
+      const Comp = () =>
+        mounted.use(true) && (
+          <ctx.Provider value={1}>
+            <Child />
+            <Child />
+          </ctx.Provider>
         );
-      };
 
       const root = mount(<Comp />);
       expectHtml(root).toBe('11');
 
-      await act(() => provider.hide!());
+      await act(() => mounted.set(false));
       expectHtml(root).toBe('');
 
-      await act(() => provider.show!());
+      await act(() => mounted.set(true));
       expectHtml(root).toBe('11');
     });
 
@@ -150,26 +136,21 @@ describe('Hooks: useContext', () => {
     });
 
     it(`It updates the component that is wrapped with a non-changing memoized parent component. ${mode}`, async () => {
-      let updateState: StateSetter<number>;
+      const state = useStateX<number>();
       const MemoizedContainer: ReactComponentWithChildren = (_) => _.children;
 
-      const Comp = () => {
-        const [state, setState] = useState(42);
-        updateState = setState;
-
-        return (
-          <ctx.Provider value={state}>
-            <MemoizedContainer>
-              <Child />
-            </MemoizedContainer>
-          </ctx.Provider>
-        );
-      };
+      const Comp = () => (
+        <ctx.Provider value={state.use(42)}>
+          <MemoizedContainer>
+            <Child />
+          </MemoizedContainer>
+        </ctx.Provider>
+      );
 
       const root = mount(<Comp />);
       expectHtml(root).toBe('42');
 
-      await act(() => updateState(99));
+      await act(() => state.set(99));
       expectHtml(root).toBe('99');
     });
   }
@@ -183,19 +164,17 @@ describe('Hooks: useContext', () => {
       return useContext(ctx);
     };
 
-    let updateMode: StateSetter<'fragment' | 'context'>;
-    let updateV: StateSetter<number>;
+    const mode = useStateX<'fragment' | 'context'>();
+    const v = useStateX<number>();
 
     const Comp = () => {
-      const [mode, setMode] = useState<'fragment' | 'context'>('fragment');
-      const [v, setV] = useState<number>(24);
-      updateMode = setMode;
-      updateV = setV;
+      const currentMode = mode.use('fragment');
+      const currentV = v.use(24);
 
-      return mode === 'fragment' ? (
+      return currentMode === 'fragment' ? (
         <Fragment key="1">1</Fragment>
       ) : (
-        <ctx.Provider key="1" value={v}>
+        <ctx.Provider key="1" value={currentV}>
           <Child />
         </ctx.Provider>
       );
@@ -206,21 +185,21 @@ describe('Hooks: useContext', () => {
     expectHtml(root).toBe('1');
 
     // Switch to the coontext (also a fragment)
-    await act(() => updateMode('context'));
+    await act(() => mode.set('context'));
     expectHtml(root).toBe('24');
     expect(childCreated).toHaveBeenCalledTimes(1);
 
     // Try to update the context's value. If the 'role' is lost it either won't
     // get an update, or will remount the <Child/>.
     await act(() => {
-      updateV!(42);
+      v.set(42);
     });
     expectHtml(root).toBe('42');
     expect(childCreated).toHaveBeenCalledTimes(1);
   });
 
   it('updates the context-fiber props', async () => {
-    let updateV: StateSetter<number>;
+    const v = useStateX<number>();
     let rerender: () => void;
 
     const Child = () => {
@@ -228,20 +207,15 @@ describe('Hooks: useContext', () => {
       return useContext(ctx);
     };
 
-    const Comp = () => {
-      const [v, setV] = useState(42);
-      updateV = setV;
-
-      return (
-        <ctx.Provider value={v}>
-          <Child />
-        </ctx.Provider>
-      );
-    };
+    const Comp = () => (
+      <ctx.Provider value={v.use(42)}>
+        <Child />
+      </ctx.Provider>
+    );
 
     const root = mount(<Comp />);
 
-    await act(() => updateV!(22));
+    await act(() => v.set(22));
     expectHtml(root).toBe('22');
 
     await act(() => rerender());

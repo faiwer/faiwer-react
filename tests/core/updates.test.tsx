@@ -5,10 +5,9 @@ import {
   useLayoutEffect,
   useState,
   type ReactComponentWithChildren,
-  type StateSetter,
 } from '~/index';
 import { act } from '~/testing';
-import { createToggler, expectHtml, mount, useRerender } from '../helpers';
+import { expectHtml, mount, useRerender, useStateX } from '../helpers';
 import { waitFor } from '../helpers';
 import { Fragment } from 'faiwer-react/jsx-runtime';
 
@@ -18,16 +17,12 @@ describe('Updates', () => {
       const items: string[] = ['first', 'middle', 'last'];
 
       it(`it removes the node when its ${pos} child is gone, ${mode}`, async () => {
-        let hide: () => void;
-        let show: () => void;
+        const removed = useStateX<boolean>();
 
         const Comp = () => {
-          const [removed, setRemoved] = useState(false);
-          hide = () => setRemoved(true);
-          show = () => setRemoved(false);
-
+          const removedValue = removed.use(false);
           const content: JSX.Element[] = items.map(
-            (el): JSX.Element => (removed && el === pos ? null : el),
+            (el): JSX.Element => (removedValue && el === pos ? null : el),
           );
 
           return mode === 'fragment' ? content : <div>{content}</div>;
@@ -41,14 +36,14 @@ describe('Updates', () => {
         expectHtml(root).toBe(htmlBefore);
 
         // Phase 2: Hide the element:
-        await act(() => hide());
+        await act(() => removed.set(true));
         const contentAfter = items.filter((el) => el !== pos).join('');
         expectHtml(root).toBe(
           mode === 'fragment' ? contentAfter : `<div>${contentAfter}</div>`,
         );
 
         // Phase 3: Return it back:
-        await act(() => show());
+        await act(() => removed.set(false));
         expectHtml(root).toBe(htmlBefore);
       });
     }
@@ -64,13 +59,12 @@ describe('Updates', () => {
         'last',
       ]) {
         it(`it inserts a new ${childType}-child into a ${containerType} at: ${pos}`, async () => {
-          let setContentInserted: StateSetter<boolean>;
+          const inserted = useStateX<boolean>();
 
           const Child: ReactComponentWithChildren = (props) => props.children;
 
           const Comp = () => {
-            const [inserted, setInserted] = useState(false);
-            setContentInserted = setInserted;
+            const insertedValue = inserted.use(false);
 
             const content: JSX.Element[] =
               childType === 'text'
@@ -82,7 +76,7 @@ describe('Updates', () => {
                     : childType === 'null'
                       ? [null, null]
                       : [<Child>1</Child>, <Child>2</Child>];
-            if (inserted)
+            if (insertedValue)
               switch (pos) {
                 case 'first':
                   content.unshift(<div>new</div>);
@@ -124,7 +118,7 @@ describe('Updates', () => {
           expectHtml(root).toBe(beforeHtml);
 
           // Phase 2: Hide the element:
-          await act(() => setContentInserted!(true));
+          await act(() => inserted.set(true));
           const afterHtmlItems = [...beforeHtmlItems];
           const newNodeHtml = pos === 'last' ? 'new' : `<div>new</div>`;
           switch (pos) {
@@ -148,7 +142,7 @@ describe('Updates', () => {
           );
 
           // Phase 3: Return it back:
-          await act(() => setContentInserted!(false));
+          await act(() => inserted.set(false));
           expectHtml(root).toBe(beforeHtml);
         });
       }
@@ -171,13 +165,10 @@ describe('Updates', () => {
 
         const items: string[] = ['1', '2', '3'];
 
-        let setContentReversed: (v: boolean) => void;
+        const reversed = useStateX<boolean>();
         const Comp = () => {
-          const [reversed, setReversed] = useState(false);
-          setContentReversed = setReversed;
-
           const content: JSX.Element[] = (
-            reversed ? [...items].reverse() : items
+            reversed.use(false) ? [...items].reverse() : items
           ).map((n) => <div key={n}>{n}</div>);
 
           return container === 'tag' ? <div>{content}</div> : content;
@@ -195,18 +186,18 @@ describe('Updates', () => {
         const contentBefore = '<div>1</div><div>2</div><div>3</div>';
         expectHtml(root).toBe(wrapContent(contentBefore));
 
-        await act(() => setContentReversed!(true));
+        await act(() => reversed.set(true));
         const contentAfter = `<div>3</div><div>2</div><div>1</div>`;
         expectHtml(root).toBe(wrapContent(contentAfter));
 
-        await act(() => setContentReversed!(false));
+        await act(() => reversed.set(false));
         expectHtml(root).toBe(wrapContent(contentBefore));
       });
     }
   }
 
   it('remembers the latest component props', async () => {
-    let setParentState: StateSetter<number>;
+    const parentState = useStateX<number>();
     let rerender: () => void;
 
     let childRendered = 0;
@@ -216,17 +207,15 @@ describe('Updates', () => {
     };
 
     const Parent = () => {
-      const [v, setV] = useState(42);
       rerender = useRerender();
-      setParentState = setV;
-      return <Child v={v} />;
+      return <Child v={parentState.use(42)} />;
     };
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('42');
     expect(childRendered).toBe(1);
 
-    await act(() => setParentState(43));
+    await act(() => parentState.set(43));
     expectHtml(root).toBe('43');
     expect(childRendered).toBe(2);
 
@@ -236,25 +225,21 @@ describe('Updates', () => {
   });
 
   it('updates are batched', async () => {
-    let setParentState: StateSetter<number>;
-    let setChildState: StateSetter<number>;
+    const parentState = useStateX<number>();
+    const childState = useStateX<number>();
     const onChildRender = jest.fn();
     const onParentRender = jest.fn();
 
     const Child = () => {
-      const [v, setV] = useState(2);
-      setChildState = setV;
       onChildRender();
-      return <div>{v}</div>;
+      return <div>{childState.use(2)}</div>;
     };
 
     const Parent = () => {
-      const [v, setV] = useState(1);
-      setParentState = setV;
       onParentRender();
       return (
         <div>
-          {v}
+          {parentState.use(1)}
           <Child />
         </div>
       );
@@ -266,10 +251,10 @@ describe('Updates', () => {
     expect(onParentRender).toHaveBeenCalledTimes(1);
 
     await act(() => {
-      setParentState!(3); // Should be skipped.
-      setParentState!(5);
-      setChildState!(4); // Should be skipped.
-      setChildState!(9);
+      parentState.set(3); // Should be skipped.
+      parentState.set(5);
+      childState.set(4); // Should be skipped.
+      childState.set(9);
     });
     expectHtml(root).toBe('<div>5<div>9</div></div>');
     expect(onParentRender).toHaveBeenCalledTimes(2);
@@ -277,27 +262,23 @@ describe('Updates', () => {
   });
 
   it('internally updated component still gets prop updates', async () => {
-    let setChildState: StateSetter<number>;
-    let setParentState: StateSetter<number>;
+    const childState = useStateX<number>();
+    const parentState = useStateX<number>();
 
     const Child = ({ prop }: { prop: number }) => {
-      const [v, setV] = useState(200);
-      setChildState = setV;
-      return `${prop}:${v}`;
+      return `${prop}:${childState.use(200)}`;
     };
 
     const Parent = () => {
-      const [v, setV] = useState(100);
-      setParentState = setV;
-      return Child({ prop: v });
+      return Child({ prop: parentState.use(100) });
     };
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('100:200');
 
     await act(() => {
-      setChildState(201);
-      setParentState(101);
+      childState.set(201);
+      parentState.set(101);
     });
     expectHtml(root).toBe('101:201');
   });
@@ -305,17 +286,16 @@ describe('Updates', () => {
   it('new key for the same node remounts it', async () => {
     const Child = () => <div>comp</div>;
 
-    let setReactKey: StateSetter<number>;
+    const reactKey = useStateX<number>();
     let rerender: () => void;
     const Comp = () => {
-      const [key, setKey] = useState(1);
       rerender = useRerender();
-      setReactKey = setKey;
+      const keyValue = reactKey.use(1);
 
       return [
-        <Child key={`${key}-comp`} />,
-        <div key={`${key}-tag`}>tag</div>,
-        <Fragment key={`${key}-fragment`}>
+        <Child key={`${keyValue}-comp`} />,
+        <div key={`${keyValue}-tag`}>tag</div>,
+        <Fragment key={`${keyValue}-fragment`}>
           <div>fragment</div>
         </Fragment>,
       ];
@@ -327,7 +307,7 @@ describe('Updates', () => {
     expectHtml(root).toBe(html);
     const step1 = [...root.getElementsByTagName('div')];
 
-    await act(() => setReactKey!(2));
+    await act(() => reactKey.set(2));
     expectHtml(root).toBe(html);
     const step2 = [...root.getElementsByTagName('div')];
     expect(step1.length).toBe(step2.length);
@@ -346,30 +326,26 @@ describe('Updates', () => {
 
   it(`doesn't run dead direct sub-components`, async () => {
     let childRendered = 0;
-    let setChildState: StateSetter<number>;
+    const childState = useStateX<number>();
     const Child = () => {
       ++childRendered;
-      let [state, setState] = useState(1);
-      setChildState = setState;
-      return state;
+      return childState.use(1);
     };
 
-    let hideChild: () => void;
+    const show = useStateX<boolean>();
     const Parent = () => {
-      const [show, setShow] = useState(true);
-      hideChild = () => setShow(false);
-      return show && Child();
+      return show.use(true) && Child();
     };
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('1');
     expect(childRendered).toBe(1);
 
-    await act(() => setChildState!(2));
+    await act(() => childState.set(2));
     expectHtml(root).toBe('2');
     expect(childRendered).toBe(2);
 
-    await act(() => hideChild!());
+    await act(() => show.set(false));
     expectHtml(root).toBe('');
     expect(childRendered).toBe(2);
   });
@@ -378,29 +354,24 @@ describe('Updates', () => {
     let childRendered = 0;
     const Child = () => ++childRendered;
 
-    let setParentState: StateSetter<number>;
-    const Parent = () => {
-      const [v, setV] = useState(1);
-      setParentState = setV;
-      return (
-        <>
-          {v}
-          <Child />
-        </>
-      );
-    };
+    const parentState = useStateX<number>();
+    const Parent = () => (
+      <>
+        {parentState.use(1)}
+        <Child />
+      </>
+    );
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('11');
 
-    await act(() => setParentState!(2));
+    await act(() => parentState.set(2));
     expectHtml(root).toBe('21');
     expect(childRendered).toBe(1);
   });
 
   it("doesn't run dead nested sub-components", async () => {
-    const father = createToggler();
-    let updateChildState: StateSetter<number>;
+    const childState = useStateX<number>();
     const child = {
       rendered: 0,
       mounted: 0,
@@ -408,9 +379,6 @@ describe('Updates', () => {
     };
 
     const Child = () => {
-      const [state, setState] = useState(42);
-      updateChildState = setState;
-
       useEffect(() => {
         ++child.mounted;
         return () => ++child.unmounted;
@@ -418,17 +386,13 @@ describe('Updates', () => {
 
       ++child.rendered;
 
-      return state;
+      return childState.use(42);
     };
 
     const Father = () => <Child />;
 
-    const Grandfather = () => {
-      const [mounted, setMounted] = useState(true);
-      father.show = () => setMounted(true);
-      father.hide = () => setMounted(false);
-      return mounted && <Father />;
-    };
+    const mounted = useStateX<boolean>();
+    const Grandfather = () => mounted.use(true) && <Father />;
 
     const root = mount(<Grandfather />);
     expectHtml(root).toBe('42');
@@ -441,8 +405,8 @@ describe('Updates', () => {
     );
 
     await act(() => {
-      father.hide!();
-      updateChildState(43);
+      mounted.set(false);
+      childState.set(43);
     });
 
     expectHtml(root).toBe('');
@@ -453,7 +417,7 @@ describe('Updates', () => {
     });
 
     await act(() => {
-      father.show!();
+      mounted.set(true);
     });
 
     await waitFor(() => {
@@ -475,28 +439,23 @@ describe('Updates', () => {
       return v * 3;
     };
 
-    let updateV: StateSetter<number>;
-    let updateComp: StateSetter<typeof A>;
+    const v = useStateX<number>();
+    const comp = useStateX<typeof A>();
     let rerenderParent: () => void;
 
     const Parent = () => {
-      const [v, setV] = useState(2);
-      updateV = setV;
-
-      const [Comp, setComp] = useState<typeof A>(() => A);
-      updateComp = setComp;
-
       rerenderParent = useRerender();
+      const Comp = comp.use(() => A);
 
-      return <Comp v={v} />;
+      return <Comp v={v.use(2)} />;
     };
 
     const root = mount(<Parent />);
     expectHtml(root).toBe('4');
 
     await act(() => {
-      updateV!(4);
-      updateComp!(() => B);
+      v.set(4);
+      comp.set(() => B);
     });
     expectHtml(root).toBe('12');
     expect(bRendered).toHaveBeenCalledTimes(1);
@@ -512,11 +471,10 @@ describe('Updates', () => {
       B: jest.fn(),
       C: jest.fn(),
     };
-    let updateMode: StateSetter<'A' | 'B' | 'C'>;
+    const mode = useStateX<'A' | 'B' | 'C'>();
 
     const Parent = () => {
-      const [Tag, setTag] = useState<'A' | 'B' | 'C'>('A');
-      updateMode = setTag;
+      const Tag = mode.use('A');
 
       // @ts-expect-error - A,B,C are not valid tags.
       return <Tag ref={onRef[Tag]}>{Tag}</Tag>;
@@ -529,7 +487,7 @@ describe('Updates', () => {
     expect(onRef.B).toHaveBeenCalledTimes(0);
 
     await act(() => {
-      updateMode!('B');
+      mode.set('B');
     });
     expectHtml(root).toBe('<b>B</b>');
     expect(onRef.A).toHaveBeenCalledTimes(2);
@@ -538,7 +496,7 @@ describe('Updates', () => {
     expect(onRef.B.mock.lastCall[0]?.textContent).toBe('B');
 
     await act(() => {
-      updateMode!('C');
+      mode.set('C');
     });
     expectHtml(root).toBe('<c>C</c>');
     // If refs weren't updated during A->B render the following two lines will fail.
@@ -575,15 +533,12 @@ describe('Updates', () => {
 
   it('it remounts node on role change', async () => {
     const ctx = createContext(42);
-    let updateMode: StateSetter<'context' | 'fragment'>;
+    const mode = useStateX<'context' | 'fragment'>();
 
     const Child = () => useContext(ctx);
 
     const Comp = () => {
-      const [mode, setMode] = useState<'context' | 'fragment'>('fragment');
-      updateMode = setMode;
-
-      return mode === 'fragment' ? (
+      return mode.use('fragment') === 'fragment' ? (
         <Fragment key="ctx">fragment</Fragment>
       ) : (
         <ctx.Provider key="ctx" value={22}>
@@ -595,7 +550,7 @@ describe('Updates', () => {
     const root = mount(<Comp />);
     expectHtml(root).toBe('fragment');
 
-    await act(() => updateMode('context'));
+    await act(() => mode.set('context'));
     expectHtml(root).toBe('22');
   });
 });

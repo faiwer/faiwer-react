@@ -1,4 +1,4 @@
-import { createRoot, useState } from '~/index';
+import { createRoot, useState, type StateSetter } from '~/index';
 
 export const mount = (element: JSX.Element): HTMLElement => {
   const rootDomNode = document.createElement('root');
@@ -53,9 +53,21 @@ export const useRerender = () => {
   return () => setState({});
 };
 
-// @example
-// toggler.show = () => setState(true);
-// toggler.hide = () => setState(false);
-export const createToggler = (): Partial<
-  Record<'hide' | 'show', () => void>
-> => ({});
+type UseStateX<T> = {
+  use: (init: T | (() => T)) => T;
+  useState: (init: T | (() => T)) => [value: T, setter: StateSetter<T>];
+  set: StateSetter<T>;
+};
+
+export const useStateX = <T>(): UseStateX<T> => {
+  const result: UseStateX<T> = {
+    useState: function useStateX(init: T | (() => T)) {
+      const [state, setState] = useState(init);
+      result.set = setState;
+      return [state, setState];
+    },
+    use: (init: T | (() => T)) => result.useState(init)[0],
+    set: () => { throw `setter is still empty`; }, // prettier-ignore
+  };
+  return result;
+};

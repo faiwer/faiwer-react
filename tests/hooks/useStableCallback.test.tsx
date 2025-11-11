@@ -1,16 +1,15 @@
-import { useState, type StateSetter, useStableCallback } from '~/index';
+import { useStableCallback } from '~/index';
 import { act } from '~/testing';
-import { mount } from '../helpers';
+import { mount, useStateX } from '../helpers';
 
 describe('Hooks: useStableCallback', () => {
   it('returns the same method each render', async () => {
-    let updateState: StateSetter<number>;
+    const state = useStateX<number>();
     let fn: Function;
 
     const Comp = () => {
-      const [state, setState] = useState(0);
-      updateState = setState;
-      fn = useStableCallback(() => state);
+      const currentState = state.use(0);
+      fn = useStableCallback(() => currentState);
       return null;
     };
 
@@ -18,7 +17,7 @@ describe('Hooks: useStableCallback', () => {
     expect(fn!()).toBe(0);
 
     let prev = fn!;
-    await act(() => updateState!(2));
+    await act(() => state.set(2));
     expect(fn!()).toBe(2);
     expect(prev).toBe(fn!);
   });

@@ -1,12 +1,7 @@
 import { createContext, useContext } from '~/hooks/useContext';
-import {
-  createPortal,
-  useState,
-  type ReactComponentWithChildren,
-  type StateSetter,
-} from '~/index';
+import { createPortal, type ReactComponentWithChildren } from '~/index';
 import { act } from '~/testing';
-import { expectHtml, mount } from '../helpers';
+import { expectHtml, mount, useStateX } from '../helpers';
 
 describe('Portals', () => {
   it('renders into the given node', () => {
@@ -31,21 +26,15 @@ describe('Portals', () => {
     const target = document.createElement('target');
     targetParent.appendChild(target);
 
-    let showPortal: () => void;
-    let hidePortal: () => void;
+    const show = useStateX<boolean>();
 
-    const Comp = () => {
-      const [show, setShow] = useState(true);
-      showPortal = () => setShow(true);
-      hidePortal = () => setShow(false);
-      return (
-        <>
-          before!
-          {show && createPortal('portal', target)}
-          !after
-        </>
-      );
-    };
+    const Comp = () => (
+      <>
+        before!
+        {show.use(true) && createPortal('portal', target)}
+        !after
+      </>
+    );
 
     const root = mount(<Comp />);
     const mainContent = 'before!!after';
@@ -53,12 +42,12 @@ describe('Portals', () => {
     expectHtml(target).toBe('portal');
     expectHtml(targetParent).toBe('<target>portal</target>');
 
-    await act(() => hidePortal!());
+    await act(() => show.set(false));
     expectHtml(root).toBe(mainContent);
     expectHtml(target).toBe('');
     expectHtml(targetParent).toBe('<target></target>'); // node is not removed.
 
-    await act(() => showPortal!());
+    await act(() => show.set(true));
     expectHtml(root).toBe(mainContent);
     expectHtml(target).toBe('portal');
     expectHtml(targetParent).toBe('<target>portal</target>');
@@ -69,22 +58,21 @@ describe('Portals', () => {
     const target = document.createElement('target');
     targetParent.appendChild(target);
 
-    let updateKey: StateSetter<string>;
+    const key = useStateX<string>();
 
     let refLogs: string[] = [];
     const onRef = (v: HTMLDivElement | null) =>
       refLogs.push(v?.tagName ?? 'null');
 
     const Comp = () => {
-      const [key, setKey] = useState('key-1');
-      updateKey = setKey;
+      const keyValue = key.use('key-1');
 
       const portal = createPortal(
-        <div ref={onRef} key={key}>
-          {key}
+        <div ref={onRef} key={keyValue}>
+          {keyValue}
         </div>,
         target,
-        key,
+        keyValue,
       );
 
       return (
@@ -104,7 +92,7 @@ describe('Portals', () => {
     expect(refLogs.join('-')).toBe('DIV');
 
     refLogs = [];
-    await act(() => updateKey('key-2'));
+    await act(() => key.set('key-2'));
     expectHtml(root).toBe('before!!after');
     expectHtml(target).toBe('<div>key-2</div>');
     expectHtml(targetParent).toBe(`<target><div>key-2</div></target>`);
@@ -117,12 +105,10 @@ describe('Portals', () => {
     const target = document.createElement('target');
     targetParent.appendChild(target);
 
-    let updateTag: StateSetter<'div' | 'span'>;
+    const tag = useStateX<'div' | 'span'>();
 
     const Comp = () => {
-      const [tag, setTag] = useState<'div' | 'span'>('div');
-      updateTag = setTag;
-      const Tag = tag === 'div' ? 'div' : 'span';
+      const Tag = tag.use('div');
       return (
         <>
           before!
@@ -137,7 +123,7 @@ describe('Portals', () => {
     expectHtml(target).toBe('<div></div>');
     expect(targetParent.childNodes[0]).toBe(target);
 
-    await act(() => updateTag('span'));
+    await act(() => tag.set('span'));
     expectHtml(root).toBe('before!!after');
     expectHtml(target).toBe('<span></span>');
     expect(targetParent.childNodes[0]).toBe(target);
@@ -204,22 +190,18 @@ describe('Portals', () => {
 
     const Bottom = () => useContext(ctx);
 
-    let updateCtxValue: StateSetter<number>;
-    const Top = () => {
-      const [value, setValue] = useState(42);
-      updateCtxValue = setValue;
-      return (
-        <ctx.Provider value={value}>
-          {createPortal(<Bottom />, target)}
-        </ctx.Provider>
-      );
-    };
+    const value = useStateX<number>();
+    const Top = () => (
+      <ctx.Provider value={value.use(42)}>
+        {createPortal(<Bottom />, target)}
+      </ctx.Provider>
+    );
 
     const root = mount(<Top />);
     expectHtml(root).toBe('');
     expectHtml(target).toBe('42');
 
-    await act(() => updateCtxValue!(101));
+    await act(() => value.set(101));
     expectHtml(root).toBe('');
     expectHtml(target).toBe('101');
   });

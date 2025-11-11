@@ -6,7 +6,7 @@ import {
   useLayoutEffect,
 } from '~/index';
 import { act } from '~/testing';
-import { useRerender, wait, waitFor } from '../helpers';
+import { useRerender, wait, waitFor, useStateX } from '../helpers';
 import { expectHtml, mount, stripComments } from '../helpers';
 
 for (const mode of ['normal', 'layout'] as EffectMode[]) {
@@ -66,36 +66,31 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
 
     it('runs a destructor when component is unmounted', async () => {
       const onEffectUnmount = jest.fn();
-      let hide: () => void;
+      const show = useStateX<boolean>();
 
       const Child = () => {
         useModeEffect(() => onEffectUnmount);
         return null;
       };
 
-      const Parent = () => {
-        const [show, setShow] = useState(true);
-        hide = () => setShow(false);
-        return show && <Child />;
-      };
+      const Parent = () => show.use(true) && <Child />;
 
       mount(<Parent />);
 
       await waitFor(() => expect(onEffectUnmount).toHaveBeenCalledTimes(0));
 
-      await act(() => hide());
+      await act(() => show.set(false));
       await waitFor(() => expect(onEffectUnmount).toHaveBeenCalledTimes(1));
     });
 
     it('provides a signal', async () => {
-      let updateChildEffectDep: StateSetter<number>;
-      let hide: () => void;
+      const childEffectDep = useStateX<number>();
+      const show = useStateX<boolean>();
       let signals: AbortSignal[] = [];
       let aborted = 0;
 
       const Child = () => {
-        const [state, setState] = useState(0);
-        updateChildEffectDep = setState;
+        const state = childEffectDep.use(0);
 
         useModeEffect(
           async (signal) => {
@@ -110,12 +105,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         return null;
       };
 
-      const Parent = () => {
-        const [show, setShow] = useState(true);
-        hide = () => setShow(false);
-
-        return show && <Child />;
-      };
+      const Parent = () => show.use(true) && <Child />;
 
       const getSnapshot = () => signals.map((s) => s.aborted).join('-');
 
@@ -125,19 +115,19 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         expect(aborted).toBe(0);
       });
 
-      updateChildEffectDep!(1);
+      childEffectDep.set(1);
       await waitFor(() => {
         expect(getSnapshot()).toBe('true-false');
         expect(aborted).toBe(1);
       });
 
-      updateChildEffectDep!(2);
+      childEffectDep.set(2);
       await waitFor(() => {
         expect(getSnapshot()).toBe('true-true-false');
         expect(aborted).toBe(2);
       });
 
-      hide!();
+      show.set(false);
       await waitFor(() => {
         expect(getSnapshot()).toBe('true-true-true');
         expect(aborted).toBe(3);
@@ -179,7 +169,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
 
     it('runs an []-effect only once', async () => {
       let renderChild: () => void;
-      let hide: () => void;
+      const show = useStateX<boolean>();
       let onEffectUnmount = jest.fn();
       let onEffectMount = jest.fn();
 
@@ -194,12 +184,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         return null;
       };
 
-      const Parent = () => {
-        const [show, setShow] = useState(true);
-        hide = () => setShow(false);
-
-        return show && <Child />;
-      };
+      const Parent = () => show.use(true) && <Child />;
 
       mount(<Parent />);
 
@@ -211,7 +196,7 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
         });
       }
 
-      hide!();
+      show.set(false);
       await waitFor(() => {
         expect(onEffectMount).toHaveBeenCalledTimes(1);
         expect(onEffectUnmount).toHaveBeenCalledTimes(1);
