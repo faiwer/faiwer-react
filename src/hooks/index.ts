@@ -4,5 +4,5 @@ export { useEffect, useLayoutEffect } from './useEffect';
 export { useStableCallback } from './useStableCallback';
 export { useId } from './useId';
 export { useMemo } from './useMemo';
-export { useRef } from './useRef';
+export { useRef, forwardRef } from './useRef';
 export { useState } from './useState';

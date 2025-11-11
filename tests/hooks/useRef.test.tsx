@@ -6,6 +6,7 @@ import {
   useRef,
   useLayoutEffect,
   type Ref,
+  forwardRef,
 } from '~/index';
 import { act } from '~/testing';
 
@@ -13,6 +14,7 @@ import {
   createToggler,
   createTogglerX,
   useRerender,
+  useStateX,
   waitFor,
 } from '../helpers';
 import { expectHtml, mount } from '../helpers';
@@ -246,6 +248,31 @@ describe('Hooks: refs', () => {
 
       await act(() => child.show!());
       check(true);
+    });
+
+    it('forwardRef: passes the ref inside', async () => {
+      const Child = forwardRef((_props: {}, ref?: Ref<number>) => {
+        if (typeof ref === 'function') {
+          useLayoutEffect(() => ref(42), [ref]);
+        } else if (ref) {
+          ref.current = 42;
+        }
+        return null;
+      });
+
+      const onRef = jest.fn();
+      const ref: RefObject<number | null> = { current: null };
+
+      const show = useStateX<boolean>();
+      const Parent = () =>
+        show.useState(true)[0] && <Child ref={mode === 'fn' ? onRef : ref} />;
+
+      mount(<Parent />);
+      expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);
+
+      await act(() => show.set(false));
+      // No effect destructors.
+      expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);
     });
   }
 });
