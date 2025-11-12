@@ -6,6 +6,7 @@ import { setSvgAttribute } from './dom/svg';
 import { setTagStyles } from './dom/css';
 import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
+import { setValueAttr } from './dom/value';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -26,7 +27,9 @@ export function setAttrAction(
 
   const element = nullthrows(fiber.element);
 
-  if (isEventName(name) || name in fiber.data.events) {
+  if (name === 'value' && (fiber.tag === 'input' || fiber.tag === 'textarea')) {
+    setValueAttr(fiber, value);
+  } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);
   } else if (name === 'style') {
     setTagStyles(fiber, value);
