@@ -61,16 +61,21 @@ type EventHandlers<T extends Element> = {
 };
 
 // { onclick: onClick, … }
-type mapLowerCaseToCamelCase<T extends Element> = {
+type MapLowerCaseToCamelCase<T extends Element> = {
   [K in EventKeys<T>]: ToCamelCase<K>;
 };
+
+type CaptureEvents<T> = {
+  [K in keyof T as `${string & K}Capture`]: T[K];
+};
+
+type WithCapture<T> = T & CaptureEvents<T>;
 
 /**
  * A map of events for the given HTMLElement-based type
  * @example
  * { onClick: (evt: PointerEvents) => void }
  */
-export type TagEventHandlers<T extends Element> = RemapKeys<
-  EventHandlers<T>,
-  mapLowerCaseToCamelCase<RemoveIndexSignature<T>>
+export type TagEventHandlers<T extends Element> = WithCapture<
+  RemapKeys<EventHandlers<T>, MapLowerCaseToCamelCase<RemoveIndexSignature<T>>>
 >;

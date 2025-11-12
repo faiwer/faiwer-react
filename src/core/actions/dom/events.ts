@@ -26,16 +26,22 @@ export const setEventHandler = (
   // wrapper that calls `events[name]` and update only the internal
   // function when it changes.
   if (!events[name]) {
-    const eventName = name.slice(2).toLowerCase(); // onClick -> click.
+    const capture = name.endsWith('Capture');
+    let eventName = name.slice(2).toLowerCase(); // onClick -> click.
+    if (capture) {
+      eventName = eventName.slice(0, eventName.length - 7);
+    }
+
     events[name] = {
       name: eventName,
       handler: value,
+      capture,
       wrapper: (event: Event) => {
         // Original React doesn't support stopping propagation on `false` return.
         events[name]!.handler?.(event);
       },
     };
-    element.addEventListener(eventName, events[name].wrapper);
+    element.addEventListener(eventName, events[name].wrapper, { capture });
   } else {
     // The tag is already listening to this event. Just update the internal ref.
     events[name].handler = value;

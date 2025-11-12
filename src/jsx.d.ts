@@ -57,6 +57,7 @@ declare global {
       link: TagProps<HTMLLinkElement>;
       script: TagProps<HTMLScriptElement>;
       style: TagProps<HTMLStyleElement>;
+      article: TagProps<HTMLElement>;
 
       // Content sectioning
       h1: TagProps<HTMLHeadingElement>;
@@ -82,6 +83,7 @@ declare global {
       br: TagProps<HTMLBRElement>;
       em: TagProps<HTMLElement>;
       i: TagProps<HTMLElement>;
+      b: TagProps<HTMLElement>;
 
       // Inline text semantics
       a: TagProps<HTMLAnchorElement>;

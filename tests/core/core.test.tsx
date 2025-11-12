@@ -125,7 +125,16 @@ describe('Mounting: tags', () => {
 
   it('sets tag event handlers', () => {
     const onclick = jest.fn();
+    const addEventListener = jest.spyOn(Element.prototype, 'addEventListener');
+
     const root = mount(<div onClick={onclick}>Content</div>);
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    expect(addEventListener).toHaveBeenLastCalledWith(
+      'click',
+      expect.any(Function),
+      { capture: false },
+    );
+
     const event = new CustomEvent('click');
     root.querySelector('div')?.dispatchEvent(event);
     expect(onclick).toHaveBeenCalledTimes(1);
@@ -163,7 +172,9 @@ describe('Mounting: tags', () => {
     it(`converts camelCase event names to lowercase event names`, () => {
       const fn = jest.spyOn(HTMLElement.prototype, 'addEventListener');
       mount(<div onClick={() => null} />);
-      expect(fn).toHaveBeenCalledWith('click', expect.any(Function));
+      expect(fn).toHaveBeenCalledWith('click', expect.any(Function), {
+        capture: false,
+      });
     });
 
     it(`unsets tag attributes. mode: ${mode}`, async () => {
@@ -224,9 +235,72 @@ describe('Mounting: tags', () => {
       await act(() => show.set(false));
       expect(onAddEvent).toHaveBeenCalledTimes(1);
       expect(removeSpy).toHaveBeenCalledTimes(1);
-      expect(removeSpy).toHaveBeenCalledWith('click', eventHandler!);
+      expect(removeSpy).toHaveBeenCalledWith('click', eventHandler!, {
+        capture: false,
+      });
     });
   }
+
+  it('sets and unsets "capture" events', async () => {
+    const handler = jest.fn();
+    const show = useStateX<boolean>();
+    const withEvent = useStateX<boolean>();
+    const Comp = () => {
+      const withEventValue = withEvent.use(true);
+      return (
+        show.use(true) && (
+          <div onClickCapture={withEventValue ? handler : undefined}>
+            <b />
+          </div>
+        )
+      );
+    };
+
+    const addEventListener = jest.spyOn(Element.prototype, 'addEventListener');
+    const removeEventListener = jest.spyOn(
+      Element.prototype,
+      'removeEventListener',
+    );
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('<div><b></b></div>');
+    expect(removeEventListener).toHaveBeenCalledTimes(0);
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    expect(addEventListener).toHaveBeenLastCalledWith(
+      'click',
+      expect.any(Function),
+      { capture: true },
+    );
+
+    const event = new CustomEvent('click');
+    root.querySelector('b')!.dispatchEvent(event);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(event);
+
+    await act(() => withEvent.set(false));
+    // The event handler is not unmounted,
+    expect(addEventListener).toHaveBeenCalledTimes(1);
+    root.querySelector('b')!.dispatchEvent(event);
+    expect(handler).toHaveBeenCalledTimes(1); // … but also is not called
+
+    await act(() => show.set(false));
+    expect(removeEventListener).toHaveBeenCalledTimes(1);
+    expect(removeEventListener).toHaveBeenLastCalledWith(
+      ...(addEventListener.mock.lastCall as unknown[]),
+    );
+
+    await act(() => {
+      show.set(true);
+      withEvent.set(true);
+    });
+    expect(addEventListener).toHaveBeenCalledTimes(2);
+    expect(addEventListener).toHaveBeenLastCalledWith(
+      'click',
+      expect.any(Function),
+      { capture: true },
+    );
+    expect(removeEventListener).toHaveBeenCalledTimes(1);
+  });
 
   itRenders(
     'mounts a tree of tags',

@@ -165,6 +165,7 @@ export type TagState = {
         name: string;
         wrapper: EventListener;
         handler: Function | null;
+        capture: boolean;
       }
     >
   >;

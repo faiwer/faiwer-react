@@ -73,6 +73,7 @@ class ClassComponent extends Component {}
 // @ts-expect-error
 <div onclick={(event) => event.type.length} />;
 <div onClick={(event) => event.target.tagName} />;
+<div onClickCapture={(event) => event.target.tagName} />;
 <input onPaste={(event) => event.clipboardData.items} />;
 
 //

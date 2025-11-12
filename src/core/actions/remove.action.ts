@@ -62,6 +62,7 @@ const unlistenTagEvents = (fiber: TagFiberNode): void => {
       (fiber.element as HTMLElement).removeEventListener(
         record.name,
         record.wrapper,
+        { capture: record.capture },
       );
     }
   }
