@@ -51,17 +51,13 @@ createRoot(container).render(<App />);
 ## TODO
 
 - 1st line
-  - Events:
-    - "capture"-kind of events
-    - custom `onChange` like in ReactDOM
-  - Error handling
   - `useImperativeHandle`
+  - Error handling
   - support solo-compact mode over bracket-compact mode
-- 2nd line
-  - prepare an NPM-package
-- 3rd line
+- 2rd line
   - HMR
-  - `RunComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
+  - Resolve "TODO: add a test" comments
+  - `runComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
   - `useReducer`
 
 ## It does NOT support

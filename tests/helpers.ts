@@ -71,3 +71,9 @@ export const useStateX = <T>(): UseStateX<T> => {
   };
   return result;
 };
+
+export const itRenders = (name: string, element: JSX.Element, html: string) =>
+  it(name, () => {
+    const root = mount(element);
+    expectHtml(root).toBe(html);
+  });

@@ -1,5 +1,4 @@
 import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
-import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
 import type { App, TagAttrValue, TagFiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
 
@@ -70,17 +69,13 @@ const setUpStore = (
     if (store.prev == null || store.prev === element.value) {
       return;
     }
-
-    scheduleEffect(
-      app,
-      () => {
-        if (element.value !== store.prev) {
-          // Recover the previous value, because this is a "controlled" element.
-          original.set!.call(element, String(store.prev));
-        }
-      },
-      'refs',
-    );
+    queueMicrotask(() => {
+      // Repeat the check because it could change in between.
+      if (store.prev !== null && element.value !== store.prev) {
+        // Recover the previous value, because this is a "controlled" element.
+        original.set!.call(element, String(store.prev));
+      }
+    });
   };
 
   onInput.__store = store;

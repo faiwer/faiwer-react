@@ -32,6 +32,13 @@ export const setEventHandler = (
       eventName = eventName.slice(0, eventName.length - 7);
     }
 
+    if (
+      eventName === 'change' &&
+      (fiber.tag === 'input' || fiber.tag === 'textarea')
+    ) {
+      eventName = 'input'; // Custom behavior. @see `./value.ts`.
+    }
+
     events[name] = {
       name: eventName,
       handler: value,
