@@ -6,6 +6,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
 
 - JSX
 - Functional components
+- Class components (limited)
 - Hooks:
   - `useState`
   - `useRef`
@@ -14,7 +15,7 @@ A naive React implementation. Why? What's wrong with the existing one? Nothing. 
   - `useLayoutEffect`, `useEffect` (improved versions)
   - `useId`
   - `useContext`
-- Tag-based refs
+- Refs
 - Context
 - Portals
 - Fragments

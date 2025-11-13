@@ -11,8 +11,8 @@ import { nullthrows } from 'faiwer-react/utils';
  * - Even if the "value" prop is given and not nil, React still calls the
  *   provided "onChange" handler with the updated event.target.value. It'll be
  *   restored a little later.
- * - React overrides the "value" prop within the given node object to detect
- *   manual "value" changes.
+ * - React overrides the descriptor of the "value" prop within the given
+ *   dom-node to track changes.
  */
 export const setValueAttr = (fiber: TagFiberNode, value: TagAttrValue) => {
   const element = fiber.element as HTMLInputElement | HTMLTextAreaElement;
@@ -61,6 +61,7 @@ const setUpStore = (
     ...original,
     set: (value: unknown) => {
       original.set!.call(element, String(value));
+      // Original React doesn't do it, but why not?
       element.dispatchEvent(new InputEvent('input'));
     },
   });

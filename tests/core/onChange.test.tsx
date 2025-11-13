@@ -1,5 +1,12 @@
 import { nullthrows } from 'faiwer-react/utils';
-import { expectHtml, mount, useStateX, wait, waitFor } from '../helpers';
+import {
+  expectHtml,
+  mount,
+  useRerender,
+  useStateX,
+  wait,
+  waitFor,
+} from '../helpers';
 import { act } from 'faiwer-react/testing';
 import { useState } from 'faiwer-react';
 
@@ -154,6 +161,79 @@ describe('onChange', () => {
     await wait(5);
     expect(get.call(input)).toBe('1');
   });
-  it.todo(`treats manual .value changes as user events`);
-  it.todo(`the order of value & onChange props doesn't matter`);
+
+  // It doesn't work this way in original React. But, why not?
+  it(`treats manual .value changes as user events`, async () => {
+    const onChange = jest.fn();
+
+    const Comp = () => {
+      const [v, setV] = useState(42);
+      return (
+        <input
+          value={v}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setV(Number(e.target.value));
+          }}
+        />
+      );
+    };
+
+    const root = mount(<Comp />);
+    const input = root.querySelector('input')!;
+    expect(get.call(input)).toBe('42');
+
+    input.value = '21';
+    expect(get.call(input)).toBe('21');
+    expect(onChange.mock.calls).toEqual([['21']]);
+  });
+
+  it(`the order of value & onChange props doesn't matter`, async () => {
+    const addEventListener = jest.spyOn(Element.prototype, 'addEventListener');
+    const removeEventListener = jest.spyOn(
+      Element.prototype,
+      'removeEventListener',
+    );
+
+    let show = true;
+    let rerender1: () => void;
+    let rerender2: () => void;
+
+    const Comp1 = () => {
+      const [v, setV] = useState('a');
+      rerender1 = useRerender();
+      return show && <input value={v} onChange={(e) => setV(e.target.value)} />;
+    };
+    const Comp2 = () => {
+      const [v, setV] = useState('a');
+      rerender2 = useRerender();
+      return show && <input onChange={(e) => setV(e.target.value)} value={v} />;
+    };
+
+    const roots = [mount(<Comp1 />), mount(<Comp2 />)];
+    const inputs = roots.map((r) => r.querySelector('input')!);
+    inputs.forEach((i) => expect(get.call(i)).toBe('a'));
+
+    const call1 = ['input', expect.any(Function), { capture: true }];
+    const call2 = ['input', expect.any(Function), { capture: false }];
+    expect(addEventListener.mock.calls).toEqual([
+      // 1st input
+      call1,
+      call2,
+      // 2nd input, reverse order
+      call2,
+      call1,
+    ]);
+
+    inputs.forEach((i) => changeByUser(i, 'ab'));
+    inputs.forEach((i) => expect(get.call(i)).toBe('ab'));
+
+    await act(() => {
+      show = false;
+      rerender1();
+      rerender2();
+    });
+
+    expect(removeEventListener.mock.calls).toEqual(addEventListener.mock.calls);
+  });
 });
