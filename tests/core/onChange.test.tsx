@@ -1,6 +1,7 @@
 import { nullthrows } from 'faiwer-react/utils';
 import { expectHtml, mount, useStateX, wait, waitFor } from '../helpers';
 import { act } from 'faiwer-react/testing';
+import { useState } from 'faiwer-react';
 
 describe('onChange', () => {
   const descriptor = Object.getOwnPropertyDescriptor(
@@ -137,7 +138,22 @@ describe('onChange', () => {
     });
   }
 
-  it.todo(`doesn't recover the value when setState was called`);
+  it(`doesn't recover the value when setState was called`, async () => {
+    const Comp = () => {
+      const [v, setV] = useState(0);
+      return <input value={v} onChange={(e) => setV(Number(e.target.value))} />;
+    };
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('<input>');
+    const input = root.querySelector('input')!;
+    expect(get.call(input)).toBe('0');
+
+    await act(() => changeByUser(input, '1'));
+    expect(get.call(input)).toBe('1');
+    await wait(5);
+    expect(get.call(input)).toBe('1');
+  });
   it.todo(`treats manual .value changes as user events`);
   it.todo(`the order of value & onChange props doesn't matter`);
 });

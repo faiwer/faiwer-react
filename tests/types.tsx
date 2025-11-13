@@ -67,6 +67,11 @@ class ClassComponent extends Component {}
 <div autofocus />;
 <div autoFocus />;
 <div autoFocus={true} />;
+// overrides
+<input value="string" />;
+<input value={42} />;
+// @ts-expect-error
+<input value={true} />;
 
 // DOM. Events
 <div onClick={(event) => event.type.length} />;

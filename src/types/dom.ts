@@ -1,4 +1,5 @@
 import type { TagNativeProps } from './attributes';
+import type { ReplaceIn } from './common';
 import type { ElementCommonAttrs, ScalarNode } from './core';
 import type { Ref } from './refs';
 
@@ -17,16 +18,24 @@ export type TagAttrValue =
   | Function
   | TagStyles;
 
+type Overrides<T extends Element, O> = T extends
+  | HTMLInputElement
+  | HTMLTextAreaElement
+  ? ReplaceIn<O, { value?: string | number }>
+  : O;
+
 // prettier-ignore
 export type TagProps<T extends Element = HTMLElement> =
-  & TagNativeProps<T>
-  & ElementCommonAttrs
-  & {
-    ref?: Ref<T>;
-    style?: string | null | undefined | TagStyles
-  }
-  & Record<`data-${string}`, ScalarNode>
-  & { children?: JSX.Element };
+  Overrides<T,
+    & TagNativeProps<T>
+    & ElementCommonAttrs
+    & {
+      ref?: Ref<T>;
+      style?: string | null | undefined | TagStyles
+    }
+    & Record<`data-${string}`, ScalarNode>
+    & { children?: JSX.Element }
+  >
 
 /** A map like { fontSize: '12px' }. */
 export type TagStyles =
