@@ -39,6 +39,9 @@ describe('onChange', () => {
     input.dispatchEvent(new InputEvent('input'));
   };
 
+  // `addEventListener` & `removeEventListener` calls.
+  const eventCall = ['input', expect.any(Function), { capture: false }];
+
   for (const valueProp of ['checked', 'value'] as const) {
     const inputType = valueProp === 'value' ? 'text' : 'checkbox';
     const getValueFromEvent = <T extends string | boolean = string | boolean>(
@@ -89,10 +92,7 @@ describe('onChange', () => {
       expectHtml(root).toBe(`<input type="${inputType}">`);
       expect(get(input, valueProp)).toBe(values.initial);
       expect(onChange).toHaveBeenCalledTimes(0);
-      expect(addEventListener.mock.calls).toEqual([
-        ['input', expect.any(Function), { capture: true }],
-        ['input', expect.any(Function), { capture: false }],
-      ]);
+      expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
       changeByUser(input, valueProp, values.newUserVal);
       await waitFor(() => {
@@ -129,10 +129,7 @@ describe('onChange', () => {
         ));
 
       mount(<Comp />);
-      expect(addEventListener.mock.calls).toEqual([
-        ['input', expect.any(Function), { capture: true }],
-        ['input', expect.any(Function), { capture: false }],
-      ]);
+      expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
       expect(removeEventListener).toHaveBeenCalledTimes(0);
 
       await act(() => show.set(false));
@@ -158,9 +155,7 @@ describe('onChange', () => {
       );
       const input = root.querySelector('input')!;
 
-      expect(addEventListener.mock.calls).toEqual([
-        ['input', expect.any(Function), { capture: false }],
-      ]);
+      expect(addEventListener.mock.calls).toEqual([eventCall]);
 
       const newValue = valueProp === 'value' ? '21' : false;
       changeByUser(input, valueProp, newValue);
@@ -211,10 +206,7 @@ describe('onChange', () => {
         const root = mount(<Comp />);
         const input = root.querySelector('input')!;
 
-        expect(addEventListener.mock.calls).toEqual([
-          ['input', expect.any(Function), { capture: true }],
-          ['input', expect.any(Function), { capture: false }],
-        ]);
+        expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
         changeByUser(input, valueProp, values.initial);
         await waitFor(() => {
@@ -370,15 +362,11 @@ describe('onChange', () => {
       const inputs = roots.map((r) => r.querySelector('input')!);
       inputs.forEach((i) => expect(get(i, valueProp)).toBe(values.initial));
 
-      const call1 = ['input', expect.any(Function), { capture: true }];
-      const call2 = ['input', expect.any(Function), { capture: false }];
       expect(addEventListener.mock.calls).toEqual([
-        // 1st input
-        call1,
-        call2,
-        // 2nd input, reverse order
-        call2,
-        call1,
+        eventCall,
+        eventCall,
+        eventCall,
+        eventCall,
       ]);
 
       inputs.forEach((i) => changeByUser(i, valueProp, values.newUserVal));

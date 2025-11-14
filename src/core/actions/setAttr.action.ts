@@ -27,8 +27,11 @@ export function setAttrAction(
 
   const element = nullthrows(fiber.element);
 
-  if (name === 'value' && (fiber.tag === 'input' || fiber.tag === 'textarea')) {
-    setValueAttr(fiber, value);
+  if (
+    (fiber.tag === 'input' && (name === 'value' || name === 'checked')) ||
+    (fiber.tag === 'textarea' && name === 'value')
+  ) {
+    setValueAttr(fiber, name, value);
   } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);
   } else if (name === 'style') {
