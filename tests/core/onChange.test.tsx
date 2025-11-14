@@ -12,23 +12,29 @@ import { useState } from 'faiwer-react';
 import type { PatchEvent } from 'faiwer-react/types/events';
 
 describe('onChange', () => {
-  const descriptors = {
-    value: Object.getOwnPropertyDescriptor(
-      HTMLInputElement.prototype,
-      'value',
-    )!,
-    checked: Object.getOwnPropertyDescriptor(
-      HTMLInputElement.prototype,
-      'checked',
-    )!,
+  const getDescriptor = (
+    Element: new () => HTMLElement,
+    prop: string,
+  ): PropertyDescriptor =>
+    Object.getOwnPropertyDescriptor(Element.prototype, prop)!;
+
+  const descriptors: Record<string, Record<string, PropertyDescriptor>> = {
+    INPUT: {
+      value: getDescriptor(HTMLInputElement, 'value'),
+      checked: getDescriptor(HTMLInputElement, 'checked'),
+    },
+    TEXTAREA: {
+      value: getDescriptor(HTMLTextAreaElement, 'value'),
+    },
   };
+
   const get = (input: Element, valueProp: 'value' | 'checked') =>
-    nullthrows(descriptors[valueProp].get).call(input);
+    nullthrows(descriptors[input.tagName][valueProp].get).call(input);
   const set = (
     input: Element,
-    valueProps: 'value' | 'checked',
+    valueProp: 'value' | 'checked',
     value: boolean | string,
-  ) => nullthrows(descriptors[valueProps].set).call(input, value);
+  ) => nullthrows(descriptors[input.tagName][valueProp].set).call(input, value);
 
   const changeByUser = (
     input: HTMLElement,
@@ -41,17 +47,37 @@ describe('onChange', () => {
 
   // `addEventListener` & `removeEventListener` calls.
   const eventCall = ['input', expect.any(Function), { capture: false }];
+  const modes: Array<['input' | 'textarea', 'value' | 'checked']> = [
+    ['input', 'value'],
+    ['input', 'checked'],
+    ['textarea', 'value'],
+  ];
 
-  for (const valueProp of ['checked', 'value'] as const) {
-    const inputType = valueProp === 'value' ? 'text' : 'checkbox';
+  for (const [Tag, valueProp] of modes) {
+    const inputType =
+      Tag === 'textarea'
+        ? undefined
+        : valueProp === 'value'
+          ? 'text'
+          : 'checkbox';
+
+    const checkHtml = (root: HTMLElement) =>
+      Tag === 'textarea'
+        ? expectHtml(root).toBe(`<textarea></textarea>`)
+        : expectHtml(root).toBe(
+            `<input type="${valueProp === 'checked' ? 'checkbox' : 'text'}">`,
+          );
+
+    const PRE = `<${Tag}/>` + (Tag === 'textarea' ? '' : `.${valueProp}`);
+
     const getValueFromEvent = <T extends string | boolean = string | boolean>(
-      event: PatchEvent<HTMLInputElement>,
+      event: PatchEvent<HTMLInputElement> | PatchEvent<HTMLTextAreaElement>,
     ): T =>
       valueProp === 'value'
         ? (event.target.value as T)
-        : (event.target.checked as T);
+        : ((event.target as HTMLInputElement).checked as T);
 
-    it(`It keeps input.${valueProp} static when the "value" prop is given`, async () => {
+    it(`${PRE}: It keeps value static when the "value" prop is given`, async () => {
       type K = 'initial' | 'newUserVal' | 'newStateVal';
       const values: Record<K, boolean> | Record<K, string> =
         valueProp === 'value'
@@ -74,7 +100,7 @@ describe('onChange', () => {
       );
 
       const Comp = () => (
-        <input
+        <Tag
           type={inputType}
           {...{
             [valueProp]:
@@ -87,9 +113,9 @@ describe('onChange', () => {
       );
 
       const root = mount(<Comp />);
-      const input = root.querySelector('input')!;
+      const input = root.querySelector(Tag)!;
 
-      expectHtml(root).toBe(`<input type="${inputType}">`);
+      checkHtml(root);
       expect(get(input, valueProp)).toBe(values.initial);
       expect(onChange).toHaveBeenCalledTimes(0);
       expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
@@ -108,7 +134,7 @@ describe('onChange', () => {
       expect(addEventListener).toHaveBeenCalledTimes(2); // still 2.
     });
 
-    it(`unsubscribes on tag removal. prop=${valueProp}`, async () => {
+    it(`${PRE}: unsubscribes on tag removal`, async () => {
       const addEventListener = jest.spyOn(
         Element.prototype,
         'addEventListener',
@@ -140,20 +166,15 @@ describe('onChange', () => {
       );
     });
 
-    it(`doesn't interfere when the ${valueProp}-prop is nil`, () => {
+    it(`${PRE}: doesn't interfere when the value-prop is nil`, () => {
       const addEventListener = jest.spyOn(
         Element.prototype,
         'addEventListener',
       );
       const onChange = jest.fn();
 
-      const root = mount(
-        <input
-          type={valueProp === 'value' ? 'text' : 'checkbox'}
-          onChange={onChange}
-        />,
-      );
-      const input = root.querySelector('input')!;
+      const root = mount(<Tag type={inputType} onChange={onChange} />);
+      const input = root.querySelector(Tag)!;
 
       expect(addEventListener.mock.calls).toEqual([eventCall]);
 
@@ -172,7 +193,7 @@ describe('onChange', () => {
     });
 
     for (const nilValue of [null, undefined]) {
-      it(`doesn't interfere when the ${valueProp}-prop is nil-ed afterwards. ${nilValue}`, async () => {
+      it(`${PRE}: doesn't interfere when the value-prop is nil-ed afterwards. ${nilValue}`, async () => {
         const addEventListener = jest.spyOn(
           Element.prototype,
           'addEventListener',
@@ -193,8 +214,8 @@ describe('onChange', () => {
               };
 
         const Comp = () => (
-          <input
-            type={valueProp === 'value' ? 'text' : 'checkbox'}
+          <Tag
+            type={inputType}
             {...{
               [valueProp]: !nil.use(false)
                 ? values.initial
@@ -204,7 +225,7 @@ describe('onChange', () => {
           />
         );
         const root = mount(<Comp />);
-        const input = root.querySelector('input')!;
+        const input = root.querySelector(Tag)!;
 
         expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
@@ -221,7 +242,7 @@ describe('onChange', () => {
       });
     }
 
-    it(`doesn't recover the ${valueProp}-prop when setState was called`, async () => {
+    it(`${PRE}: doesn't recover the value-prop when setState was called`, async () => {
       type K = 'initial' | 'newUserVal';
       const values: Record<K, string | boolean> =
         valueProp === 'value'
@@ -237,7 +258,7 @@ describe('onChange', () => {
       const Comp = () => {
         const [v, setV] = useState(values.initial);
         return (
-          <input
+          <Tag
             type={inputType}
             {...{ [valueProp]: v }}
             onChange={(event) => setV(getValueFromEvent(event))}
@@ -246,8 +267,8 @@ describe('onChange', () => {
       };
 
       const root = mount(<Comp />);
-      expectHtml(root).toBe(`<input type="${inputType}">`);
-      const input = root.querySelector('input')!;
+      checkHtml(root);
+      const input = root.querySelector(Tag)!;
       expect(get(input, valueProp)).toBe(
         typeof values.initial === 'boolean'
           ? values.initial
@@ -265,7 +286,7 @@ describe('onChange', () => {
     });
 
     // It doesn't work this way in original React. But, why not?
-    it(`treats manual .${valueProp} changes as user events`, async () => {
+    it(`${PRE}: treats manual value changes as user events`, async () => {
       const onChange = jest.fn();
 
       type K = 'initial' | 'newCodeVal';
@@ -283,7 +304,7 @@ describe('onChange', () => {
       const Comp = () => {
         const [v, setV] = useState(values.initial);
         return (
-          <input
+          <Tag
             type={inputType}
             {...{ [valueProp]: v }}
             onChange={(event) => {
@@ -296,7 +317,7 @@ describe('onChange', () => {
       };
 
       const root = mount(<Comp />);
-      const input = root.querySelector('input')!;
+      const input = root.querySelector(Tag)!;
       expect(get(input, valueProp)).toBe(values.initial);
 
       (input as unknown as Record<string, unknown>)[valueProp] =
@@ -305,7 +326,7 @@ describe('onChange', () => {
       expect(onChange.mock.calls).toEqual([[values.newCodeVal]]);
     });
 
-    it(`the order of ${valueProp} & onChange props doesn't matter`, async () => {
+    it(`${PRE}: the order of value & onChange props doesn't matter`, async () => {
       const addEventListener = jest.spyOn(
         Element.prototype,
         'addEventListener',
@@ -336,7 +357,7 @@ describe('onChange', () => {
         rerender1 = useRerender();
         return (
           show && (
-            <input
+            <Tag
               type={inputType}
               {...{ [valueProp]: v }}
               onChange={(event) => setV(getValueFromEvent(event))}
@@ -349,7 +370,7 @@ describe('onChange', () => {
         rerender2 = useRerender();
         return (
           show && (
-            <input
+            <Tag
               type={inputType}
               onChange={(event) => setV(getValueFromEvent(event))}
               {...{ [valueProp]: v }}
@@ -359,7 +380,7 @@ describe('onChange', () => {
       };
 
       const roots = [mount(<Comp1 />), mount(<Comp2 />)];
-      const inputs = roots.map((r) => r.querySelector('input')!);
+      const inputs = roots.map((r) => r.querySelector(Tag)!);
       inputs.forEach((i) => expect(get(i, valueProp)).toBe(values.initial));
 
       expect(addEventListener.mock.calls).toEqual([
