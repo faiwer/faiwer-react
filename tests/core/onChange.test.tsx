@@ -82,9 +82,9 @@ describe('onChange', () => {
       const values: Record<K, boolean> | Record<K, string> =
         valueProp === 'value'
           ? {
-              initial: '42',
-              newUserVal: '21',
-              newStateVal: '22',
+              initial: 'initial',
+              newUserVal: 'newUserVal',
+              newStateVal: 'newStateVal',
             }
           : {
               initial: true,
@@ -113,23 +113,29 @@ describe('onChange', () => {
       );
 
       const root = mount(<Comp />);
-      const input = root.querySelector(Tag)!;
+      const control = root.querySelector(Tag)!;
 
       checkHtml(root);
-      expect(get(input, valueProp)).toBe(values.initial);
+      expect(get(control, valueProp)).toBe(values.initial);
       expect(onChange).toHaveBeenCalledTimes(0);
       expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
-      changeByUser(input, valueProp, values.newUserVal);
-      await waitFor(() => {
-        expect(get(input, valueProp)).toBe(values.initial); // Is intact
-        expect(onChange).toHaveBeenCalledTimes(1);
-        // Got access to the updated value in the "onChange" handler
-        expect(onChange).toHaveBeenLastCalledWith(values.newUserVal);
-      });
+      let rafCallback = () => {};
+      jest // using spy, because otherwise it's too slow
+        .spyOn(window, 'requestAnimationFrame')
+        .mockImplementationOnce((fn): any => {
+          rafCallback = fn as typeof rafCallback;
+        });
+      changeByUser(control, valueProp, values.newUserVal);
+
+      rafCallback();
+      expect(get(control, valueProp)).toBe(values.initial); // Is intact
+      expect(onChange).toHaveBeenCalledTimes(1);
+      // Got access to the updated value in the "onChange" handler
+      expect(onChange).toHaveBeenLastCalledWith(values.newUserVal);
 
       await act(() => v.set(values.newStateVal));
-      expect(get(input, valueProp)).toBe(values.newStateVal);
+      expect(get(control, valueProp)).toBe(values.newStateVal);
       expect(onChange).toHaveBeenCalledTimes(1);
       expect(addEventListener).toHaveBeenCalledTimes(2); // still 2.
     });
@@ -174,13 +180,13 @@ describe('onChange', () => {
       const onChange = jest.fn();
 
       const root = mount(<Tag type={inputType} onChange={onChange} />);
-      const input = root.querySelector(Tag)!;
+      const control = root.querySelector(Tag)!;
 
       expect(addEventListener.mock.calls).toEqual([eventCall]);
 
       const newValue = valueProp === 'value' ? '21' : false;
-      changeByUser(input, valueProp, newValue);
-      expect(get(input, valueProp)).toBe(newValue);
+      changeByUser(control, valueProp, newValue);
+      expect(get(control, valueProp)).toBe(newValue);
       expect(onChange.mock.calls).toEqual([
         [
           expect.objectContaining({
@@ -225,20 +231,20 @@ describe('onChange', () => {
           />
         );
         const root = mount(<Comp />);
-        const input = root.querySelector(Tag)!;
+        const control = root.querySelector(Tag)!;
 
         expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
-        changeByUser(input, valueProp, values.initial);
+        changeByUser(control, valueProp, values.initial);
         await waitFor(() => {
-          expect(get(input, valueProp)).toBe(values.initial);
+          expect(get(control, valueProp)).toBe(values.initial);
         });
 
         await act(() => nil.set(true));
 
-        changeByUser(input, valueProp, values.newUserVal);
+        changeByUser(control, valueProp, values.newUserVal);
         await wait(5);
-        expect(get(input, valueProp)).toBe(values.newUserVal);
+        expect(get(control, valueProp)).toBe(values.newUserVal);
       });
     }
 
@@ -268,8 +274,8 @@ describe('onChange', () => {
 
       const root = mount(<Comp />);
       checkHtml(root);
-      const input = root.querySelector(Tag)!;
-      expect(get(input, valueProp)).toBe(
+      const control = root.querySelector(Tag)!;
+      expect(get(control, valueProp)).toBe(
         typeof values.initial === 'boolean'
           ? values.initial
           : String(values.initial),
@@ -279,10 +285,10 @@ describe('onChange', () => {
         typeof values.newUserVal === 'boolean'
           ? values.newUserVal
           : String(values.newUserVal);
-      await act(() => changeByUser(input, valueProp, newValAdapted));
-      expect(get(input, valueProp)).toBe(newValAdapted);
+      await act(() => changeByUser(control, valueProp, newValAdapted));
+      expect(get(control, valueProp)).toBe(newValAdapted);
       await wait(5);
-      expect(get(input, valueProp)).toBe(newValAdapted);
+      expect(get(control, valueProp)).toBe(newValAdapted);
     });
 
     // It doesn't work this way in original React. But, why not?
@@ -317,12 +323,12 @@ describe('onChange', () => {
       };
 
       const root = mount(<Comp />);
-      const input = root.querySelector(Tag)!;
-      expect(get(input, valueProp)).toBe(values.initial);
+      const control = root.querySelector(Tag)!;
+      expect(get(control, valueProp)).toBe(values.initial);
 
-      (input as unknown as Record<string, unknown>)[valueProp] =
+      (control as unknown as Record<string, unknown>)[valueProp] =
         values.newCodeVal;
-      expect(get(input, valueProp)).toBe(values.newCodeVal);
+      expect(get(control, valueProp)).toBe(values.newCodeVal);
       expect(onChange.mock.calls).toEqual([[values.newCodeVal]]);
     });
 
