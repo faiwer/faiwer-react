@@ -162,7 +162,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
  * - value: null | undefined → '' (empty string, not "null")
  * - checked: any value → boolean conversion
  */
-const toNativeValue = (
+export const toNativeValue = (
   attrName: 'checked' | 'value',
   newValue: unknown,
 ): boolean | string =>

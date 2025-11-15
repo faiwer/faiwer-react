@@ -21,7 +21,14 @@ export type TagAttrValue =
 type Overrides<T extends Element, O> = T extends
   | HTMLInputElement
   | HTMLTextAreaElement
-  ? ReplaceIn<O, { value?: string | number }>
+  ? ReplaceIn<
+      O,
+      {
+        value?: string | number;
+        defaultValue?: string | number;
+        defaultChecked?: boolean;
+      }
+    >
   : O;
 
 // prettier-ignore

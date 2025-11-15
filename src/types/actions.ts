@@ -26,6 +26,7 @@ export type SetAttrAction = CommonAction & {
   type: 'SetAttr';
   name: string;
   value: TagAttrValue;
+  creation?: boolean;
 };
 export type SetRefAction = CommonAction & {
   type: 'SetRef';

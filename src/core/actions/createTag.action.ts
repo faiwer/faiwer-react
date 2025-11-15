@@ -43,7 +43,7 @@ export function createTagAction(
     }
 
     for (const [name, value] of Object.entries(attrs ?? EMPTY)) {
-      setAttrAction(fiber, { name, value });
+      setAttrAction(fiber, { name, value, creation: true });
     }
 
     if (ref) {

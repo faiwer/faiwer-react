@@ -6,7 +6,7 @@ import { setSvgAttribute } from './dom/svg';
 import { setTagStyles } from './dom/css';
 import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
-import { setValueAttr } from './dom/value';
+import { setValueAttr, toNativeValue } from './dom/value';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -15,7 +15,7 @@ import { setValueAttr } from './dom/value';
  */
 export function setAttrAction(
   fiber: FiberNode,
-  { name, value }: Pick<SetAttrAction, 'name' | 'value'>,
+  { name, value, creation }: Pick<SetAttrAction, 'name' | 'value' | 'creation'>,
 ) {
   if (fiber.type !== 'tag') {
     throw new Error(`Can't apply SetAttr to a ${fiber.type} node`);
@@ -29,6 +29,18 @@ export function setAttrAction(
 
   if (isControllableAttrValue(fiber.element, name)) {
     setValueAttr(fiber, name, value);
+  } else if (name === 'defaultChecked' && element instanceof HTMLInputElement) {
+    if (creation) {
+      element.checked = toNativeValue('checked', value) as boolean;
+    }
+  } else if (
+    name === 'defaultValue' &&
+    (element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement)
+  ) {
+    if (creation) {
+      element.value = toNativeValue('value', value) as string;
+    }
   } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);
   } else if (name === 'style') {

@@ -376,6 +376,39 @@ describe('value &| onChange', () => {
         addEventListener.mock.calls,
       );
     });
+
+    it(`${PRE}: supports default-${valueProp} prop as the initial value`, async () => {
+      const defValue1 = valueProp === 'checked' ? true : 'default';
+      const defValue2 = valueProp === 'checked' ? false : 'default2';
+      const defaultProp =
+        'default' + valueProp[0].toUpperCase() + valueProp.slice(1);
+      const revision = useStateX<1 | 2>();
+
+      const Comp = () => (
+        <Tag
+          type={inputType}
+          {...{
+            [defaultProp]: revision.use(1) ? defValue1 : defValue2,
+          }}
+        />
+      );
+
+      const root = mount(<Comp />);
+      checkHtml(root);
+      const control = root.querySelector(Tag)!;
+      expect(get(control, valueProp)).toBe(defValue1);
+
+      const newVal1 = valueProp === 'checked' ? false : 'changed';
+      await act(() => changeByUser(control, valueProp, newVal1));
+      expect(get(control, valueProp)).toBe(newVal1);
+
+      const newVal2 = valueProp === 'checked' ? false : 'changed2';
+      await act(() => changeByUser(control, valueProp, newVal2));
+      expect(get(control, valueProp)).toBe(newVal2);
+
+      await act(() => revision.set(2));
+      expect(get(control, valueProp)).toBe(newVal2); // should be intact
+    });
   }
 
   it('keeps the cursor position', async () => {
