@@ -52,7 +52,11 @@ createRoot(container).render(<App />);
 ## TODO
 
 - 1st line
-  - `useImperativeHandle`
+  - form control values:
+    - `defaultChecked` & `defaultValue`
+    - `<select/>` & `<option/>`
+  - `dangerouslySetInnerHTML`
+  - refs: `useImperativeHandle`
   - Error handling
   - support solo-compact mode over bracket-compact mode
 - 2rd line
