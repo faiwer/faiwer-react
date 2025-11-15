@@ -65,6 +65,8 @@ export type EffectHandler = (
 ) => void | Promise<void> | (() => void);
 
 export type EffectMode =
+  // <input/>.value restoration
+  | 'beforeRender'
   // <div ref={onRef}/>
   | 'refs'
   // useLayoutEffect(fn);
