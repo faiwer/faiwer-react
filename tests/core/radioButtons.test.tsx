@@ -400,48 +400,4 @@ describe('<input type="radio"/>', () => {
     await actAndWaitRAF(() => selectRadio(a));
     checkSelection([a, b], 'a');
   });
-
-  // It's not supported in original React.
-  it('supports changes made in code', async () => {
-    const value = useStateX<string>();
-    const onRender = jest.fn();
-    const onChange = jest.fn().mockImplementation((v: string) => value.set(v));
-
-    const Comp = () => {
-      const selection = value.use('a');
-      onRender(selection);
-
-      return (
-        <div>
-          {['a', 'b'].map((v) => (
-            <input
-              type="radio"
-              name="group"
-              value={v}
-              checked={v === selection}
-              onChange={(evt) => onChange(evt.target.value)}
-            />
-          ))}
-        </div>
-      );
-    };
-
-    const root = mount(<Comp />);
-    const [a, b] = root.querySelectorAll('input');
-    checkSelection([a, b], 'a');
-
-    await act(() => {
-      b.checked = true;
-    });
-    expect(onChange.mock.calls).toEqual([['b']]);
-    expect(onRender.mock.lastCall).toEqual(['b']);
-    checkSelection([a, b], 'b');
-
-    await act(() => {
-      a.checked = true;
-    });
-    expect(onChange.mock.calls).toEqual([['b'], ['a']]);
-    expect(onRender.mock.lastCall).toEqual(['a']);
-    checkSelection([a, b], 'a');
-  });
 });

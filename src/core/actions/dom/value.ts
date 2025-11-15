@@ -69,6 +69,12 @@ const setUpStore = (
     prev: null,
     cursor: null,
     set: (value: unknown, restoreCursor = false) => {
+      if (element[attrName] === value) {
+        // Don't touch the value to avoid moving the cursor.
+        return;
+      }
+
+      // Non-reactively update the native value.
       original.set!.call(element, value);
 
       if (attrName === 'value' && restoreCursor && store.cursor != null) {
@@ -76,15 +82,6 @@ const setUpStore = (
       }
     },
   };
-
-  Object.defineProperty(element, attrName, {
-    ...original,
-    set: (newValue: unknown) => {
-      original.set!.call(element, toNativeValue(attrName, newValue));
-      // Unlike original React, we also dispatch an input event for better consistency
-      element.dispatchEvent(new InputEvent('input'));
-    },
-  });
 
   stores.set(element, store);
   return store;
@@ -103,15 +100,14 @@ const createOnInputHandler = (
       return;
     }
 
-    if (attrName === 'value') {
-      store.cursor = element.selectionStart;
-    }
-
     const newValue = element[attrName];
     if (store.prev == null) return; // Uncontrolled component - allow changes
     if (store.prev === newValue) return; // No actual change occurred
 
     scheduleResetValueEffect(app, () => {
+      if (attrName === 'value') {
+        store.cursor = element.selectionStart;
+      }
       // Restore the previous value since this is a controlled element
       store.set(store.prev);
     });

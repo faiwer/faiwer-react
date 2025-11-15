@@ -299,47 +299,6 @@ describe('value &| onChange', () => {
       expect(get(control, valueProp)).toBe(newValAdapted);
     });
 
-    // It doesn't work this way in original React. But, why not?
-    it(`${PRE}: treats manual value changes as user events`, async () => {
-      const onChange = jest.fn();
-
-      type K = 'initial' | 'newCodeVal';
-      const values: Record<K, string | boolean> =
-        valueProp === 'value'
-          ? {
-              initial: '42',
-              newCodeVal: '21',
-            }
-          : {
-              initial: true,
-              newCodeVal: false,
-            };
-
-      const Comp = () => {
-        const [v, setV] = useState(values.initial);
-        return (
-          <Tag
-            type={inputType}
-            {...{ [valueProp]: v }}
-            onChange={(event) => {
-              const newValue = getValueFromEvent(event);
-              onChange(newValue);
-              setV(newValue);
-            }}
-          />
-        );
-      };
-
-      const root = mount(<Comp />);
-      const control = root.querySelector(Tag)!;
-      expect(get(control, valueProp)).toBe(values.initial);
-
-      (control as unknown as Record<string, unknown>)[valueProp] =
-        values.newCodeVal;
-      expect(get(control, valueProp)).toBe(values.newCodeVal);
-      expect(onChange.mock.calls).toEqual([[values.newCodeVal]]);
-    });
-
     it(`${PRE}: the order of value & onChange props doesn't matter`, async () => {
       const addEventListener = jest.spyOn(
         Element.prototype,
@@ -432,5 +391,36 @@ describe('value &| onChange', () => {
 
     await actAndWaitRAF(() => changeByUser(input, 'value', 'another', 4));
     expect(input.selectionStart).toBe(4);
+  });
+
+  it(`keeps the cursor position even for null-values`, async () => {
+    const Comp = () => {
+      const [v, setV] = useState<string>('initial');
+      return (
+        <input
+          // "null" is not a valid type for "value". But this happens in
+          // React-based codebases. React treat such controls as uncontrolled.
+          // In our case it's "semi-controlled" control, because once it has a
+          // non-empty value it again becomes controlled. This test checks that
+          // we don't lose the cursor position when the user un-nulls the value.
+          value={v ? v : (null as unknown as string)}
+          onChange={(e) => setV(e.target.value)}
+        />
+      );
+    };
+
+    const root = mount(<Comp />);
+    const input = root.querySelector('input')!;
+
+    expect(get(input, 'value')).toBe('initial');
+
+    // "initial" -> null
+    await actAndWaitRAF(() => changeByUser(input, 'value', '', 0));
+    expect(get(input, 'value')).toBe('');
+
+    // null -> "a"
+    await act(() => changeByUser(input, 'value', 'a', 1));
+    expect(input.value).toBe('a');
+    expect(input.selectionStart).toBe(1); // shouldn't be 0
   });
 });
