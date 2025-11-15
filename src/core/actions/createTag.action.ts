@@ -33,6 +33,15 @@ export function createTagAction(
     fiber.element = tag;
     getParentElement(fiber).appendChild(fiber.element);
 
+    if (fiber.element instanceof HTMLInputElement) {
+      if (attrs?.type === 'radio') {
+        attrs.checked ??= undefined;
+      }
+      if (typeof attrs?.type === 'string') {
+        fiber.element.type = attrs.type;
+      }
+    }
+
     for (const [name, value] of Object.entries(attrs ?? EMPTY)) {
       setAttrAction(fiber, { name, value });
     }

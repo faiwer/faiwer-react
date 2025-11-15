@@ -27,10 +27,7 @@ export function setAttrAction(
 
   const element = nullthrows(fiber.element);
 
-  if (
-    (fiber.tag === 'input' && (name === 'value' || name === 'checked')) ||
-    (fiber.tag === 'textarea' && name === 'value')
-  ) {
+  if (isControllableAttrValue(fiber.element, name)) {
     setValueAttr(fiber, name, value);
   } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);
@@ -51,3 +48,28 @@ export function setAttrAction(
     }
   }
 }
+
+/**
+ * Returns true if the given attribute is the controllable (by React) value of
+ * the given HTML control. E.g.:
+ * - for input[type=text] the value attributes is "value"
+ * - but for input[type="radio"] it's "checked", whereas "value" is just a
+ *   optional string attribute.
+ */
+const isControllableAttrValue = (
+  element: Element | null,
+  name: string,
+): name is 'checked' | 'value' => {
+  if (element instanceof HTMLInputElement) {
+    const { type } = element;
+    return type === 'radio' || type === 'checkbox'
+      ? name === 'checked'
+      : name === 'value';
+  }
+
+  if (element instanceof HTMLTextAreaElement) {
+    return name === 'value';
+  }
+
+  return false;
+};

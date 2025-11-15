@@ -11,7 +11,7 @@ import { act } from 'faiwer-react/testing';
 import { useState } from 'faiwer-react';
 import type { PatchEvent } from 'faiwer-react/types/events';
 
-describe('onChange', () => {
+describe('value &| onChange', () => {
   const getDescriptor = (
     Element: new () => HTMLElement,
     prop: string,
