@@ -52,7 +52,7 @@ export const setValueAttr = (
 
   const store = nullthrows(stores.get(element));
   store.prev = attrValue;
-  store.set(toNativeValue(attrName, attrValue), 'restore');
+  store.set(toNativeValue(attrName, attrValue), true);
 };
 
 const VALUE_EVENT = 'x:input';
@@ -68,18 +68,10 @@ const setUpStore = (
   const store: Store = {
     prev: null,
     cursor: null,
-    set: (value: unknown, cursor: 'ignore' | 'preserve' | 'restore') => {
-      if (attrName === 'value' && cursor === 'preserve') {
-        store.cursor = element.selectionStart;
-      }
-
+    set: (value: unknown, restoreCursor = false) => {
       original.set!.call(element, value);
 
-      if (
-        attrName === 'value' &&
-        cursor === 'restore' &&
-        store.cursor != null
-      ) {
+      if (attrName === 'value' && restoreCursor && store.cursor != null) {
         element.selectionStart = element.selectionEnd = store.cursor;
       }
     },
@@ -111,13 +103,17 @@ const createOnInputHandler = (
       return;
     }
 
+    if (attrName === 'value') {
+      store.cursor = element.selectionStart;
+    }
+
     const newValue = element[attrName];
     if (store.prev == null) return; // Uncontrolled component - allow changes
     if (store.prev === newValue) return; // No actual change occurred
 
     scheduleResetValueEffect(app, () => {
       // Restore the previous value since this is a controlled element
-      store.set(store.prev, 'preserve');
+      store.set(store.prev);
     });
   };
 };
@@ -152,7 +148,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
         // automatically uncheck the currently selected one. The correct state
         // will be updated in the next render if setState was called from the
         // user's onChange handler
-        stores.get(radio)!.set(true, 'ignore');
+        stores.get(radio)!.set(true);
         return;
       }
     }
@@ -160,7 +156,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
     const store = stores.get(element)!;
     if (typeof store?.prev === 'boolean') {
       // A single uncontrolled radio button with checked="false".
-      store.set(store.prev, 'ignore');
+      store.set(store.prev);
     }
   });
 };
@@ -184,7 +180,7 @@ type Store = {
   /** The value from the user's React code */
   prev: TagAttrValue;
   /** Original DOM setter method before our override */
-  set: (v: unknown, cursor: 'ignore' | 'preserve' | 'restore') => void;
+  set: (v: unknown, restoreCursor?: boolean) => void;
   /** User's cursor position before the prev rendered value restoration. */
   cursor: number | null;
 };
