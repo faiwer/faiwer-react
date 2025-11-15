@@ -1,3 +1,4 @@
+import { act } from 'faiwer-react/testing';
 import { createRoot, useState, type StateSetter } from '~/index';
 
 export const mount = (element: JSX.Element): HTMLElement => {
@@ -77,3 +78,19 @@ export const itRenders = (name: string, element: JSX.Element, html: string) =>
     const root = mount(element);
     expectHtml(root).toBe(html);
   });
+
+export const interceptRAFOnce = (): (() => void) => {
+  let rafCallback: () => {};
+  jest // using spy, because otherwise it's too slow
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementationOnce((fn): any => {
+      rafCallback = fn as typeof rafCallback;
+    });
+  return () => rafCallback!();
+};
+
+export const actAndWaitRAF = async (fn: () => void): Promise<void> => {
+  const raf = interceptRAFOnce();
+  await act(fn);
+  raf();
+};

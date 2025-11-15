@@ -1,5 +1,6 @@
 import { nullthrows } from 'faiwer-react/utils';
 import {
+  actAndWaitRAF,
   expectHtml,
   mount,
   useRerender,
@@ -77,6 +78,14 @@ describe('value &| onChange', () => {
         ? (event.target.value as T)
         : ((event.target as HTMLInputElement).checked as T);
 
+    it(`${PRE}. converts "undefined" value to an empty string or false`, () => {
+      const root = mount(
+        <Tag type={inputType} {...{ [valueProp]: undefined }} />,
+      );
+      const control = root.querySelector(Tag)!;
+      expect(get(control, valueProp)).toBe(valueProp === 'value' ? '' : false);
+    });
+
     it(`${PRE}: It keeps value static when the "value" prop is given`, async () => {
       type K = 'initial' | 'newUserVal' | 'newStateVal';
       const values: Record<K, boolean> | Record<K, string> =
@@ -120,15 +129,10 @@ describe('value &| onChange', () => {
       expect(onChange).toHaveBeenCalledTimes(0);
       expect(addEventListener.mock.calls).toEqual([eventCall, eventCall]);
 
-      let rafCallback = () => {};
-      jest // using spy, because otherwise it's too slow
-        .spyOn(window, 'requestAnimationFrame')
-        .mockImplementationOnce((fn): any => {
-          rafCallback = fn as typeof rafCallback;
-        });
-      changeByUser(control, valueProp, values.newUserVal);
+      await actAndWaitRAF(() =>
+        changeByUser(control, valueProp, values.newUserVal),
+      );
 
-      rafCallback();
       expect(get(control, valueProp)).toBe(values.initial); // Is intact
       expect(onChange).toHaveBeenCalledTimes(1);
       // Got access to the updated value in the "onChange" handler

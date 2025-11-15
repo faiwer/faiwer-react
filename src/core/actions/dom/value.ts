@@ -96,16 +96,13 @@ const createOnInputHandler = (
       return;
     }
 
-    const newValue = toNativeValue(attrName, element[attrName]);
+    const newValue = element[attrName];
     if (store.prev == null) return; // Uncontrolled component - allow changes
     if (store.prev === newValue) return; // No actual change occurred
 
     scheduleResetValueEffect(app, () => {
-      // Re-check the condition as it might have changed during the delay
-      if (store.prev != null && store.prev !== newValue) {
-        // Restore the previous value since this is a controlled element
-        store.set(store.prev);
-      }
+      // Restore the previous value since this is a controlled element
+      store.set(store.prev);
     });
   };
 };
@@ -131,19 +128,25 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
   scheduleResetValueEffect(app, () => {
     // Find all radio buttons in the same group (same name within the form)
     const form = element.closest('form') ?? (app.root.element as HTMLElement);
-    const radios = form.querySelectorAll(
-      `input[type="radio"][name="${element.name}"]`,
-    );
+    const radios = form.querySelectorAll(`input[type="radio"]`);
     // Look for a radio button that was previously controlled with checked=true
-    const prevActive = [...radios].find((r) => stores.get(r)?.prev === true);
-    if (prevActive && prevActive !== element) {
-      // Restore the previously checked radio button's state, which will
-      // automatically uncheck the currently selected one. The correct state
-      // will be updated in the next render if setState was called from the
-      // user's onChange handler
-      stores.get(prevActive)!.set(true);
+    for (let i = 0; i < radios.length; ++i) {
+      const radio = radios[i] as HTMLInputElement;
+      if (radio.name === element.name && stores.get(radio)?.prev === true) {
+        // Restore the previously checked radio button's state, which will
+        // automatically uncheck the currently selected one. The correct state
+        // will be updated in the next render if setState was called from the
+        // user's onChange handler
+        stores.get(radio)!.set(true);
+        return;
+      }
     }
-    // If no controlled radio button was found, this is an uncontrolled group
+
+    const store = stores.get(element)!;
+    if (typeof store?.prev === 'boolean') {
+      // A single uncontrolled radio button with checked="false".
+      store.set(store.prev);
+    }
   });
 };
 
