@@ -52,7 +52,7 @@ export const setValueAttr = (
 
   const store = nullthrows(stores.get(element));
   store.prev = attrValue;
-  store.set(toNativeValue(attrName, attrValue));
+  store.set(toNativeValue(attrName, attrValue), 'restore');
 };
 
 const VALUE_EVENT = 'x:input';
@@ -67,7 +67,22 @@ const setUpStore = (
 
   const store: Store = {
     prev: null,
-    set: original.set!.bind(element),
+    cursor: null,
+    set: (value: unknown, cursor: 'ignore' | 'preserve' | 'restore') => {
+      if (attrName === 'value' && cursor === 'preserve') {
+        store.cursor = element.selectionStart;
+      }
+
+      original.set!.call(element, value);
+
+      if (
+        attrName === 'value' &&
+        cursor === 'restore' &&
+        store.cursor != null
+      ) {
+        element.selectionStart = element.selectionEnd = store.cursor;
+      }
+    },
   };
 
   Object.defineProperty(element, attrName, {
@@ -102,7 +117,7 @@ const createOnInputHandler = (
 
     scheduleResetValueEffect(app, () => {
       // Restore the previous value since this is a controlled element
-      store.set(store.prev);
+      store.set(store.prev, 'preserve');
     });
   };
 };
@@ -137,7 +152,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
         // automatically uncheck the currently selected one. The correct state
         // will be updated in the next render if setState was called from the
         // user's onChange handler
-        stores.get(radio)!.set(true);
+        stores.get(radio)!.set(true, 'ignore');
         return;
       }
     }
@@ -145,7 +160,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
     const store = stores.get(element)!;
     if (typeof store?.prev === 'boolean') {
       // A single uncontrolled radio button with checked="false".
-      store.set(store.prev);
+      store.set(store.prev, 'ignore');
     }
   });
 };
@@ -169,7 +184,9 @@ type Store = {
   /** The value from the user's React code */
   prev: TagAttrValue;
   /** Original DOM setter method before our override */
-  set: (v: unknown) => void;
+  set: (v: unknown, cursor: 'ignore' | 'preserve' | 'restore') => void;
+  /** User's cursor position before the prev rendered value restoration. */
+  cursor: number | null;
 };
 
 /**

@@ -41,8 +41,12 @@ describe('value &| onChange', () => {
     input: HTMLElement,
     valueProp: 'value' | 'checked',
     value: boolean | string,
+    cursor?: number,
   ) => {
     set(input, valueProp, value);
+    if (input instanceof HTMLInputElement && cursor != null) {
+      input.selectionStart = input.selectionEnd = cursor;
+    }
     input.dispatchEvent(new InputEvent('input'));
   };
 
@@ -414,4 +418,19 @@ describe('value &| onChange', () => {
       );
     });
   }
+
+  it('keeps the cursor position', async () => {
+    const Comp = () => {
+      const [v, setV] = useState('initial');
+      return <input value={v} onChange={(e) => setV(e.target.value)} />;
+    };
+
+    const root = mount(<Comp />);
+    const input = root.querySelector('input')!;
+
+    expect(get(input, 'value')).toBe('initial');
+
+    await actAndWaitRAF(() => changeByUser(input, 'value', 'another', 4));
+    expect(input.selectionStart).toBe(4);
+  });
 });
