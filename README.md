@@ -53,7 +53,6 @@ createRoot(container).render(<App />);
 
 - 1st line
   - form control values:
-    - `defaultChecked` & `defaultValue`
     - `<select/>` & `<option/>`
   - `dangerouslySetInnerHTML`
   - refs: `useImperativeHandle`

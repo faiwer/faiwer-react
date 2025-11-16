@@ -28,7 +28,7 @@ export const mount = (
   const app: App = registerApp((appId) => ({
     id: appId,
     root: createRootFiber(appId),
-    effects: { beforeRender: [], refs: [], layout: [], normal: [] },
+    effects: { afterNextRender: [], refs: [], layout: [], normal: [] },
     invalidatedComponents: new Queue(),
     state: 'render',
     testMode: !!options.testMode,
@@ -48,7 +48,7 @@ export const mount = (
 
   return function destroyApp(): void {
     app.invalidatedComponents = new Queue();
-    app.effects.beforeRender = [];
+    app.effects.afterNextRender = [];
     app.effects.refs = [];
     app.effects.layout = [];
     app.effects.normal = [];

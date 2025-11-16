@@ -436,8 +436,8 @@ describe('value &| onChange', () => {
           // In our case it's "semi-controlled" control, because once it has a
           // non-empty value it again becomes controlled. This test checks that
           // we don't lose the cursor position when the user un-nulls the value.
-          value={v ? v : (null as unknown as string)}
-          onChange={(e) => setV(e.target.value)}
+          value={v}
+          onChange={(e) => setV(e.target.value || (null as unknown as ''))}
         />
       );
     };

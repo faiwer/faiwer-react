@@ -28,13 +28,12 @@ export function reactRender(app: App, depth = 0) {
 
   if (app.testMode) validateApp(app);
 
-  runEffects(app, 'beforeRender');
-
   app.state = 'render';
   const actions = collectActionsFromApp(app);
   if (app.testMode) validateApp(app);
 
   applyActions(app, actions);
+  runEffects(app, 'afterNextRender');
   if (app.testMode) validateApp(app);
 
   postCommit(app, depth);

@@ -23,8 +23,7 @@ type Overrides<T extends Element, O> = T extends
   | HTMLTextAreaElement
   ? ReplaceIn<
       O,
-      {
-        value?: string | number;
+      { value?: string | number } & {
         defaultValue?: string | number;
         defaultChecked?: boolean;
       }

@@ -52,7 +52,9 @@ export const setValueAttr = (
 
   const store = nullthrows(stores.get(element));
   store.prev = attrValue;
-  store.set(toNativeValue(attrName, attrValue), true);
+  if (attrValue != null) {
+    store.set(toNativeValue(attrName, attrValue), true);
+  }
 };
 
 const VALUE_EVENT = 'x:input';
@@ -105,6 +107,10 @@ const createOnInputHandler = (
     if (store.prev === newValue) return; // No actual change occurred
 
     scheduleResetValueEffect(app, () => {
+      // The following render could make the control uncontrolled. In such a
+      // case we shouldn't restore the value. Now it's in free flight.
+      if (store.prev == null) return;
+
       if (attrName === 'value') {
         store.cursor = element.selectionStart;
       }
@@ -208,6 +214,6 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
         fn();
       }
     },
-    'beforeRender',
+    'afterNextRender',
   );
 };

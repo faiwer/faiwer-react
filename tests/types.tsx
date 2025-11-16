@@ -72,6 +72,13 @@ class ClassComponent extends Component {}
 <input value={42} />;
 // @ts-expect-error
 <input value={true} />;
+<input defaultValue="123" />;
+<input defaultValue={123} />;
+<input defaultChecked={true} />;
+<textarea defaultValue={123} />;
+<textarea defaultValue="123" />;
+// @ts-expect-error
+<textarea defaultChecked="123" />;
 
 // DOM. Events
 <div onClick={(event) => event.type.length} />;
