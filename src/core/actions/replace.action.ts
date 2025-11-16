@@ -7,8 +7,8 @@ import type {
 import type { ReplaceAction } from 'faiwer-react/types/actions';
 import { getFiberDomNodes } from './helpers';
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
-import { nullthrows } from 'faiwer-react/utils';
 import { removeAction } from './remove.action';
+import { nullthrowsForFiber } from '../reconciliation/errors/ReactError';
 
 /**
  * Handles fiber replacement when a component with the same key renders a
@@ -36,7 +36,7 @@ export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
 
   // Add new nodes right after the previous nodes.
   const nodesBefore = getFiberDomNodes(fiber);
-  let prev = nullthrows(nodesBefore.at(-1));
+  let prev = nullthrowsForFiber(fiber, nodesBefore.at(-1));
   const nodesAfter = getFiberDomNodes(newFiber);
   for (const n of nodesAfter) {
     prev.parentElement!.insertBefore(n, prev.nextSibling);

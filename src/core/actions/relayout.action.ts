@@ -7,8 +7,10 @@ import {
   unwrapCompactFiber,
 } from '../compact';
 import { getAnchor, getFiberDomNodes } from './helpers';
-import { nullthrows } from 'faiwer-react/utils';
-import { ReactError } from '../reconciliation/errors/ReactError';
+import {
+  nullthrowsForFiber,
+  ReactError,
+} from '../reconciliation/errors/ReactError';
 
 /**
  * Handles fiber tree layout updates when children have been modified. This
@@ -62,7 +64,7 @@ export function relayoutAction(
   // unchanged or already updated (their `after` entries served only as
   // references for the update process).
   fiber.children = [...after.keys()].map(
-    (key) => nullthrows(before.get(key) ?? after.get(key)).fiber,
+    (key) => nullthrowsForFiber(fiber, before.get(key) ?? after.get(key)).fiber,
   );
 
   // If `fiber` has 0 or 1 DOM children, we can remove <!--begin|end--> brackets.
@@ -103,7 +105,7 @@ const insertNewFiber = (
   const newChildren = [...child.parent.element!.childNodes];
   if (!prev) {
     container.prepend(...newChildren);
-    prev = nullthrows(newChildren.at(-1));
+    prev = nullthrowsForFiber(parent, newChildren.at(-1));
   } else {
     for (const n of newChildren) {
       container.insertBefore(n, prev.nextSibling);
@@ -139,5 +141,5 @@ const repositionFiberWhenNeeded = (
     }
   }
 
-  return nullthrows(fiber.element);
+  return nullthrowsForFiber(fiber, fiber.element);
 };

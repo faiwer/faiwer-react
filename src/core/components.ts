@@ -9,7 +9,10 @@ import {
 } from '../types';
 import { getAppByFiber } from './reconciliation/app';
 import { isFiberDead } from './reconciliation/fibers';
-import { ReactError } from './reconciliation/errors/ReactError';
+import {
+  nullthrowsForFiber,
+  ReactError,
+} from './reconciliation/errors/ReactError';
 
 /** Component that is rendered right now. */
 let currentFiber: ComponentFiberNode | null;
@@ -25,8 +28,10 @@ export const getCurrentComponentFiber = (): ComponentFiberNode =>
  * The app of the component that is being rendered right now. Don't run this
  * function outside of the render phase.
  */
-export const getCurrentApp = (): App =>
-  nullthrows(getAppByFiber(getCurrentComponentFiber()));
+export const getCurrentApp = (): App => {
+  const fiber = getCurrentComponentFiber();
+  return nullthrowsForFiber(fiber, getAppByFiber(fiber));
+};
 
 let firstFiberRender = false;
 

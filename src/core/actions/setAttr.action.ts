@@ -1,6 +1,5 @@
 import type { FiberNode } from 'faiwer-react/types';
 import type { SetAttrAction } from 'faiwer-react/types/actions';
-import { nullthrows } from 'faiwer-react/utils';
 import { isEventName } from './helpers';
 import { setSvgAttribute } from './dom/svg';
 import { setTagStyles } from './dom/css';
@@ -8,7 +7,10 @@ import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
 import { changeControlValue, setValueAttr } from './dom/value';
 import { getAppByFiber } from '../reconciliation/app';
-import { ReactError } from '../reconciliation/errors/ReactError';
+import {
+  nullthrowsForFiber,
+  ReactError,
+} from '../reconciliation/errors/ReactError';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -27,7 +29,7 @@ export function setAttrAction(
     throw new ReactError(fiber, `Can't apply SetAttr to a portal node`);
   }
 
-  const element = nullthrows(fiber.element);
+  const element = nullthrowsForFiber(fiber, fiber.element);
 
   if (isControllableAttrValue(fiber.element, name)) {
     setValueAttr(fiber, name, value);

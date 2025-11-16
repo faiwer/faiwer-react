@@ -1,11 +1,13 @@
 import type { DomNode, FiberNode, TagFiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
 import { isBeginOf, isCompactNone, isCompactSingleChild } from '../compact';
 import { NULL_FIBER } from '../reconciliation/fibers';
 import { buildCommentText } from '../reconciliation/comments';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
-import { ReactError } from '../reconciliation/errors/ReactError';
+import {
+  nullthrowsForFiber,
+  ReactError,
+} from '../reconciliation/errors/ReactError';
 
 /**
  * Determines if a prop name represents an event handler by checking if it
@@ -37,7 +39,7 @@ export const getParentElement = (fiber: FiberNode): Element => {
     return fiber.parent.data; // Portal.
   }
 
-  return nullthrows(fiber.parent?.element) as Element;
+  return nullthrowsForFiber(fiber, fiber.parent?.element) as Element;
 };
 
 /**
@@ -47,7 +49,7 @@ const getBeginComment = (fiber: FiberNode): Comment => {
   let node = asComment(fiber.element).previousSibling!;
   const text = buildCommentText('begin', fiber.id);
   while (!(node instanceof Comment) || node.textContent !== text)
-    node = nullthrows(node!.previousSibling);
+    node = nullthrowsForFiber(fiber, node!.previousSibling);
   return node;
 };
 
@@ -125,11 +127,14 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
       }
 
       // Collect [!--begin, …content, !--end]:
-      const list: DomNode[] = [nullthrows(fiber.element)];
-      let prev: DomNode | null = nullthrows(list[0].previousSibling) as DomNode;
+      const list: DomNode[] = [nullthrowsForFiber(fiber, fiber.element)];
+      let prev: DomNode | null = nullthrowsForFiber(
+        fiber,
+        list[0].previousSibling,
+      ) as DomNode;
       while (prev && !isBeginOf(prev, fiber)) {
         list.push(prev);
-        prev = nullthrows(prev.previousSibling) as DomNode;
+        prev = nullthrowsForFiber(fiber, prev.previousSibling) as DomNode;
       }
       list.push(prev);
       return list.reverse();
@@ -138,7 +143,7 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
     case 'null':
     case 'tag':
     case 'text':
-      return [nullthrows(fiber.element)];
+      return [nullthrowsForFiber(fiber, fiber.element)];
   }
 };
 

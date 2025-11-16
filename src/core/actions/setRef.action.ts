@@ -1,10 +1,12 @@
 import type { FiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
 import type { SetRefAction } from 'faiwer-react/types/actions';
 import { unsetRef } from './helpers';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
-import { ReactError } from '../reconciliation/errors/ReactError';
+import {
+  nullthrowsForFiber,
+  ReactError,
+} from '../reconciliation/errors/ReactError';
 
 /**
  * A ref or ref handler for the given node was:
@@ -37,7 +39,7 @@ export function setRefAction(
   scheduleEffect(
     getAppByFiber(fiber),
     () => {
-      const element = nullthrows(fiber.element) as HTMLElement;
+      const element = nullthrowsForFiber(fiber, fiber.element) as HTMLElement;
       if (typeof ref === 'function') {
         ref(element);
       } else if (ref) {

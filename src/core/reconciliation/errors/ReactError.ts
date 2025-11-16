@@ -27,3 +27,15 @@ const errToStr = (error: unknown): string => {
 
   return String(error) || 'Unknown error';
 };
+
+export const nullthrowsForFiber = <T>(
+  fiber: FiberNode,
+  val: T | null | undefined,
+  label = 'given value',
+): T => {
+  if (val == null) {
+    throw new ReactError(fiber, `${label} is null or undefined`);
+  }
+
+  return val;
+};

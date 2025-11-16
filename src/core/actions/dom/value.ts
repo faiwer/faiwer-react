@@ -1,7 +1,7 @@
 import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
+import { nullthrowsForFiber } from 'faiwer-react/core/reconciliation/errors/ReactError';
 import type { App, TagAttrValue, TagFiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
 
 const stores = new WeakMap<Element, Store>();
 
@@ -49,7 +49,7 @@ export const setValueAttr = (
     });
   }
 
-  const store = nullthrows(stores.get(element));
+  const store = nullthrowsForFiber(fiber, stores.get(element));
   store.prev = attrValue;
   if (attrValue != null) {
     store.set(attrValue, true);

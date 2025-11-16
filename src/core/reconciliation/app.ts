@@ -1,10 +1,10 @@
 import type { App, FiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
+import { nullthrowsForFiber } from './errors/ReactError';
 
 const apps: Array<App | null> = [];
 
 export const getAppByFiber = (fiber: FiberNode): App => {
-  return nullthrows(apps[fiber.appId]);
+  return nullthrowsForFiber(fiber, apps[fiber.appId]);
 };
 
 export const registerApp = (fn: (id: number) => App): App => {

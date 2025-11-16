@@ -1,5 +1,5 @@
 import type { FiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
+import { nullthrowsForFiber } from './errors/ReactError';
 
 /**
  * Theoretically, fiber can't change its level. So this function linearly
@@ -51,7 +51,7 @@ export const toFiberChildren = (fiber: FiberNode): FiberNode[] => {
   if (fiber.type === 'fragment' && fiber.role === null && fiber.key === null) {
     for (const child of fiber.children) {
       // Fix the parent, since we moved them 1 level up.
-      child.parent = nullthrows(child.parent.parent);
+      child.parent = nullthrowsForFiber(child, child.parent.parent);
     }
     return fiber.children;
   }

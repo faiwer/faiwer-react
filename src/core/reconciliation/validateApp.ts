@@ -1,7 +1,6 @@
 import type { App, FiberNode } from 'faiwer-react/types';
-import { nullthrows } from 'faiwer-react/utils';
 import { FAKE_CONTAINER_TAG } from './fibers';
-import { ReactError } from './errors/ReactError';
+import { nullthrowsForFiber, ReactError } from './errors/ReactError';
 
 export const validateApp = (app: App): void => {
   app.invalidatedComponents.traverse((fiber) => {
@@ -22,7 +21,7 @@ export const validateApp = (app: App): void => {
  */
 const validateTree = (node: FiberNode, path = ''): void => {
   // Each rendered node must be associated with at least one real DOM node.
-  nullthrows(node.element, `${path}.element`);
+  nullthrowsForFiber(node, node.element, `${path}.element`);
 
   if (node.type === 'tag') {
     if (!node.tag) {
@@ -58,7 +57,7 @@ const getFiberPathLabel = (node: FiberNode): string => {
   return node.type === 'text' || node.type === 'null'
     ? node.type
     : node.type === 'tag'
-      ? `<${nullthrows(node.tag)}/>`
+      ? `<${nullthrowsForFiber(node, node.tag)}/>`
       : node.type === 'fragment'
         ? node.role === 'context'
           ? '<ctx/>'
