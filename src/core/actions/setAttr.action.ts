@@ -36,7 +36,8 @@ export function setAttrAction(
   } else if (
     name === 'defaultValue' &&
     (element instanceof HTMLInputElement ||
-      element instanceof HTMLTextAreaElement)
+      element instanceof HTMLTextAreaElement ||
+      element instanceof HTMLSelectElement)
   ) {
     if (creation) {
       element.value = toNativeValue('value', value) as string;
@@ -79,7 +80,10 @@ const isControllableAttrValue = (
       : name === 'value';
   }
 
-  if (element instanceof HTMLTextAreaElement) {
+  if (
+    element instanceof HTMLTextAreaElement ||
+    element instanceof HTMLSelectElement
+  ) {
     return name === 'value';
   }
 

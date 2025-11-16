@@ -28,7 +28,13 @@ type Overrides<T extends Element, O> = T extends
         defaultChecked?: boolean;
       }
     >
-  : O;
+  : T extends HTMLSelectElement
+    ? ReplaceIn<O, { value?: string | string[] | number }> & {
+        defaultValue?: string | string[] | number;
+      }
+    : T extends HTMLOptionElement
+      ? ReplaceIn<O, { value?: string | number }>
+      : O;
 
 // prettier-ignore
 export type TagProps<T extends Element = HTMLElement> =

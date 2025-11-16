@@ -52,8 +52,6 @@ createRoot(container).render(<App />);
 ## TODO
 
 - 1st line
-  - form control values:
-    - `<select/>` & `<option/>`
   - `dangerouslySetInnerHTML`
   - refs: `useImperativeHandle`
   - Error handling

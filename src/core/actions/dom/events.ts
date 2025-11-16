@@ -34,7 +34,9 @@ export const setEventHandler = (
 
     if (
       eventName === 'change' &&
-      (fiber.tag === 'input' || fiber.tag === 'textarea')
+      (fiber.tag === 'input' ||
+        fiber.tag === 'textarea' ||
+        fiber.tag === 'select')
     ) {
       eventName = 'input'; // Custom behavior. @see `./value.ts`.
     }
