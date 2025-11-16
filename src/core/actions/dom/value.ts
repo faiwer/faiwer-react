@@ -22,7 +22,7 @@ export const setValueAttr = (
   attrValue: TagAttrValue,
 ) => {
   // Narrow down the type for simplicity.
-  const element = fiber.element as HTMLInputElement;
+  const element = fiber.element as FormControl;
 
   // We continue to reference the same `events` object even after calling
   // `displaceFiber`, so this assumption should hold
@@ -60,7 +60,7 @@ export const setValueAttr = (
 const VALUE_EVENT = 'x:input';
 
 const setUpStore = (
-  element: HTMLInputElement,
+  element: FormControl,
   attrName: 'value' | 'checked',
 ): Store => {
   const original = nullthrows(
@@ -80,7 +80,7 @@ const setUpStore = (
         return;
       }
 
-      if (element[attrName] === value) {
+      if (element[attrName as keyof typeof element] === value) {
         // Don't touch the value to avoid moving the cursor.
         return;
       }
@@ -88,7 +88,13 @@ const setUpStore = (
       // Non-reactively update the native value.
       original.set!.call(element, value);
 
-      if (attrName === 'value' && restoreCursor && store.cursor != null) {
+      if (
+        (element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement) &&
+        attrName === 'value' &&
+        restoreCursor &&
+        store.cursor != null
+      ) {
         element.selectionStart = element.selectionEnd = store.cursor;
       }
     },
@@ -100,18 +106,22 @@ const setUpStore = (
 
 const createOnInputHandler = (
   app: App,
-  element: HTMLInputElement,
+  element: FormControl,
   attrName: 'value' | 'checked',
   store: Store,
 ) => {
   return function onInput() {
-    if (element.type === 'radio' && element.name) {
+    if (
+      element instanceof HTMLInputElement &&
+      element.type === 'radio' &&
+      element.name
+    ) {
       // Radio buttons require special group-based handling
       onRadioClick(app, element);
       return;
     }
 
-    const newValue = element[attrName];
+    const newValue = element[attrName as keyof typeof element];
     if (store.prev == null) return; // Uncontrolled component - allow changes
     if (store.prev === newValue) return; // No actual change occurred
 
@@ -120,7 +130,11 @@ const createOnInputHandler = (
       // case we shouldn't restore the value. Now it's in free flight.
       if (store.prev == null) return;
 
-      if (attrName === 'value') {
+      if (
+        (element instanceof HTMLInputElement ||
+          element instanceof HTMLTextAreaElement) &&
+        attrName === 'value'
+      ) {
         store.cursor = element.selectionStart;
       }
       // Restore the previous value since this is a controlled element
@@ -256,3 +270,5 @@ const setMultuSelectValue = (
     }
   });
 };
+
+type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
