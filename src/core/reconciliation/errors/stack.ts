@@ -1,4 +1,5 @@
 import type { FiberNode, TagFiberNode } from 'faiwer-react/types';
+import { getAppByFiber } from '../app';
 
 /**
  * Returns a list of labels of all parents of the given fiber node.
@@ -20,20 +21,27 @@ export const getFiberLabel = (fiber: FiberNode): string => {
   switch (fiber.type) {
     // <User/>
     case 'component':
-      return '<' + (fiber.component.displayName || fiber.component.name) + '/>';
+      return (
+        '<' +
+        (fiber.component.displayName || fiber.component.name) +
+        '/>' +
+        source(fiber)
+      );
     // <div#root.user/>
     // portal(<div#portal/>)
     case 'tag':
       return fiber.role === 'portal'
         ? `portal(<${fiber.element?.tagName.toLowerCase()}${tagAttrs(fiber.element)}/>`
-        : `<${fiber.tag}${tagAttrs(fiber)}/>`;
+        : `<${fiber.tag}${tagAttrs(fiber)}/>${source(fiber)}`;
     // #hello world
     case 'text':
       return `#${shorten(fiber.props.text, 50)}`;
     // </>
     // <Fragment key="group"/>
     case 'fragment':
-      return fiber.key ? `<Fragment key="${fiber.key}"/>` : '</>';
+      return (
+        (fiber.key ? `<Fragment key="${fiber.key}"/>` : '</>') + source(fiber)
+      );
     case 'null':
       return 'null';
   }
@@ -67,3 +75,14 @@ const tagAttrs = (src: HTMLElement | TagFiberNode | null): string => {
 
 const shorten = (src: string, maxLen = 15) =>
   src.length > maxLen ? src.slice(0, maxLen) + `…` : src;
+
+const source = (fiber: FiberNode): string => {
+  const { source } = fiber;
+  if (!source) return '';
+
+  const { transformSource } = getAppByFiber(fiber);
+  let { columnNumber, fileName, lineNumber } = transformSource
+    ? transformSource(source)
+    : source;
+  return ` at ${fileName}:${lineNumber}:${columnNumber}`;
+};

@@ -12,6 +12,12 @@ import { expectHtml, itRenders, mount, useStateX } from '../helpers';
 import { wait, waitFor } from '../helpers';
 
 describe('createElement', () => {
+  const expectSource = expect.objectContaining({
+    columnNumber: expect.any(Number),
+    lineNumber: expect.any(Number),
+    fileName: expect.any(String),
+  });
+
   it('createElement creates an element', () => {
     const node = (<div className="test">content</div>) as ElementNode;
     expect(node).toEqual({
@@ -19,6 +25,7 @@ describe('createElement', () => {
       props: { className: 'test' },
       key: null,
       children: ['content'],
+      source: expectSource,
     });
   });
 
@@ -29,6 +36,7 @@ describe('createElement', () => {
       props: {},
       key: null,
       children: ['content'],
+      source: expectSource,
     });
   });
 
@@ -48,8 +56,10 @@ describe('createElement', () => {
           props: {},
           key: 'custom',
           children: ['content'],
+          source: expectSource,
         },
       ],
+      source: expectSource,
     });
   });
 
@@ -70,8 +80,10 @@ describe('createElement', () => {
           props: { value: 123 },
           key: null,
           children: [null],
+          source: expectSource,
         },
       ],
+      source: expectSource,
     });
   });
 });

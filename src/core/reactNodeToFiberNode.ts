@@ -40,6 +40,7 @@ export const jsxElementToFiberNode = (
       props: {},
       key: null,
       children: jsxElement,
+      source: null,
     };
   }
 
@@ -94,6 +95,7 @@ export const jsxElementToFiberNode = (
       role: 'context',
       props,
       data: { ctx: jsxElement.type.__ctx, consumers: new Set() },
+      source: jsxElement.source,
     };
     contextFiber.children = jsxElement.children.map(
       (n): FiberNode =>
@@ -108,6 +110,7 @@ export const jsxElementToFiberNode = (
       ...createFiberNode(parent),
       type: 'fragment',
       key,
+      source: jsxElement.source,
     };
     fragmentFiber.children = jsxElement.children.map(
       (n): FiberNode =>
@@ -125,6 +128,7 @@ export const jsxElementToFiberNode = (
       key,
       props: jsxElement.props,
       data: { hooks: null },
+      source: jsxElement.source,
     };
     if (unwrapComponents) {
       const content: JSX.Element = runComponent(fiber, null);
@@ -144,6 +148,7 @@ export const jsxElementToFiberNode = (
       tag: jsxElement.type,
       ref,
       data: { events: {}, styles: null },
+      source: jsxElement.source,
     };
     tagFiber.children = jsxElement.children
       .map((n) => jsxElementToFiberNode(n, tagFiber, unwrapComponents))

@@ -1,10 +1,10 @@
 import type { Component } from 'faiwer-react/core/classComponent';
 import type { ReactContextProvider } from './context';
+import type { JsxSource } from './fiber';
 
 /**
- * Any unique string or number that can help the React engine to identify the
- * given node in the reconciliation algorithm. Also can be used to forcibly
- * recreate the given node by purpose.
+ * Unique identifier for a node, used by the reconciliation algorithm to
+ * distinguish nodes. Changing the key will force React to recreate the node.
  */
 export type ReactKey = string | number;
 
@@ -15,9 +15,12 @@ export type ReactKey = string | number;
 export type UnknownProps = Record<PropertyKey, unknown> & ElementCommonAttrs;
 
 /**
- * The 1st argument of `createElement` function. Basically, this type reflects
- * everything that can be created in "<" & "/>" brackets: tags, components,
- * fragments, context providers.
+ * All possible types that can be used as the first argument to `createElement`:
+ * - tag names
+ * - function components
+ * - class components
+ * - fragments
+ * - or context providers.
  */
 export type ElementType =
   // Tag name
@@ -28,7 +31,8 @@ export type ElementType =
   | (new (props: any) => Component<any, any>);
 
 /**
- * JSX values that aren't passed to `createElement`. JSX keeps them intact.
+ * Primitive values in JSX that are not passed to `createElement` and are
+ * rendered as-is.
  */
 export type ScalarNode = string | number | boolean | null | undefined;
 
@@ -41,6 +45,7 @@ export type ElementNode = {
   props: UnknownProps;
   key: ReactKey | null | undefined;
   children: JsxElement[];
+  source: null | JsxSource;
 };
 
 /**
@@ -49,9 +54,8 @@ export type ElementNode = {
 export type ElementCommonAttrs = { key?: ReactKey | null };
 
 /**
- * An implementation for `JSX.Element`. For some reason in real React it's
- * called `ReactNode` and it's a little different from `JSX.Element`. It creates
- * type-issues, so I didn't repeat the same.
+ * Implementation of `JSX.Element` for this React version. Unlike React's
+ * `ReactNode`, this type avoids type issues.
  */
 export type JsxElement =
   // <div/> & <Component/>. Also it's the output type of `createElement`.

@@ -1,6 +1,7 @@
 import type {
   ElementNode,
   ElementType,
+  JsxSource,
   ReactContextProvider,
   ReactKey,
   UnknownProps,
@@ -49,7 +50,7 @@ export function createElementNew(
   // The following arguments are provided only in the development mode.
   // TODO: Support them to show more informative warnings and errors.
   _isStaticChildren?: boolean,
-  _source?: Source,
+  source: JsxSource | null = null,
   _self?: unknown,
 ): ElementNode {
   key ??= null; // Narrow the type for simplicity.
@@ -68,6 +69,7 @@ export function createElementNew(
       // what's inside until the component runs. Children are passed via `props`
       // instead.
       children: [],
+      source,
     };
   }
 
@@ -86,14 +88,9 @@ export function createElementNew(
     props: propsWithoutChildren,
     key,
     children,
+    source,
   };
 }
-
-type Source = {
-  fileName: string;
-  lineNumber: number;
-  columnNumber: number;
-};
 
 type TagProps = UnknownProps & {
   children?: JSX.Element;

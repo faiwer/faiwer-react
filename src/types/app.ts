@@ -1,4 +1,4 @@
-import type { FiberNode } from './fiber';
+import type { FiberNode, JsxSource } from './fiber';
 import type { EffectMode } from './hooks';
 import type { Queue } from 'faiwer-react/core/reconciliation/queue';
 
@@ -60,6 +60,9 @@ export type App = {
   invalidatedComponents: Queue;
   /** If `true`, extra validators are applied. */
   testMode: boolean;
+  /** If given used to adjust JSX source to something else before adding them to
+   * a ReactError instance. */
+  transformSource?: (source: JsxSource) => JsxSource;
   /**
    * A special storage that contains invalidated context values. We need it to
    * keep the "render" phase pure (so we don't update the existing fibers) and
@@ -75,6 +78,12 @@ export type AppOptions = {
    * Warning: It slows down the app.
    **/
   testMode?: boolean;
+  /**
+   * Provide a converter that accounts for nuances of your development
+   * build. The purpose of this converter is to convert the file path from
+   * JSX into something that browser dev tools can properly handle.
+   */
+  transformSource?: (source: JsxSource) => JsxSource;
 };
 
 export type AppRoot = {

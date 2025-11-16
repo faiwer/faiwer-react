@@ -32,6 +32,7 @@ export const mount = (
     invalidatedComponents: new Queue(),
     state: 'render',
     testMode: !!options.testMode,
+    transformSource: options.transformSource,
     tempContext: new Map(),
   }));
 

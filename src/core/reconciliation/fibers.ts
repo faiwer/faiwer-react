@@ -39,6 +39,7 @@ export const createFiberNode = (parent: FiberNode) =>
     tag: null,
     children: [],
     data: null,
+    source: null,
   }) satisfies Record<keyof FiberNode, unknown>;
 
 export const NULL_FIBER = null as unknown as FiberNode;

@@ -16,6 +16,16 @@ export type FiberNode =
   | ContextFiberNode
   | PortalFiberNode;
 
+/**
+ * A source in the dev's file system of the given JSX node. Available only in
+ * some dev-builds.
+ */
+export type JsxSource = {
+  columnNumber: number;
+  lineNumber: number;
+  fileName: string;
+};
+
 type CommonFiber = {
   /** Unique (within the given app) ID of the fiber. */
   id: number;
@@ -39,6 +49,8 @@ type CommonFiber = {
    * tree. Not the fiber props.
    */
   children: FiberNode[];
+  /** The source in the user's file system where the given JSX node was defined. */
+  source: null | JsxSource;
 };
 
 /**
