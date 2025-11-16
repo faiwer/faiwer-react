@@ -22,6 +22,7 @@ export type ReactContext<T = unknown> = {
    */
   __id: number;
   __default: T;
+  displayName?: string;
 };
 
 /** `.data` of the `ContextFiberNode` */

@@ -39,9 +39,13 @@ export const getFiberLabel = (fiber: FiberNode): string => {
     // </>
     // <Fragment key="group"/>
     case 'fragment':
-      return (
-        (fiber.key ? `<Fragment key="${fiber.key}"/>` : '</>') + source(fiber)
-      );
+      return fiber.role === 'context'
+        ? `context(` +
+            (fiber.data.ctx.displayName || 'unnamed') +
+            ')' +
+            source(fiber)
+        : (fiber.key ? `<Fragment key="${fiber.key}"/>` : '</>') +
+            source(fiber);
     case 'null':
       return 'null';
   }
