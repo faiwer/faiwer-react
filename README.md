@@ -55,12 +55,12 @@ createRoot(container).render(<App />);
   - `dangerouslySetInnerHTML`
   - refs: `useImperativeHandle`
   - Error handling
-  - support solo-compact mode over bracket-compact mode
+  - `useReducer`
 - 2rd line
+  - support solo-compact mode over bracket-compact mode
   - HMR
   - Resolve "TODO: add a test" comments
   - `runComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
-  - `useReducer`
 
 ## It does NOT support
 

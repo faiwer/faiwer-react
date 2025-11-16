@@ -65,6 +65,18 @@ describe('<select/>', () => {
     checkValue(select, 'a');
   });
 
+  it('can render an empty select', () => {
+    const root = mount(
+      <>
+        <select />
+        <select value="wrong" />
+      </>,
+    );
+    const [s1, s2] = root.querySelectorAll('select');
+    expect(s1.value).toBe('');
+    expect(s2.value).toBe('');
+  });
+
   for (const mode of ['strings', 'numbers'] as const) {
     it(`handles a controlled select. ${mode}`, async () => {
       const onChange = jest.fn();
@@ -138,5 +150,56 @@ describe('<select/>', () => {
     checkValue(select, 'b');
     expect(onRender).toHaveBeenCalledTimes(1);
     expect(onChange.mock.calls).toEqual([['b']]);
+  });
+
+  it('supports fixed values', async () => {
+    const onChange = jest.fn();
+    const onRender = jest.fn();
+
+    const Comp = () => {
+      onRender();
+      return (
+        <select value="a" onChange={(e) => onChange(e.target.value)}>
+          {abOptions}
+        </select>
+      );
+    };
+
+    const root = mount(<Comp />);
+    const [select] = extract(root);
+    checkValue(select, 'a');
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    await actAndWaitRAF(() => selectOption(select, 'b'));
+    checkValue(select, 'a');
+    expect(onRender).toHaveBeenCalledTimes(1);
+    expect(onChange.mock.calls).toEqual([['b']]);
+  });
+
+  it('supports uncontrolled selects', async () => {
+    const onChange = jest.fn();
+    const onRender = jest.fn();
+
+    const Comp = () => {
+      onRender();
+      return (
+        <select defaultValue="a" onChange={(e) => onChange(e.target.value)}>
+          {abOptions}
+        </select>
+      );
+    };
+
+    const root = mount(<Comp />);
+    const [select] = extract(root);
+    checkValue(select, 'a');
+    expect(onRender).toHaveBeenCalledTimes(1);
+
+    await act(() => selectOption(select, 'b'));
+    checkValue(select, 'b');
+    expect(onChange.mock.calls).toEqual([['b']]);
+
+    await act(() => selectOption(select, 'a'));
+    expect(onChange.mock.calls).toEqual([['b'], ['a']]);
+    expect(onRender).toHaveBeenCalledTimes(1);
   });
 });
