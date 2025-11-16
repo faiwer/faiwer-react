@@ -1,5 +1,6 @@
 import { act } from 'faiwer-react/testing';
 import { actAndWaitRAF, expectHtml, mount, useStateX } from '../helpers';
+import { useState } from 'faiwer-react';
 
 describe('<select/>', () => {
   const abOptions = (
@@ -9,7 +10,7 @@ describe('<select/>', () => {
     </>
   );
 
-  type Value = undefined | string | number | string[];
+  type Value = undefined | string | number | Array<string | number>;
 
   const extract = (root: HTMLElement) => {
     const select = root.querySelector('select') as HTMLSelectElement;
@@ -18,17 +19,38 @@ describe('<select/>', () => {
   };
 
   const checkValue = (select: HTMLSelectElement, value: Value) => {
-    expect(select.value).toBe(value == null ? '' : String(value));
+    if (Array.isArray(value)) {
+      value = value.map((v) => String(v));
+    }
+
+    expect(select.value).toBe(
+      value == null || (Array.isArray(value) && value.length === 0)
+        ? ''
+        : Array.isArray(value)
+          ? value[0]
+          : String(value),
+    );
+
     const options = [
       ...select.querySelectorAll('option'),
     ] as HTMLOptionElement[];
     for (const o of options) {
-      expect(o.selected).toBe(o.value === String(value));
+      expect(o.selected).toBe(
+        Array.isArray(value)
+          ? value.includes(o.value)
+          : o.value === String(value),
+      );
     }
   };
 
   const selectOption = (select: HTMLSelectElement, value: Value) => {
-    select.value = String(value);
+    const values = Array.isArray(value)
+      ? value.map((v) => String(v))
+      : [String(value)];
+    for (const o of select.options) {
+      o.selected = values.includes(o.value);
+    }
+
     select.dispatchEvent(new InputEvent('input'));
   };
 
@@ -202,4 +224,59 @@ describe('<select/>', () => {
     expect(onChange.mock.calls).toEqual([['b'], ['a']]);
     expect(onRender).toHaveBeenCalledTimes(1);
   });
+
+  for (const mode of ['numbers', 'strings']) {
+    const options = mode === 'numbers' ? [0, 1, 2] : ['a', 'b', 'c'];
+    const initial = mode === 'numbers' ? [0] : ['a'];
+
+    it(`supports multiple choice: controlled. ${mode}`, async () => {
+      const onChange = jest.fn();
+
+      const Comp = () => {
+        const [value, setValue] = useState<Array<string | number>>(initial);
+        return (
+          <select
+            multiple
+            value={value}
+            onChange={(e) => {
+              const values = [...e.target.selectedOptions].map((o) =>
+                mode === 'numbers' ? Number(o.value) : o.value,
+              );
+              onChange(values);
+              setValue(values);
+            }}
+          >
+            {options.map((v) => (
+              <option value={v} key={v} />
+            ))}
+          </select>
+        );
+      };
+
+      const root = mount(<Comp />);
+      const [select] = extract(root);
+      expectHtml(root).toBe(
+        `<select multiple="">` +
+          options.map((v) => `<option value="${v}"></option>`).join('') +
+          '</select>',
+      );
+
+      await Promise.resolve();
+      checkValue(select, initial);
+
+      const change1 = [options[0], options[2]];
+      await actAndWaitRAF(() => selectOption(select, change1));
+      expect(onChange.mock.lastCall).toEqual([change1]);
+      checkValue(select, change1);
+
+      const change2 = [options[1], options[2]]; // reverse
+      await actAndWaitRAF(() => selectOption(select, change2));
+      expect(onChange.mock.lastCall).toEqual([change2]);
+      checkValue(select, change2);
+
+      await actAndWaitRAF(() => selectOption(select, []));
+      expect(onChange.mock.lastCall).toEqual([[]]);
+      checkValue(select, undefined);
+    });
+  }
 });

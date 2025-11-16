@@ -71,6 +71,15 @@ const setUpStore = (
     prev: null,
     cursor: null,
     set: (value: unknown, restoreCursor = false) => {
+      if (
+        Array.isArray(value) &&
+        element instanceof HTMLSelectElement &&
+        element.multiple
+      ) {
+        setMultuSelectValue(element, value);
+        return;
+      }
+
       if (element[attrName] === value) {
         // Don't touch the value to avoid moving the cursor.
         return;
@@ -171,12 +180,14 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
 export const toNativeValue = (
   attrName: 'checked' | 'value',
   newValue: unknown,
-): boolean | string =>
+): boolean | string | string[] =>
   attrName === 'checked'
     ? !!newValue
     : newValue == null
       ? '' // not "null"
-      : String(newValue);
+      : Array.isArray(newValue)
+        ? newValue.map((v) => String(v))
+        : String(newValue);
 
 type Store = {
   /** The value from the user's React code */
@@ -216,4 +227,32 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
     },
     'afterNextRender',
   );
+};
+
+/**
+ * <select multiple/> is a very special case.
+ * - When it has only one item selected its behavior is similar to single-mode
+ *   selects. `value` reflects the only selected option's value.
+ * - When there is a multiple selection `value` reflects only the name of the
+ *   1st selected option, completely ignoring the rest of them.
+ *
+ * So, how do we handle it without `value`? We just need to update `selected`
+ * for each of the <option/>s.
+ */
+const setMultuSelectValue = (
+  element: HTMLSelectElement,
+  value: unknown[],
+): void => {
+  // Unfortunately, we can't do it right away, because:
+  // 1. on the 1st render we have no inner options here yet
+  // 2. on subsequent render the inner options may not be fully updated yet.
+  queueMicrotask(() => {
+    const set = new Set(value.map((v) => String(v)));
+    for (const option of element.options) {
+      const selected = set.has(option.value);
+      if (option.selected !== selected) {
+        option.selected = selected;
+      }
+    }
+  });
 };
