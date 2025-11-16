@@ -8,7 +8,7 @@ import type { FiberNode, TagFiberNode } from 'faiwer-react/types';
 export const captureStack = (fiber: FiberNode): string[] => {
   const result: string[] = [];
 
-  while (fiber.parent.tag !== 'root') {
+  while (fiber.parent && fiber.parent.tag !== 'root') {
     result.push(getFiberLabel(fiber.parent));
     fiber = fiber.parent;
   }
@@ -20,7 +20,7 @@ export const getFiberLabel = (fiber: FiberNode): string => {
   switch (fiber.type) {
     // <User/>
     case 'component':
-      return '<' + fiber.component.name + '/>';
+      return '<' + (fiber.component.displayName || fiber.component.name) + '/>';
     // <div#root.user/>
     // portal(<div#portal/>)
     case 'tag':
@@ -58,8 +58,8 @@ const tagAttrs = (src: HTMLElement | TagFiberNode | null): string => {
     );
   }
 
-  if (!!src && 'key' in src) {
-    list.push(` key="${src.key}"`);
+  if (!!src && 'key' in src && !!src.key) {
+    list.push(`key="${src.key}"`);
   }
 
   return (props.id || props.className ? '' : ' ') + list.join(' ');

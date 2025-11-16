@@ -1,4 +1,9 @@
-import { Component, createContext, Fragment } from 'faiwer-react';
+import {
+  Component,
+  createContext,
+  Fragment,
+  type ReactComponent,
+} from 'faiwer-react';
 
 declare const Blank: () => JSX.Element;
 declare const User: (props: { id: number }) => JSX.Element;
@@ -55,6 +60,8 @@ class ClassComponent extends Component {}
 <Container>2</Container>;
 // @ts-expect-error
 <Container></Container>;
+declare const FC_L: ReactComponent;
+FC_L.displayName = 'AnotherName';
 
 // DOM. Attributes
 <div className="test" />;
