@@ -1,5 +1,5 @@
 import { act } from 'faiwer-react/testing';
-import { actAndWaitRAF, interceptRAFOnce, mount, useStateX } from '../helpers';
+import { actAndWaitRAF, mount, useStateX } from '../helpers';
 import type { PatchEvent } from 'faiwer-react/types/events';
 import { useState } from 'faiwer-react';
 
@@ -174,10 +174,7 @@ describe('<input type="radio"/>', () => {
 
       checkSelection([a, b], 'a');
 
-      const raf = interceptRAFOnce();
-      await act(() => selectRadio(b));
-
-      raf();
+      await actAndWaitRAF(() => selectRadio(b));
       checkSelection([a, b], 'a');
     });
   }

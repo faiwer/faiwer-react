@@ -3,7 +3,6 @@ import { validateApp } from './validateApp';
 import { collectActionsFromApp } from './collect/fromApp';
 import { postCommit } from './postCommit';
 import { applyActions } from './applyActions';
-import { runEffects } from './effects';
 
 /**
  * Performs another rendering round. Once anything changes a component's state
@@ -33,7 +32,6 @@ export function reactRender(app: App, depth = 0) {
   if (app.testMode) validateApp(app);
 
   applyActions(app, actions);
-  runEffects(app, 'afterNextRender');
   if (app.testMode) validateApp(app);
 
   postCommit(app, depth);

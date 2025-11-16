@@ -66,7 +66,7 @@ export type EffectHandler = (
 
 export type EffectMode =
   // <input/>.value restoration
-  | 'afterNextRender'
+  | 'afterActions'
   // <div ref={onRef}/>
   | 'refs'
   // useLayoutEffect(fn);

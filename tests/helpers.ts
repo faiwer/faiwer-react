@@ -79,18 +79,21 @@ export const itRenders = (name: string, element: JSX.Element, html: string) =>
     expectHtml(root).toBe(html);
   });
 
-export const interceptRAFOnce = (): (() => void) => {
-  let rafCallback: () => {};
-  jest // using spy, because otherwise it's too slow
-    .spyOn(window, 'requestAnimationFrame')
-    .mockImplementationOnce((fn): any => {
-      rafCallback = fn as typeof rafCallback;
-    });
-  return () => rafCallback!();
-};
-
 export const actAndWaitRAF = async (fn: () => void): Promise<void> => {
-  const raf = interceptRAFOnce();
-  await act(fn);
-  raf();
+  let arr: FrameRequestCallback[] = [];
+  const spy = jest
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation((fn) => arr.push(fn));
+  try {
+    await act(fn);
+    do {
+      const fns = [...arr];
+      arr = [];
+      for (const fn of fns) {
+        fn(-1);
+      }
+    } while (arr.length > 0);
+  } finally {
+    spy.mockRestore();
+  }
 };

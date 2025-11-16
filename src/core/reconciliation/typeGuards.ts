@@ -44,7 +44,8 @@ export function assertsTagAttrValue(
       return;
 
     case 'object':
-      if (name === 'value' && Array.isArray(v)) return; // <select multiple/>
+      if ((name === 'defaultValue' || name === 'value') && Array.isArray(v))
+        return; // <select multiple/>
       if (v === null || name === 'style') return;
 
     case 'bigint':

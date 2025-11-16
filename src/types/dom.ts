@@ -30,7 +30,7 @@ type Overrides<T extends Element, O> = T extends
     >
   : T extends HTMLSelectElement
     ? ReplaceIn<O, { value?: string | number | Array<number | string> }> & {
-        defaultValue?: string | string[] | number;
+        defaultValue?: string | number | Array<string | number>;
       }
     : T extends HTMLOptionElement
       ? ReplaceIn<O, { value?: string | number }>

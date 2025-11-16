@@ -6,7 +6,8 @@ import { setSvgAttribute } from './dom/svg';
 import { setTagStyles } from './dom/css';
 import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
-import { setValueAttr, toNativeValue } from './dom/value';
+import { changeControlValue, setValueAttr } from './dom/value';
+import { getAppByFiber } from '../reconciliation/app';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -31,7 +32,7 @@ export function setAttrAction(
     setValueAttr(fiber, name, value);
   } else if (name === 'defaultChecked' && element instanceof HTMLInputElement) {
     if (creation) {
-      element.checked = toNativeValue('checked', value) as boolean;
+      changeControlValue(getAppByFiber(fiber), element, 'checked', value);
     }
   } else if (
     name === 'defaultValue' &&
@@ -40,7 +41,7 @@ export function setAttrAction(
       element instanceof HTMLSelectElement)
   ) {
     if (creation) {
-      element.value = toNativeValue('value', value) as string;
+      changeControlValue(getAppByFiber(fiber), element, 'value', value);
     }
   } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);

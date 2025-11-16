@@ -11,6 +11,7 @@ import { runEffects } from './effects';
  * - or move the app to the idle stage
  */
 export function postCommit(app: App, depth: number) {
+  runEffects(app, 'afterActions');
   app.tempContext.clear();
 
   // Run "ref" and "layout" effects. They must be run in the same microtask

@@ -1,5 +1,11 @@
 import { act } from 'faiwer-react/testing';
-import { actAndWaitRAF, expectHtml, mount, useStateX } from '../helpers';
+import {
+  actAndWaitRAF,
+  expectHtml,
+  mount,
+  useRerender,
+  useStateX,
+} from '../helpers';
 import { useState } from 'faiwer-react';
 
 describe('<select/>', () => {
@@ -226,10 +232,10 @@ describe('<select/>', () => {
   });
 
   for (const mode of ['numbers', 'strings']) {
-    const options = mode === 'numbers' ? [0, 1, 2] : ['a', 'b', 'c'];
-    const initial = mode === 'numbers' ? [0] : ['a'];
-
     it(`supports multiple choice: controlled. ${mode}`, async () => {
+      const options = mode === 'numbers' ? [0, 1, 2] : ['a', 'b', 'c'];
+      const initial = mode === 'numbers' ? [0] : ['a'];
+
       const onChange = jest.fn();
 
       const Comp = () => {
@@ -278,5 +284,83 @@ describe('<select/>', () => {
       expect(onChange.mock.lastCall).toEqual([[]]);
       checkValue(select, undefined);
     });
+
+    it(`supports multiple choice: uncontrolled. ${mode}`, async () => {
+      const options = mode === 'numbers' ? [0, 1, 2] : ['a', 'b', 'c'];
+      const initial = mode === 'numbers' ? [0, 1] : ['a', 'b'];
+
+      const onChange = jest.fn();
+      const onRender = jest.fn();
+      let rerender: () => void;
+
+      const Comp = () => {
+        onRender();
+        rerender = useRerender();
+
+        return (
+          <select
+            multiple
+            defaultValue={initial}
+            onChange={(e) =>
+              onChange(
+                [...e.target.selectedOptions].map((o) =>
+                  mode === 'numbers' ? Number(o.value) : o.value,
+                ),
+              )
+            }
+          >
+            {options.map((v) => (
+              <option value={v} key={v} />
+            ))}
+          </select>
+        );
+      };
+
+      const root = mount(<Comp />);
+      const [select] = extract(root);
+      expectHtml(root).toBe(
+        `<select multiple="">` +
+          options.map((v) => `<option value="${v}"></option>`).join('') +
+          '</select>',
+      );
+
+      await Promise.resolve();
+      checkValue(select, initial);
+
+      const change1 = [options[0], options[2]];
+      await act(() => selectOption(select, change1));
+      expect(onChange.mock.lastCall).toEqual([change1]);
+      checkValue(select, change1);
+
+      await act(() => rerender());
+      checkValue(select, change1); // is intact.
+
+      const change2 = [options[1], options[2]]; // reverse
+      await act(() => selectOption(select, change2));
+      expect(onChange.mock.lastCall).toEqual([change2]);
+      checkValue(select, change2);
+
+      await act(() => selectOption(select, []));
+      expect(onChange.mock.lastCall).toEqual([[]]);
+      checkValue(select, undefined);
+
+      await act(() => rerender());
+      checkValue(select, undefined); // is intact.
+
+      expect(onRender).toHaveBeenCalledTimes(3); // initial + 2x rerenders.
+    });
   }
+
+  it('options without a value are treated properly', async () => {
+    const root = mount(
+      <select defaultValue="c">
+        {abOptions}
+        <option>c</option>
+      </select>,
+    );
+    const [select] = extract(root);
+    await Promise.resolve();
+
+    checkValue(select, 'c');
+  });
 });

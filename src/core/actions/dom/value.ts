@@ -21,16 +21,15 @@ export const setValueAttr = (
   attrName: 'value' | 'checked',
   attrValue: TagAttrValue,
 ) => {
-  // Narrow down the type for simplicity.
   const element = fiber.element as FormControl;
+  const app = getAppByFiber(fiber);
 
   // We continue to reference the same `events` object even after calling
   // `displaceFiber`, so this assumption should hold
   const { events } = fiber.data;
 
   if (!events[VALUE_EVENT]) {
-    const app = getAppByFiber(fiber);
-    const store = setUpStore(element, attrName);
+    const store = setUpStore(app, element, attrName);
 
     const onInput = createOnInputHandler(
       app,
@@ -53,55 +52,60 @@ export const setValueAttr = (
   const store = nullthrows(stores.get(element));
   store.prev = attrValue;
   if (attrValue != null) {
-    store.set(toNativeValue(attrName, attrValue), true);
+    store.set(attrValue, true);
   }
 };
 
 const VALUE_EVENT = 'x:input';
 
 const setUpStore = (
+  app: App,
   element: FormControl,
   attrName: 'value' | 'checked',
 ): Store => {
-  const original = nullthrows(
-    Object.getOwnPropertyDescriptor(element.constructor.prototype, attrName),
-  );
-
   const store: Store = {
     prev: null,
     cursor: null,
-    set: (value: unknown, restoreCursor = false) => {
-      if (
-        Array.isArray(value) &&
-        element instanceof HTMLSelectElement &&
-        element.multiple
-      ) {
-        setMultuSelectValue(element, value);
-        return;
-      }
-
-      if (element[attrName as keyof typeof element] === value) {
-        // Don't touch the value to avoid moving the cursor.
-        return;
-      }
-
-      // Non-reactively update the native value.
-      original.set!.call(element, value);
-
-      if (
-        (element instanceof HTMLInputElement ||
-          element instanceof HTMLTextAreaElement) &&
-        attrName === 'value' &&
-        restoreCursor &&
-        store.cursor != null
-      ) {
-        element.selectionStart = element.selectionEnd = store.cursor;
-      }
-    },
+    set: changeControlValue.bind(null, app, element, attrName),
   };
 
   stores.set(element, store);
   return store;
+};
+
+export const changeControlValue = (
+  app: App,
+  element: FormControl,
+  attrName: 'checked' | 'value',
+  valueRaw: unknown,
+  restoreCursor = false,
+) => {
+  const value = toNativeValue(attrName, valueRaw);
+
+  if (element instanceof HTMLSelectElement) {
+    setSelectValue(app, element, value);
+    return;
+  }
+
+  if (element[attrName as keyof typeof element] === value) {
+    // Don't touch the value to avoid moving the cursor.
+    return;
+  }
+
+  // Non-reactively update the native value.
+  (element as { checked: unknown; value: unknown })[attrName] = value;
+
+  if (
+    (element instanceof HTMLInputElement ||
+      element instanceof HTMLTextAreaElement) &&
+    attrName === 'value' &&
+    restoreCursor
+  ) {
+    const store = stores.get(element)!;
+    if (store.cursor != null) {
+      element.selectionStart = element.selectionEnd = store.cursor;
+    }
+  }
 };
 
 const createOnInputHandler = (
@@ -191,7 +195,7 @@ const onRadioClick = (app: App, element: HTMLInputElement): void => {
  * - value: null | undefined → '' (empty string, not "null")
  * - checked: any value → boolean conversion
  */
-export const toNativeValue = (
+const toNativeValue = (
   attrName: 'checked' | 'value',
   newValue: unknown,
 ): boolean | string | string[] =>
@@ -239,12 +243,12 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
         fn();
       }
     },
-    'afterNextRender',
+    'afterActions',
   );
 };
 
 /**
- * <select multiple/> is a very special case.
+ * <select/> & <select multiple/> are very special cases.
  * - When it has only one item selected its behavior is similar to single-mode
  *   selects. `value` reflects the only selected option's value.
  * - When there is a multiple selection `value` reflects only the name of the
@@ -253,15 +257,17 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
  * So, how do we handle it without `value`? We just need to update `selected`
  * for each of the <option/>s.
  */
-const setMultuSelectValue = (
+const setSelectValue = (
+  app: App,
   element: HTMLSelectElement,
-  value: unknown[],
+  value: unknown,
 ): void => {
   // Unfortunately, we can't do it right away, because:
   // 1. on the 1st render we have no inner options here yet
   // 2. on subsequent render the inner options may not be fully updated yet.
-  queueMicrotask(() => {
-    const set = new Set(value.map((v) => String(v)));
+  scheduleResetValueEffect(app, () => {
+    const arr = Array.isArray(value) ? value : [value];
+    const set = new Set(arr.map((v) => String(v)));
     for (const option of element.options) {
       const selected = set.has(option.value);
       if (option.selected !== selected) {
