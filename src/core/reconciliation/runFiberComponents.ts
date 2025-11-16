@@ -2,6 +2,7 @@ import type { App, FiberNode } from 'faiwer-react/types';
 import { runComponent } from '../components';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
+import { ReactError } from './errors/ReactError';
 
 /**
  * By default we don't run all components. We run only those that were manually
@@ -38,7 +39,8 @@ const checkParents = (fiber: FiberNode): void => {
   let parent = fiber.parent;
   while (parent && parent.tag !== FAKE_CONTAINER_TAG) parent = parent.parent;
   if (!parent) {
-    throw new Error(
+    throw new ReactError(
+      fiber,
       `runFiberComponents shouldn't be called for already mounted fiber nodes`,
     );
   }

@@ -1,5 +1,6 @@
 import { type DomNode, type FiberNode } from '../types';
 import { buildComment, buildCommentText } from './reconciliation/comments';
+import { ReactError } from './reconciliation/errors/ReactError';
 
 /**
  * Returns true if domNode is <!--r:begin:ID--> where ID is fiber.id
@@ -139,5 +140,5 @@ export const unwrapCompactFiber = (fiber: FiberNode): void => {
     return;
   }
 
-  throw new Error(`Unsupported format of compact node`);
+  throw new ReactError(fiber, `Unsupported format of compact node`);
 };

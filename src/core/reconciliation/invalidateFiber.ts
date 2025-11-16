@@ -2,6 +2,7 @@ import type { FiberNode } from 'faiwer-react/types';
 import { getAppByFiber } from './app';
 import { reactRender } from './render';
 import { isFiberDead } from './fibers';
+import { ReactError } from './errors/ReactError';
 
 /**
  * Adds the given component to the update queue (`invalidatedComponents`).
@@ -10,10 +11,13 @@ import { isFiberDead } from './fibers';
  */
 export const invalidateFiber = (fiber: FiberNode): void => {
   if (fiber.type !== 'component') {
-    throw new Error(`Cannot invalidate a non-component fiber (${fiber.type})`);
+    throw new ReactError(
+      fiber,
+      `Cannot invalidate a non-component fiber (${fiber.type})`,
+    );
   }
   if (isFiberDead(fiber)) {
-    throw new Error(`Cannot invalidate a dead component`);
+    throw new ReactError(fiber, `Cannot invalidate a dead component`);
   }
 
   const app = getAppByFiber(fiber);
@@ -33,6 +37,6 @@ export const invalidateFiber = (fiber: FiberNode): void => {
       break;
 
     case 'render':
-      throw new Error(`Don't update state during the render phase`);
+      throw new ReactError(fiber, `Don't update state during the render phase`);
   }
 };

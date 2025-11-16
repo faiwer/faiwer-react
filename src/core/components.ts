@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { getAppByFiber } from './reconciliation/app';
 import { isFiberDead } from './reconciliation/fibers';
+import { ReactError } from './reconciliation/errors/ReactError';
 
 /** Component that is rendered right now. */
 let currentFiber: ComponentFiberNode | null;
@@ -45,10 +46,10 @@ export const runComponent = (
   props: UnknownProps | null,
 ): JSX.Element => {
   if (fiber.type !== 'component') {
-    throw new Error(`Can't run ${fiber.type} as a component`);
+    throw new ReactError(fiber, `Can't run ${fiber.type} as a component`);
   }
   if (isFiberDead(fiber)) {
-    throw new Error(`Can't run a dead component`);
+    throw new ReactError(fiber, `Can't run a dead component`);
   }
 
   currentFiber = fiber;
@@ -56,10 +57,20 @@ export const runComponent = (
   fiber.data.hooks ??= [];
   hookIdx = -1;
 
-  let jsxElement: JSX.Element = fiber.component!(props ?? fiber.props);
+  let jsxElement: JSX.Element;
+  try {
+    jsxElement = fiber.component!(props ?? fiber.props);
+  } catch (error: unknown) {
+    throw new ReactError(
+      fiber,
+      error,
+      `Error during rendering a component: %fiber%`,
+    );
+  }
 
   if (!firstFiberRender && hookIdx !== fiber.data.hooks.length - 1) {
-    throw new Error(
+    throw new ReactError(
+      fiber,
       `The hook order is violated. There were ${fiber.data.hooks.length} hooks in the previous render. Now only ${hookIdx + 1}`,
     );
   }
@@ -74,7 +85,7 @@ let hookIdx = -1;
 
 const getComponentHookStore = (fiberNode: ComponentFiberNode): HookStore => {
   if (!fiberNode.data.hooks) {
-    throw new Error(`HookStore is empty.`);
+    throw new ReactError(fiberNode, `HookStore is empty.`);
   }
 
   return fiberNode.data.hooks;

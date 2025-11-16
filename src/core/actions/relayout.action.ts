@@ -8,6 +8,7 @@ import {
 } from '../compact';
 import { getAnchor, getFiberDomNodes } from './helpers';
 import { nullthrows } from 'faiwer-react/utils';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * Handles fiber tree layout updates when children have been modified. This
@@ -81,7 +82,8 @@ const expandFiberWhenNeeded = (fiber: FiberNode, after: FiberMap): void => {
       // Case 2: It's in "single child" mode. Fix it to support multiple children.
       unwrapCompactFiber(fiber);
     } else {
-      throw new Error(
+      throw new ReactError(
+        fiber,
         `Invalid state: "remove" action didn't unwrap the parent container node during deletion of the only child`,
       );
     }

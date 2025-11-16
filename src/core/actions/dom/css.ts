@@ -1,3 +1,4 @@
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 import type { TagAttrValue, TagFiberNode, TagStyles } from 'faiwer-react/types';
 
 /**
@@ -13,7 +14,7 @@ export const setTagStyles = (
     stylesRaw != null &&
     typeof stylesRaw !== 'object'
   ) {
-    throw new Error(`Unsupported format of styles`);
+    throw new ReactError(fiber, `Unsupported format of styles`);
   }
 
   const elementStyle = (fiber.element as HTMLElement).style;

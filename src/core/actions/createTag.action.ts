@@ -4,6 +4,7 @@ import { createCommentAction } from './createComment.action';
 import { setAttrAction } from './setAttr.action';
 import type { CreateTagAction } from 'faiwer-react/types/actions';
 import { setRefAction } from './setRef.action';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * Handles two scenarios:
@@ -17,7 +18,10 @@ export function createTagAction(
   { attrs, ref }: CreateTagAction,
 ): void {
   if (fiber.type !== 'tag') {
-    throw new Error(`createTagAction supports only tag-fiber-nodes.`);
+    throw new ReactError(
+      fiber,
+      `createTagAction supports only tag-fiber-nodes.`,
+    );
   }
 
   if (fiber.data instanceof HTMLElement) {

@@ -8,6 +8,7 @@ import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
 import { changeControlValue, setValueAttr } from './dom/value';
 import { getAppByFiber } from '../reconciliation/app';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -19,11 +20,11 @@ export function setAttrAction(
   { name, value, creation }: Pick<SetAttrAction, 'name' | 'value' | 'creation'>,
 ) {
   if (fiber.type !== 'tag') {
-    throw new Error(`Can't apply SetAttr to a ${fiber.type} node`);
+    throw new ReactError(fiber, `Can't apply SetAttr to a ${fiber.type} node`);
   }
 
   if (fiber.role === 'portal') {
-    throw new Error(`Can't apply SetAttr to a portal node`);
+    throw new ReactError(fiber, `Can't apply SetAttr to a portal node`);
   }
 
   const element = nullthrows(fiber.element);

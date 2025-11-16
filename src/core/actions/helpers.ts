@@ -5,6 +5,7 @@ import { NULL_FIBER } from '../reconciliation/fibers';
 import { buildCommentText } from '../reconciliation/comments';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * Determines if a prop name represents an event handler by checking if it
@@ -86,11 +87,14 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
 
   if (fiber.type === 'component' || fiber.type === 'fragment') {
     if (isCompactSingleChild(fiber)) {
-      throw new Error(`Solo-compact fibers cannot be used as an anchor`);
+      throw new ReactError(
+        fiber,
+        `Solo-compact fibers cannot be used as an anchor`,
+      );
     }
 
     if (isCompactNone(fiber)) {
-      throw new Error(`Cannot use !--empty node as an anchor`);
+      throw new ReactError(fiber, `Cannot use !--empty node as an anchor`);
     }
 
     // E.g.
@@ -104,7 +108,7 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
   }
 
   // "text" & "null" types cannot contain children.
-  throw new Error(`Unsupported anchor type: ${fiber.type}`);
+  throw new ReactError(fiber, `Unsupported anchor type: ${fiber.type}`);
 };
 
 /**

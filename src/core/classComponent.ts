@@ -12,6 +12,7 @@ import type {
   UnknownProps,
 } from 'faiwer-react/types';
 import { getCurrentComponentFiber } from './components';
+import { ReactError } from './reconciliation/errors/ReactError';
 
 export const isComponentClass = (value: unknown): value is ComponentClass => {
   return (
@@ -66,15 +67,18 @@ export class Component<
   }
 
   render(): JSX.Element {
-    throw new Error(`Render method must be overridden`);
+    throw new ReactError(
+      getCurrentComponentFiber(),
+      `Render method must be overridden`,
+    );
   }
 
   componentDidCatch(_error: unknown, _info: unknown): void {
-    throw new Error(`Not implemented`);
+    throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
   }
 
   getSnapshotBeforeUpdate(_prevProps: unknown, _prevState: unknown): unknown {
-    throw new Error(`Not implemented`);
+    throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
   }
 
   static getDerivedStateFromProps(_props: any, _state: any): Partial<any> {

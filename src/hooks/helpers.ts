@@ -9,6 +9,7 @@ import {
   type HookDeps,
   type ComponentFiberNode,
 } from '../types';
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
 /**
  * We could save the given deps as is, but this version allows to avoid memory
@@ -47,7 +48,7 @@ export const getNextHookOrCreate = <T extends { type: HookStateItem['type'] }>(
   const fiber = getCurrentComponentFiber();
 
   if (!Array.isArray(fiber.data.hooks)) {
-    throw new Error(`Hooks cannot be used outside of components`);
+    throw new ReactError(fiber, `Hooks cannot be used outside of components`);
   }
 
   if (firstRender) {
@@ -58,7 +59,8 @@ export const getNextHookOrCreate = <T extends { type: HookStateItem['type'] }>(
 
   const item = firstRender ? fiber.data.hooks.at(-1)! : getNextFiberState();
   if (item.type !== type) {
-    throw new Error(
+    throw new ReactError(
+      fiber,
       `The hook order is violated. Expected: ${type}, got: ${item.type}`,
     );
   }

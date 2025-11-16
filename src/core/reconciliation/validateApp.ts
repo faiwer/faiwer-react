@@ -1,15 +1,16 @@
 import type { App, FiberNode } from 'faiwer-react/types';
 import { nullthrows } from 'faiwer-react/utils';
 import { FAKE_CONTAINER_TAG } from './fibers';
+import { ReactError } from './errors/ReactError';
 
 export const validateApp = (app: App): void => {
   app.invalidatedComponents.traverse((fiber) => {
     if (!fiber.parent) {
-      throw new Error('Orphan component invalidated');
+      throw new ReactError(fiber, 'Orphan component invalidated');
     }
 
     if (fiber.parent.tag === FAKE_CONTAINER_TAG) {
-      throw new Error('Cannot invalidate not-mounted fiber node');
+      throw new ReactError(fiber, `Cannot invalidate not-mounted fiber node`);
     }
   });
 
@@ -25,26 +26,27 @@ const validateTree = (node: FiberNode, path = ''): void => {
 
   if (node.type === 'tag') {
     if (!node.tag) {
-      throw new Error(`${path} has empty "tag" field `);
+      throw new ReactError(node, `${path} has empty "tag" field `);
     }
 
     const domNode = node.role === 'portal' ? node.data : node.element;
     if (!(domNode instanceof Element)) {
-      throw new Error(`${path} doesn't have element`);
+      throw new ReactError(node, `${path} doesn't have element`);
     }
   } else if (node.type === 'component' && !node.component) {
-    throw new Error(`${path} has empty "component" field `);
+    throw new ReactError(node, `${path} has empty "component" field `);
   } else if (node.role === 'context' && !node.data.ctx) {
-    throw new Error(`${path} has no context`);
+    throw new ReactError(node, `${path} has no context`);
   } else if (node.type === 'text' && !(node.element instanceof Text)) {
-    throw new Error(`${path}'s element is not a Text`);
+    throw new ReactError(node, `${path}'s element is not a Text`);
   }
 
   for (const [idx, child] of node.children.entries()) {
     const label = getFiberPathLabel(child);
     const key = (child.key ?? idx) + `^${label}`;
     if (child.parent !== node) {
-      throw new Error(
+      throw new ReactError(
+        child,
         `${path}.${key}.parent is ${child.parent ? 'wrong' : 'empty'}`,
       );
     }

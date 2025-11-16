@@ -6,6 +6,7 @@ import type {
 import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
 import type { RemoveAction } from 'faiwer-react/types/actions';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * This action can be called directly (<div/> -> []), or indirectly (<div/> ->
@@ -25,7 +26,10 @@ export function removeAction(
   if (fiber.type === 'component') {
     destroyHooks(fiber);
   } else if (fiber.role === 'context' && fiber.data.consumers.size > 0) {
-    throw new Error(`One of the context consumers wasn't unmounted`);
+    throw new ReactError(
+      fiber,
+      `One of the context consumers wasn't unmounted`,
+    );
   } else if (fiber.type === 'tag' && fiber.role !== 'portal') {
     unlistenTagEvents(fiber);
   }
@@ -38,7 +42,7 @@ export function removeAction(
 
   for (const n of getFiberDomNodes(fiber)) {
     if (n.childNodes.length > 0) {
-      throw new Error(`Remove: Node is not empty`);
+      throw new ReactError(fiber, `Remove: Node is not empty`);
     }
     n.remove();
   }

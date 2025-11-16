@@ -1,3 +1,4 @@
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 import type { TagAttrValue, TagFiberNode } from 'faiwer-react/types';
 
 export const setEventHandler = (
@@ -17,7 +18,8 @@ export const setEventHandler = (
   }
 
   if (typeof value !== 'function') {
-    throw new Error(
+    throw new ReactError(
+      fiber,
       `Unsupported format of event handler. It has to be "undefined" or a function`,
     );
   }

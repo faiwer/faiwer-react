@@ -8,6 +8,7 @@ import {
 } from '../types';
 import { getNextHookOrCreate } from './helpers';
 import { isFiberDead } from 'faiwer-react/core/reconciliation/fibers';
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
 /**
  * Creates a React context object that can be used to pass data through the
@@ -81,7 +82,10 @@ export const useContext = <T>(
       providerFiber,
       move(newFiber) {
         if (newFiber.type !== 'component') {
-          throw new Error(`useContext can be used only within coponents`);
+          throw new ReactError(
+            newFiber,
+            `useContext can be used only within coponents`,
+          );
         }
         if (providerFiber) {
           providerFiber.data.consumers.delete(fiber);
@@ -98,7 +102,10 @@ export const useContext = <T>(
 
   if (item.providerFiber) {
     if (isFiberDead(item.providerFiber)) {
-      throw new Error(`Cannot read from dead context provider`);
+      throw new ReactError(
+        item.providerFiber,
+        `Cannot read from dead context provider`,
+      );
     }
 
     const { tempContext } = getAppByFiber(item.providerFiber);

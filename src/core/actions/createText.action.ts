@@ -1,12 +1,16 @@
 import type { FiberNode } from 'faiwer-react/types';
 import { getParentElement } from './helpers';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * Creates a new text DOM node.
  */
 export function createTextAction(fiber: FiberNode) {
   if (fiber.type !== 'text') {
-    throw new Error(`Can't apply CreateText for a ${fiber.type} node`);
+    throw new ReactError(
+      fiber,
+      `Can't apply CreateText for a ${fiber.type} node`,
+    );
   }
 
   // Only two scenarios lead here:
