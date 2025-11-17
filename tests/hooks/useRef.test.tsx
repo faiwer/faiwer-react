@@ -412,4 +412,56 @@ describe('useImperativeHandle', () => {
     expect(onSet.mock.calls).toEqual([[42], [null]]);
     expect(ref.current).toBe(null);
   });
+
+  for (const mode of ['noDeps', '1dep']) {
+    it(`considers the given ref to be a dependency. ${mode}`, async () => {
+      const onCalcHandle = jest.fn();
+      let childRerender: () => void;
+      const Child = ({ ref }: { ref: Ref<number> }) => {
+        childRerender = useRerender();
+
+        useImperativeHandle(
+          ref,
+          () => {
+            onCalcHandle();
+            return 42;
+          },
+          mode === 'noDeps' ? [] : [1984],
+        );
+
+        return 42;
+      };
+
+      const onRef = [jest.fn(), jest.fn()];
+      const pos = useStateX<0 | 1>();
+      let parentRerender: () => void;
+      const Parent = () => {
+        parentRerender = useRerender();
+        return <Child ref={onRef[pos.use(0)]} />;
+      };
+
+      mount(<Parent />);
+      expect(onRef[0].mock.calls).toEqual([[42]]);
+      expect(onRef[1]).toHaveBeenCalledTimes(0);
+      expect(onCalcHandle).toHaveBeenCalledTimes(1);
+
+      await act(() => pos.set(1));
+      expect(onRef[0].mock.calls).toEqual([[42], [null]]);
+      expect(onRef[1].mock.calls).toEqual([[42]]);
+      expect(onCalcHandle).toHaveBeenCalledTimes(2);
+
+      await act(() => pos.set(0));
+      expect(onRef[0].mock.calls).toEqual([[42], [null], [42]]);
+      expect(onRef[1].mock.calls).toEqual([[42], [null]]);
+      expect(onCalcHandle).toHaveBeenCalledTimes(3);
+
+      await act(() => {
+        parentRerender();
+        childRerender();
+      });
+      expect(onCalcHandle).toHaveBeenCalledTimes(3);
+      expect(onRef[0]).toHaveBeenCalledTimes(3);
+      expect(onRef[1]).toHaveBeenCalledTimes(2);
+    });
+  }
 });

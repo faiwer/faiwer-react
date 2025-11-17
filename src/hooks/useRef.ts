@@ -58,6 +58,6 @@ export const useImperativeHandle = <T>(
         }
       };
     },
-    deps,
+    deps ? [ref, ...deps] : undefined,
   );
 };
