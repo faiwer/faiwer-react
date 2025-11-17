@@ -7,7 +7,11 @@ import {
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
 import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
 
-function useBaseEffect(mode: EffectMode, fn: EffectHandler, deps?: unknown[]) {
+export function useBaseEffect(
+  mode: EffectMode,
+  fn: EffectHandler,
+  deps?: unknown[],
+) {
   const item = getNextHookOrCreate('effect', (): UseEffectItem => {
     const item: UseEffectItem = {
       type: 'effect',

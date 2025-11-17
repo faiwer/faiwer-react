@@ -6,11 +6,13 @@ import {
   useLayoutEffect,
   type Ref,
   forwardRef,
+  useState,
 } from '~/index';
 import { act } from '~/testing';
 
 import { useRerender, useStateX, waitFor } from '../helpers';
 import { expectHtml, mount } from '../helpers';
+import { useImperativeHandle } from 'faiwer-react/hooks/useRef';
 
 describe('Hooks: refs', () => {
   it('useRef always returns the same ref', async () => {
@@ -252,4 +254,162 @@ describe('Hooks: refs', () => {
       expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);
     });
   }
+});
+
+describe('useImperativeHandle', () => {
+  const genReactiveRef = <T,>() => {
+    let current: T | null = null;
+    const onSet = jest.fn();
+    let ref: RefObject<T | null> = {
+      get current() {
+        return current;
+      },
+      set current(v: T | null) {
+        onSet(v);
+        current = v;
+      },
+    };
+
+    return [ref, onSet] as const;
+  };
+
+  for (const mod of ['fn', 'object']) {
+    it(`assings the handle. ${mod}`, async () => {
+      type Handle = {
+        inc: () => void;
+        dec: () => void;
+      };
+      const onCreateHandle = jest.fn();
+
+      const onChildRender = jest.fn();
+      const Child = ({ ref }: { ref: Ref<Handle> }) => {
+        onChildRender();
+        const [v, setV] = useState(42);
+
+        useImperativeHandle(ref, () => {
+          onCreateHandle();
+          return {
+            inc: () => setV((v) => v + 1),
+            dec: () => setV((v) => v - 1),
+          };
+        }, []);
+
+        return v;
+      };
+
+      const [ref, onSet] = genReactiveRef<Handle>();
+
+      const onRef = jest
+        .fn()
+        .mockImplementation((v: Handle | null) => (ref.current = v));
+
+      const onParentRender = jest.fn();
+      const Parent = () => {
+        onParentRender();
+        return <Child ref={mod === 'object' ? ref : onRef} />;
+      };
+
+      const root = mount(<Parent />);
+      expectHtml(root).toBe('42');
+
+      await act(() => ref?.current!.inc());
+      expectHtml(root).toBe('43');
+
+      await act(() => ref?.current!.dec());
+      expectHtml(root).toBe('42');
+
+      expect(onCreateHandle).toHaveBeenCalledTimes(1);
+      expect(onSet.mock.calls).toEqual([[expect.any(Object)]]);
+      expect(onParentRender).toHaveBeenCalledTimes(1);
+      expect(onChildRender).toHaveBeenCalledTimes(3);
+    });
+  }
+
+  it('resets the handle every render if no deps given', async () => {
+    const [ref, onSet] = genReactiveRef<number>();
+
+    let idx = -1;
+    let rerender: () => void;
+
+    const Comp = () => {
+      useImperativeHandle(ref, () => ++idx);
+      rerender = useRerender();
+      return null;
+    };
+
+    mount(<Comp />);
+    expect(ref.current).toBe(0);
+    expect(onSet.mock.calls).toEqual([[0]]);
+
+    await act(() => rerender!());
+    expect(ref.current).toBe(1);
+    expect(onSet.mock.calls).toEqual([[0], [null], [1]]);
+
+    await act(() => rerender!());
+    expect(ref.current).toBe(2);
+    expect(onSet.mock.calls).toEqual([[0], [null], [1], [null], [2]]);
+  });
+
+  it('follows the deps-rule', async () => {
+    const [ref, onSet] = genReactiveRef<string>();
+
+    let idx = -1;
+    let rerender: () => void;
+    const v = useStateX<number>();
+
+    const Comp = () => {
+      const value = v.use(42);
+      useImperativeHandle(ref, () => `${value}:${++idx}`, [value]);
+      rerender = useRerender();
+      return null;
+    };
+
+    mount(<Comp />);
+    expect(ref.current).toBe('42:0');
+    expect(onSet.mock.calls).toEqual([['42:0']]);
+
+    await act(() => rerender!());
+    expect(ref.current).toBe('42:0');
+    expect(onSet.mock.calls).toEqual([['42:0']]);
+
+    await act(() => v.set(51));
+    expect(ref.current).toBe(`51:1`);
+    expect(onSet.mock.calls).toEqual([['42:0'], [null], ['51:1']]);
+
+    await act(() => rerender!());
+    expect(ref.current).toBe('51:1');
+    expect(onSet.mock.calls).toEqual([['42:0'], [null], ['51:1']]);
+
+    await act(() => v.set(24));
+    expect(ref.current).toBe(`24:2`);
+    expect(onSet.mock.calls).toEqual([
+      ['42:0'],
+      [null],
+      ['51:1'],
+      [null],
+      ['24:2'],
+    ]);
+  });
+
+  it('clears the ref on unmount', async () => {
+    const Child = ({ ref }: { ref: Ref<number> }) => {
+      useImperativeHandle(ref, () => 42, []);
+      return null;
+    };
+
+    const [ref, onSet] = genReactiveRef<number>();
+
+    const show = useStateX<boolean>();
+    const Parent = () => {
+      return show.use(true) && <Child ref={ref} />;
+    };
+
+    mount(<Parent />);
+    expect(onSet.mock.calls).toEqual([[42]]);
+    expect(ref.current).toBe(42);
+
+    await act(() => show.set(false));
+    expect(onSet.mock.calls).toEqual([[42], [null]]);
+    expect(ref.current).toBe(null);
+  });
 });

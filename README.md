@@ -53,7 +53,6 @@ createRoot(container).render(<App />);
 
 - 1st line
   - `dangerouslySetInnerHTML`
-  - refs: `useImperativeHandle`
   - Error handling
   - `useReducer`
 - 2rd line
@@ -61,6 +60,7 @@ createRoot(container).render(<App />);
   - HMR
   - Resolve "TODO: add a test" comments
   - `runComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
+  - leverage `isStaticChildren` in `jsx()`
 
 ## It does NOT support
 
