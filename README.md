@@ -52,7 +52,6 @@ createRoot(container).render(<App />);
 ## TODO
 
 - 1st line
-  - `dangerouslySetInnerHTML`
   - Error handling
   - `useReducer`
 - 2rd line

@@ -110,4 +110,17 @@ describe('Tags', () => {
     <input disabled={false} />,
     `<input>`,
   );
+
+  it(`dangerouslySetInnerHTML sets arbitrary HTML`, async () => {
+    const html = useStateX<string>();
+    const Comp = () => (
+      <div dangerouslySetInnerHTML={{ __html: html.use('<b>Hey</b>') }} />
+    );
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe(`<div><b>Hey</b></div>`);
+
+    await act(() => html.set('<i>i</i>'));
+    expectHtml(root).toBe(`<div><i>i</i></div>`);
+  });
 });

@@ -44,6 +44,7 @@ export function assertsTagAttrValue(
       return;
 
     case 'object':
+      if (name === 'dangerouslySetInnerHTML' && isSetHtml(v)) return;
       if ((name === 'defaultValue' || name === 'value') && Array.isArray(v))
         return; // <select multiple/>
       if (v === null || name === 'style') return;
@@ -55,6 +56,17 @@ export function assertsTagAttrValue(
       );
   }
 }
+
+export const isSetHtml = (value: unknown): value is { __html: string } => {
+  let html: { __html: string } | null =
+    typeof value === 'object' &&
+    !!value &&
+    '__html' in value &&
+    typeof value.__html === 'string'
+      ? { __html: value.__html }
+      : null;
+  return html !== null;
+};
 
 /**
  * Not used in the library, but it's a part of what React exports. Returns true

@@ -11,6 +11,7 @@ import {
   nullthrowsForFiber,
   ReactError,
 } from '../reconciliation/errors/ReactError';
+import { isSetHtml } from '../reconciliation/typeGuards';
 
 /**
  * Applicable only to DOM tag nodes and handles the following scenarios:
@@ -50,6 +51,8 @@ export function setAttrAction(
     setEventHandler(fiber, element, name, value);
   } else if (name === 'style') {
     setTagStyles(fiber, value);
+  } else if (name === 'dangerouslySetInnerHTML' && isSetHtml(value)) {
+    element.innerHTML = value.__html;
   } else if (value == null) {
     element.removeAttribute(name);
   } else {

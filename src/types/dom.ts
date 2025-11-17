@@ -43,10 +43,11 @@ export type TagProps<T extends Element = HTMLElement> =
     & ElementCommonAttrs
     & {
       ref?: Ref<T>;
-      style?: string | null | undefined | TagStyles
+      style?: string | null | undefined | TagStyles;
+      children?: JSX.Element;
+      dangerouslySetInnerHTML?: { __html: string };
     }
     & Record<`data-${string}`, ScalarNode>
-    & { children?: JSX.Element }
   >
 
 /** A map like { fontSize: '12px' }. */
