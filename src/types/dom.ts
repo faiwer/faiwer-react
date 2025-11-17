@@ -67,7 +67,7 @@ export type SvgRootProps = TagProps<HTMLElement> & {
  * way to get it from the default DOM types, so I left a fallback that at least
  * doesn't block SVG tags.
  */
-// prettier-ignore
-export type SvgTagProps =
-  & { [K in string]?: unknown; }
-  & { children?: JSX.Element; }
+// eslint-disable-next-line
+export type SvgTagProps<T extends SVGElement = SVGElement> = {
+  [K in string]?: unknown;
+} & { children?: JSX.Element };
