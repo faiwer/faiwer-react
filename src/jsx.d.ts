@@ -6,11 +6,22 @@ import {
   type SvgRootProps,
   type ReactKey,
   type ElementType as ET,
+  type FiberNode,
 } from './types';
 
 export {};
 
 declare global {
+  interface Element {
+    __fiber?: FiberNode;
+  }
+  interface Text {
+    __fiber?: FiberNode;
+  }
+  interface Comment {
+    __fiber?: FiberNode;
+  }
+
   namespace JSX {
     type Element = JsxElement;
     type ElementType = ET;

@@ -1,6 +1,7 @@
-import { Fragment, ReactComponent } from '~/index';
+import { createPortal, Fragment, ReactComponent } from '~/index';
 import { act } from '~/testing';
 import { expectHtmlFull, mount, useStateX } from '../helpers';
+import { getFiberDomNodes } from 'faiwer-react/core/actions/helpers';
 
 describe('Compact rendering', () => {
   for (const mode of ['fragment', 'component']) {
@@ -179,6 +180,9 @@ describe('Compact rendering', () => {
     expectHtmlFull(root).toBe(
       '<!--r:begin:1--><!--r:begin:2-->bc<!--r:end:2--><!--r:end:1-->',
     );
+
+    await act(() => idx.set(1));
+    expectHtmlFull(root).toBe('a');
   });
 
   it('can replace one !--empty fragment with another', async () => {
@@ -196,5 +200,55 @@ describe('Compact rendering', () => {
 
     await act(() => key.set('second'));
     expectHtmlFull(root).toBe('<div><!--r:empty:1--></div>');
+  });
+});
+
+describe('getFiberDomNodes', () => {
+  it('a tag node', () => {
+    const div = mount(<div>1</div>).childNodes[0] as HTMLElement;
+    expect(div.outerHTML).toBe('<div>1</div>');
+    expect(getFiberDomNodes(div.__fiber!)).toEqual([div]);
+  });
+
+  it('a text node', () => {
+    const div = mount(<div>1</div>).childNodes[0] as HTMLElement;
+    const text = div.childNodes[0] as Text;
+    expect(text.textContent).toBe('1');
+    expect(getFiberDomNodes(text.__fiber!)).toEqual([text]);
+  });
+
+  it('a null node', () => {
+    const nullNode = mount(null).childNodes[0] as Comment;
+    expect(nullNode.textContent).toMatch(/^r:null/);
+    expect(getFiberDomNodes(nullNode.__fiber!)).toEqual([nullNode]);
+  });
+
+  it('an empty node', () => {
+    const empty = mount(
+      <div>
+        1<></>
+      </div>,
+    ).childNodes[0].childNodes[1] as Comment;
+    expect(empty.textContent).toMatch(/^r:empty/);
+    expect(getFiberDomNodes(empty.__fiber!)).toEqual([empty]);
+  });
+
+  it('a portal node', () => {
+    const target = document.createElement('target');
+    const portal = mount(createPortal(<b />, target)).childNodes[0] as Comment;
+    expect(portal.textContent).toMatch(/^r:portal/);
+  });
+
+  it('fragment with two children', () => {
+    const root = mount(
+      <Fragment key="fragment">
+        {1}
+        {2}
+      </Fragment>,
+    );
+    const children = [...root.childNodes];
+    const end = children.at(-1) as Comment;
+    expect(end.textContent).toMatch(/^r:end/);
+    expect(getFiberDomNodes(end.__fiber!)).toEqual(children);
   });
 });

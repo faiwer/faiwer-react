@@ -122,7 +122,11 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
   switch (fiber.type) {
     case 'component':
     case 'fragment': {
-      if (isCompactSingleChild(fiber) || isCompactNone(fiber)) {
+      if (isCompactSingleChild(fiber)) {
+        return getFiberDomNodes(fiber.children[0]);
+      }
+
+      if (isCompactNone(fiber)) {
         return [fiber.element];
       }
 
@@ -190,4 +194,25 @@ export const emptyFiberNode = (fiber: FiberNode): void => {
   fiber.props = null;
   fiber.ref = null;
   fiber.parent = NULL_FIBER;
+};
+
+/**
+ * Calls the given fn against every single child in the fiben fiber tree.
+ * Return `false` to stop traversing right away.
+ */
+export const traverseFiberTree = (
+  fiber: FiberNode,
+  fn: (fiber: FiberNode) => boolean | void,
+): boolean => {
+  if (fn(fiber) === false) {
+    return false;
+  }
+
+  for (const child of fiber.children) {
+    if (traverseFiberTree(child, fn) === false) {
+      return false;
+    }
+  }
+
+  return true;
 };

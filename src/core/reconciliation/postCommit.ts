@@ -1,6 +1,7 @@
 import type { App } from 'faiwer-react/types';
 import { reactRender } from './render';
 import { runEffects } from './effects';
+import { traverseFiberTree } from '../actions/helpers';
 
 /**
  * A stage that happens after we've applied all necessary DOM and fiber changes
@@ -11,6 +12,12 @@ import { runEffects } from './effects';
  * - or move the app to the idle stage
  */
 export function postCommit(app: App, depth: number) {
+  if (app.testMode) {
+    traverseFiberTree(app.root, (fiber) => {
+      fiber.element!.__fiber = fiber;
+    });
+  }
+
   runEffects(app, 'afterActions');
   app.tempContext.clear();
 
