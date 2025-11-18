@@ -178,7 +178,7 @@ describe('Compact rendering', () => {
     await act(() => idx.set(2));
 
     expectHtmlFull(root).toBe(
-      '<!--r:begin:1--><!--r:begin:2-->bc<!--r:end:2--><!--r:end:1-->',
+      '<!--r:begin:1-->bc<!--r:end:1-->', // Only child's !-- range
     );
 
     await act(() => idx.set(1));

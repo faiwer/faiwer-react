@@ -1,4 +1,5 @@
 import { type DomNode, type FiberNode } from '../types';
+import { getFiberDomNodes } from './actions/helpers';
 import { buildComment, buildCommentText } from './reconciliation/comments';
 import { ReactError } from './reconciliation/errors/ReactError';
 
@@ -87,7 +88,7 @@ export function tryToCompactNode(fiber: FiberNode): void {
   }
 
   const prev2 = prev1?.previousSibling;
-  // Scenario 2: 1 children
+  // Scenario 2: 1 child
   if (prev2 && isBeginOf(prev2, fiber)) {
     prev2.remove(); // !--begin
     fiber.element!.remove(); // !--end
@@ -95,6 +96,21 @@ export function tryToCompactNode(fiber: FiberNode): void {
     // <!--begin--><!--end--> are removed. Now `fiber.element` refers to its
     // only child node.
     tryToCompactNode(fiber.parent);
+    return;
+  }
+
+  // Secnario 3: 1 child, but it's <!--begin|end-->
+  if (fiber.children.length === 1) {
+    const [child] = fiber.children;
+    if (child.type === 'fragment' || child.type === 'component') {
+      getFiberDomNodes(fiber)[0].remove(); // !--begin
+      fiber.element.remove(); // !--end
+      fiber.element = child.element;
+      // <!--begin--><!--end--> are removed. Now `fiber.element` refers to the
+      // <!--end--> node of its only child node
+      tryToCompactNode(fiber.parent);
+    }
+    return;
   }
 }
 
@@ -110,8 +126,10 @@ export const unwrapCompactFiber = (fiber: FiberNode): void => {
   if (isCompactSingleChild(fiber)) {
     // before: <container><child/></container>
     // after:  <container><!--begin--><child/><!--end--></container>
-    container.insertBefore(begin, fiber.element!);
-    container.insertBefore(end, fiber.element!.nextSibling);
+    const [child] = fiber.children;
+    const childNodes = getFiberDomNodes(child);
+    container.insertBefore(begin, childNodes[0]!);
+    container.insertBefore(end, childNodes.at(-1)!.nextSibling);
     fiber.element = end;
 
     // Repeat the same with every single-compact ancestor:
