@@ -18,7 +18,12 @@ export type CreateCommentAction = CommonAction & {
   type: 'CreateComment';
   mode: CommentMode;
 };
-type CreateAction = CreateTagAction | CreateTextAction | CreateCommentAction;
+export type CreateContainer = CommonAction & { type: 'CreateContainer' };
+type CreateAction =
+  | CreateTagAction
+  | CreateTextAction
+  | CreateCommentAction
+  | CreateContainer;
 
 // Update actions
 export type SetTextAction = CommonAction & { type: 'SetText'; text: string };

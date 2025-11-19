@@ -1,7 +1,6 @@
-import type { FiberNode } from 'faiwer-react/types';
+import { type FiberNode } from 'faiwer-react/types';
 import type { CreateCommentAction } from 'faiwer-react/types/actions';
 import { getParentElement } from './helpers';
-import { tryToCompactNode } from '../compact';
 import { buildComment } from '../reconciliation/comments';
 
 /**
@@ -17,10 +16,4 @@ export function createCommentAction(
   // - Render of a portal. The parent element is the portal target node.
   fiber.element = buildComment(mode, fiber.id);
   getParentElement(fiber).appendChild(fiber.element);
-
-  if (mode === 'end') {
-    // All children are added. If the current fiber is the only child, we can
-    // compact the parent node: "<!--begin-->child<!--end-->" -> "child".
-    tryToCompactNode(fiber);
-  }
 }

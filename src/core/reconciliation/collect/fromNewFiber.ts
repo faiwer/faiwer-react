@@ -10,9 +10,8 @@ export const collectActionsFromNewFiber = (fiber: FiberNode): Action[] => {
     case 'component':
     case 'fragment':
       return [
-        { type: 'CreateComment', fiber, mode: 'begin' },
         ...fiber.children.map((f) => collectActionsFromNewFiber(f)).flat(),
-        { type: 'CreateComment', fiber, mode: 'end' },
+        { type: 'CreateContainer', fiber },
       ];
 
     case 'text':
