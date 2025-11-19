@@ -58,7 +58,7 @@ describe('Updates', () => {
         'middle',
         'last',
       ]) {
-        it(`it inserts a new ${childType}-child into a ${containerType} at: ${pos}`, async () => {
+        it(`it inserts a new child into a ${containerType} with ${childType}-nodes at: ${pos}`, async () => {
           const inserted = useStateX<boolean>();
 
           const Child: ReactComponentWithChildren = (props) => props.children;

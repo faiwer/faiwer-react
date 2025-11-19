@@ -71,6 +71,13 @@ export type NullFiberNode = CommonFiber & {
 };
 
 /**
+ * When `fiber.element` is `containerSym` it means it's a fragment or a
+ * component with more than 1 children.
+ */
+export const containerSym: unique symbol = Symbol.for(`r:container`);
+export type Container = typeof containerSym;
+
+/**
  * <Component/>
  */
 export type ComponentFiberNode = CommonFiber & {
@@ -88,7 +95,7 @@ export type ComponentFiberNode = CommonFiber & {
    * fragment-like content (2+ DOM nodes) that is clamped between
    * <!--r:begin:id--> and <!--r:end:id--> HTML-comment nodes.
    */
-  element: DomNode | null;
+  element: Container | DomNode | null;
   key: ReactKey | null;
   // Unused fields.
   role: null;
@@ -141,7 +148,7 @@ export type FragmentFiberNode = CommonFiber & {
   type: 'fragment';
   key: ReactKey | null;
   /** The same as in ComponentFiberNode. */
-  element: Comment | null;
+  element: Comment | Container | null;
   // Unused fields:
   role: null;
   props: null;

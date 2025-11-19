@@ -1,4 +1,4 @@
-import type { App } from 'faiwer-react/types';
+import { containerSym, type App } from 'faiwer-react/types';
 import { reactRender } from './render';
 import { runEffects } from './effects';
 import { traverseFiberTree } from '../actions/helpers';
@@ -14,7 +14,9 @@ import { traverseFiberTree } from '../actions/helpers';
 export function postCommit(app: App, depth: number) {
   if (app.testMode) {
     traverseFiberTree(app.root, (fiber) => {
-      fiber.element!.__fiber = fiber;
+      if (fiber.element !== containerSym) {
+        fiber.element!.__fiber = fiber;
+      }
     });
   }
 

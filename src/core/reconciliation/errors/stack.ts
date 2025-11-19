@@ -1,5 +1,6 @@
 import type { FiberNode, TagFiberNode } from 'faiwer-react/types';
 import { getAppByFiber } from '../app';
+import { isFiberDead } from '../fibers';
 
 /**
  * Returns a list of labels of all parents of the given fiber node.
@@ -18,6 +19,10 @@ export const captureStack = (fiber: FiberNode): string[] => {
 };
 
 export const getFiberLabel = (fiber: FiberNode): string => {
+  if (isFiberDead(fiber)) {
+    return `DEAD Fiber`;
+  }
+
   switch (fiber.type) {
     // <User/>
     case 'component':

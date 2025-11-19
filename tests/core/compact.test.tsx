@@ -12,16 +12,16 @@ describe('Compact rendering', () => {
       expectHtmlFull(root).toBe('before|child|after');
     });
 
+    // !--TODO: Rename?
     it(`renders !--brackets for a ${mode} with multiple children`, () => {
       const Comp = (): JSX.Element => ['a', 'b'];
       const middle: JSX.Element = mode === 'fragment' ? ['a', 'b'] : <Comp />;
       const root = mount(['before|', middle, '|after']);
-      expectHtmlFull(root).toBe(
-        'before|<!--r:begin:1-->ab<!--r:end:1-->|after',
-      );
+      expectHtmlFull(root).toBe('before|ab|after');
     });
 
     for (const pos of ['last', 'only']) {
+      // !--TODO: Rename?
       it(`recovers !--:empty html-comment for a ${mode} when the ${pos} child is gone`, async () => {
         const content: JSX.Element = pos === 'last' ? ['a', 'b'] : 'only';
         const Comp: ReactComponent<{ empty: boolean }> = ({ empty }) =>
@@ -40,7 +40,7 @@ describe('Compact rendering', () => {
         const wrapperDomNode = mount(<Wrapper />).childNodes[0] as HTMLElement;
         const middleHtml =
           pos === 'last'
-            ? '<!--r:begin:1-->ab<!--r:end:1-->' // !-- because [a,b].length > 0
+            ? 'ab' // !-- because [a,b].length > 0
             : 'only';
         expectHtmlFull(wrapperDomNode).toBe(`before!${middleHtml}!after`);
 
@@ -78,6 +78,7 @@ describe('Compact rendering', () => {
     ).toBe('<div><span>1</span><span>2</span><span>3</span></div>');
   });
 
+  // !--TODO: Rename?
   it(`does render !--brackets for a tag with an array as children`, () => {
     expectHtmlFull(
       mount(
@@ -87,7 +88,7 @@ describe('Compact rendering', () => {
           !after
         </div>,
       ),
-    ).toBe('<div>before!<!--r:begin:1-->12<!--r:end:1-->!after</div>');
+    ).toBe('<div>before!12!after</div>');
   });
 
   it(`doesn't render !--brackets for a regular component`, () => {
@@ -131,14 +132,7 @@ describe('Compact rendering', () => {
     expectHtmlFull(root).toBe(`<!--r:null:1-->`);
 
     await act(() => solo.set(false));
-    expectHtmlFull(root).toBe(
-      `<!--r:begin:1-->` + // Parent
-        `<!--r:begin:2-->` + // Fragment
-        // Content
-        `<!--r:null:3--><!--r:null:4-->` +
-        `<!--r:end:2-->` + // Fragment
-        `<!--r:end:1-->`, // Parent
-    );
+    expectHtmlFull(root).toBe(`<!--r:null:1--><!--r:null:2-->`);
   });
 
   it('recursively re-compacts parent nodes when the only child is replaced', async () => {
@@ -178,7 +172,7 @@ describe('Compact rendering', () => {
     await act(() => idx.set(2));
 
     expectHtmlFull(root).toBe(
-      '<!--r:begin:1-->bc<!--r:end:1-->', // Only child's !-- range
+      `bc`, // Only child's !-- range
     );
 
     await act(() => idx.set(1));
@@ -246,9 +240,7 @@ describe('getFiberDomNodes', () => {
         {2}
       </Fragment>,
     );
-    const children = [...root.childNodes];
-    const end = children.at(-1) as Comment;
-    expect(end.textContent).toMatch(/^r:end/);
-    expect(getFiberDomNodes(end.__fiber!)).toEqual(children);
+    const [fragment] = root.__fiber!.children;
+    expect(getFiberDomNodes(fragment)).toEqual([...root.childNodes]);
   });
 });

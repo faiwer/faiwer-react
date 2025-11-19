@@ -1,8 +1,9 @@
-import type { FiberMap, FiberNode } from 'faiwer-react/types';
+import { type FiberMap, type FiberNode } from 'faiwer-react/types';
 import type { RelayoutAction } from 'faiwer-react/types/actions';
 import {
   isCompactNone,
   isCompactSingleChild,
+  isContainer,
   tryToCompactNode,
   unwrapCompactFiber,
 } from '../compact';
@@ -79,7 +80,7 @@ const expandFiberWhenNeeded = (fiber: FiberNode, after: FiberMap): void => {
   if (isCompactNone(fiber)) {
     // Case 1: it's <!--empty-->. It can't have children, so fix it.
     unwrapCompactFiber(fiber);
-  } else if (isCompactSingleChild(fiber)) {
+  } else if (isCompactSingleChild(fiber) || isContainer(fiber)) {
     if (after.size > 1) {
       // Case 2: It's in "single child" mode. Fix it to support multiple children.
       unwrapCompactFiber(fiber);
@@ -102,7 +103,12 @@ const insertNewFiber = (
   prev: Node | null,
   child: FiberNode,
 ): Node => {
-  const newChildren = [...child.parent.element!.childNodes];
+  const parentElement = child.parent.element;
+  if (!(parentElement instanceof Element)) {
+    throw new ReactError(child.parent, `Wrong temporary container`);
+  }
+
+  const newChildren = [...parentElement.childNodes];
   if (!prev) {
     container.prepend(...newChildren);
     prev = nullthrowsForFiber(parent, newChildren.at(-1));
@@ -141,5 +147,5 @@ const repositionFiberWhenNeeded = (
     }
   }
 
-  return nullthrowsForFiber(fiber, fiber.element);
+  return nodes.at(-1)!;
 };

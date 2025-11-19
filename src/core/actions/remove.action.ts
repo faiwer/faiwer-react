@@ -1,9 +1,13 @@
-import type {
-  ComponentFiberNode,
-  FiberNode,
-  TagFiberNode,
+import {
+  type ComponentFiberNode,
+  type FiberNode,
+  type TagFiberNode,
 } from 'faiwer-react/types';
-import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
+import {
+  isCompactSingleChild,
+  isContainer,
+  unwrapCompactFiber,
+} from '../compact';
 import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 import { ReactError } from '../reconciliation/errors/ReactError';
@@ -34,7 +38,7 @@ export function removeAction(
     unlistenTagEvents(fiber);
   }
 
-  if (isCompactSingleChild(fiber.parent)) {
+  if (isCompactSingleChild(fiber.parent) || isContainer(fiber.parent)) {
     // Can't remove `fiber` when its parent lacks its own direct DOM node.
     // We need to unwrap the compact-fiber (create <!--begin|end--> wrappers).
     unwrapCompactFiber(fiber.parent);

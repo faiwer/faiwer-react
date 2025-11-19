@@ -1,6 +1,19 @@
-import type { DomNode, FiberNode, TagFiberNode } from 'faiwer-react/types';
-import { isBeginOf, isCompactNone, isCompactSingleChild } from '../compact';
-import { NULL_FIBER } from '../reconciliation/fibers';
+import {
+  type Container,
+  type DomNode,
+  type FiberNode,
+  type TagFiberNode,
+} from 'faiwer-react/types';
+import {
+  getCommentId,
+  isBeginOf,
+  isCompactNone,
+  isCompactSingleChild,
+  isContainer,
+  isEndComment,
+  isEndOf,
+} from '../compact';
+import { isFiberDead, NULL_FIBER } from '../reconciliation/fibers';
 import { buildCommentText } from '../reconciliation/comments';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
@@ -61,7 +74,7 @@ const asElement = (node: Node | null): Element => {
   return node;
 };
 
-const asComment = (node: Node | null): Comment => {
+const asComment = (node: Node | Container | null): Comment => {
   if (!(node instanceof Comment)) {
     throw new Error(`node is not comment`);
   }
@@ -88,6 +101,12 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
   }
 
   if (fiber.type === 'component' || fiber.type === 'fragment') {
+    if (isContainer(fiber)) {
+      const element = getFirstContainerElement(fiber);
+      return [element.parentElement!, element];
+      // !--TODO: ^ add a test
+    }
+
     if (isCompactSingleChild(fiber)) {
       throw new ReactError(
         fiber,
@@ -113,15 +132,63 @@ export const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
   throw new ReactError(fiber, `Unsupported anchor type: ${fiber.type}`);
 };
 
+// !--TODO: Add a comment
+export const getFirstContainerElement = (fiber: FiberNode): DomNode => {
+  let [firstNode] = fiber.children;
+  while (!(firstNode.element instanceof Node)) {
+    [firstNode] = firstNode.children;
+  }
+
+  let element = firstNode.element as DomNode;
+  if (!isEndComment(firstNode.element)) {
+    return element;
+  }
+
+  const firstNodeId = getCommentId(firstNode.element);
+  while (!isBeginOf(element.previousSibling, firstNodeId)) {
+    element = element.previousSibling as DomNode;
+  }
+
+  return element.previousSibling;
+};
+
+// !--TODO: Add a comment
+export const getLastContainerElement = (fiber: FiberNode): DomNode => {
+  let lastNode = fiber.children.at(-1)!;
+  while (!(lastNode.element instanceof Node)) {
+    lastNode = lastNode.children.at(-1)!;
+  }
+  return lastNode.element as DomNode;
+};
+
 /**
  * Returns all direct DOM nodes associated with the given fiber. This isn't
  * always a single node since components and fragments may be in expanded state
  * (<!--begin--> + content + <!--end-->).
  */
 export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
+  if (isFiberDead(fiber)) {
+    throw new ReactError(fiber, `Can't get fiber children for a dead fiber`);
+  }
+
   switch (fiber.type) {
     case 'component':
     case 'fragment': {
+      if (isContainer(fiber)) {
+        const first = getFirstContainerElement(fiber);
+        const last = getLastContainerElement(fiber);
+        const result: DomNode[] = [first];
+
+        let domNode = first.nextSibling!;
+        while (domNode !== last) {
+          result.push(domNode as DomNode);
+          domNode = domNode.nextSibling!;
+        }
+        result.push(last);
+
+        return result;
+      }
+
       if (isCompactSingleChild(fiber)) {
         return getFiberDomNodes(fiber.children[0]);
       }
@@ -131,12 +198,16 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
       }
 
       // Collect [!--begin, …content, !--end]:
+      if (!isEndOf(fiber.element!, fiber.id)) {
+        throw new ReactError(fiber, `Wrong end-bracket`);
+      }
+
       const list: DomNode[] = [nullthrowsForFiber(fiber, fiber.element)];
       let prev: DomNode | null = nullthrowsForFiber(
         fiber,
         list[0].previousSibling,
       ) as DomNode;
-      while (prev && !isBeginOf(prev, fiber)) {
+      while (prev && !isBeginOf(prev, fiber.id)) {
         list.push(prev);
         prev = nullthrowsForFiber(fiber, prev.previousSibling) as DomNode;
       }
