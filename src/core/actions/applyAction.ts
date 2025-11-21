@@ -10,7 +10,7 @@ import { setTextAction } from './setText.action';
 import { removeAction } from './remove.action';
 import { replaceAction } from './replace.action';
 import { relayoutAction } from './relayout.action';
-import { createContainerAction } from './createCotainer.action';
+import { createContainerAction } from './createContainer.action';
 
 /**
  * The commit phase of the rendering process contains two parts:

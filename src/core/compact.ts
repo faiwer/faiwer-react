@@ -32,8 +32,8 @@ export const isCompactSingleChild = (
 ): fiber is FiberNode & {
   element: DomNode;
 } =>
-  fiber.element !== containerSym &&
   (fiber.type === 'fragment' || fiber.type === 'component') &&
+  fiber.element !== containerSym &&
   !isEmptyOf(fiber.element!, fiber);
 
 /**

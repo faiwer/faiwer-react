@@ -32,7 +32,10 @@ export function relayoutAction(
   fiber: FiberNode,
   { before, after }: RelayoutAction,
 ) {
-  if (fiber.type !== 'tag' && isCompactSingleChild(fiber)) {
+  if (isCompactSingleChild(fiber)) {
+    // Fiber couldn't come here remaing a true single-child container:
+    // - Its only child is removed
+    // - … or now has a neighbor
     (fiber as FiberNode).element = containerSym;
   }
 
