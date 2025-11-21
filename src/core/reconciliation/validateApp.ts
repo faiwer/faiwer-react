@@ -1,6 +1,7 @@
-import type { App, FiberNode } from 'faiwer-react/types';
+import { type App, type FiberNode } from 'faiwer-react/types';
 import { FAKE_CONTAINER_TAG } from './fibers';
 import { nullthrowsForFiber, ReactError } from './errors/ReactError';
+import { isCompactNone, isCompactSingleChild, isContainer } from '../compact';
 
 export const validateApp = (app: App): void => {
   app.invalidatedComponents.traverse((fiber) => {
@@ -32,8 +33,29 @@ const validateTree = (node: FiberNode, path = ''): void => {
     if (!(domNode instanceof Element)) {
       throw new ReactError(node, `${path} doesn't have element`);
     }
-  } else if (node.type === 'component' && !node.component) {
-    throw new ReactError(node, `${path} has empty "component" field `);
+  } else if (node.type === 'component') {
+    if (!node.component) {
+      throw new ReactError(node, `${path} has empty "component" field `);
+    }
+
+    if (isContainer(node) && node.children.length < 2) {
+      if (!node.children[0] || !isContainer(node.children[0])) {
+        throw new ReactError(
+          node,
+          `Fiber containers must have more than 1 child.`,
+        );
+      }
+    } else if (isCompactNone(node) && node.children.length !== 0) {
+      throw new ReactError(
+        node,
+        `Empty fiber containers must have 0 children.`,
+      );
+    } else if (isCompactSingleChild(node) && node.children.length !== 1) {
+      throw new ReactError(
+        node,
+        `Single-child fibers must have exactly 1 child.`,
+      );
+    }
   } else if (node.role === 'context' && !node.data.ctx) {
     throw new ReactError(node, `${path} has no context`);
   } else if (node.type === 'text' && !(node.element instanceof Text)) {

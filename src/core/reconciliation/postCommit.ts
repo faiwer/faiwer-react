@@ -25,9 +25,14 @@ export function postCommit(app: App, depth: number) {
 
   // Run "ref" and "layout" effects. They must be run in the same microtask
   // queue as the commit phase.
-  if (app.effects.layout.length > 0 || app.effects.refs.length > 0) {
+  if (
+    app.effects.layout.length > 0 ||
+    app.effects.refsUnmount.length > 0 ||
+    app.effects.refsMount.length > 0
+  ) {
     app.state = 'refEffects';
-    runEffects(app, 'refs');
+    runEffects(app, 'refsUnmount');
+    runEffects(app, 'refsMount');
 
     app.state = 'layoutEffects';
     runEffects(app, 'layout');

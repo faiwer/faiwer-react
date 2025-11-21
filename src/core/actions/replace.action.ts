@@ -1,12 +1,11 @@
-import type {
-  ComponentFiberNode,
-  ContextFiberNode,
-  FiberNode,
-  UseContextItem,
+import {
+  type ComponentFiberNode,
+  type ContextFiberNode,
+  type FiberNode,
+  type UseContextItem,
 } from 'faiwer-react/types';
 import type { ReplaceAction } from 'faiwer-react/types/actions';
 import { getFiberDomNodes } from './helpers';
-import { isCompactSingleChild, unwrapCompactFiber } from '../compact';
 import { removeAction } from './remove.action';
 import { nullthrowsForFiber } from '../reconciliation/errors/ReactError';
 
@@ -26,13 +25,6 @@ import { nullthrowsForFiber } from '../reconciliation/errors/ReactError';
  */
 export function replaceAction(fiber: FiberNode, { newFiber }: ReplaceAction) {
   const { parent } = fiber;
-
-  if (isCompactSingleChild(parent)) {
-    // The node we're replacing is the only child of its parent, so the parent
-    // is in compact mode. We should unwrap it before removing this node,
-    // otherwise it will be disconnected from the DOM tree.
-    unwrapCompactFiber(parent);
-  }
 
   // Add new nodes right after the previous nodes.
   const nodesBefore = getFiberDomNodes(fiber);

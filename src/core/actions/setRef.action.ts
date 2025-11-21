@@ -47,7 +47,7 @@ export function setRefAction(
       }
     },
     // React calls ref handlers even before it runs layout effects.
-    'refs',
+    'refsMount',
   );
 
   fiber.ref = ref as typeof fiber.ref;

@@ -68,7 +68,8 @@ export type EffectMode =
   // <input/>.value restoration
   | 'afterActions'
   // <div ref={onRef}/>
-  | 'refs'
+  | 'refsUnmount'
+  | 'refsMount'
   // useLayoutEffect(fn);
   | 'layout'
   // useEffect();

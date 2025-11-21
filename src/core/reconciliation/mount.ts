@@ -28,7 +28,13 @@ export const mount = (
   const app: App = registerApp((appId) => ({
     id: appId,
     root: createRootFiber(appId),
-    effects: { afterActions: [], refs: [], layout: [], normal: [] },
+    effects: {
+      afterActions: [],
+      refsMount: [],
+      refsUnmount: [],
+      layout: [],
+      normal: [],
+    },
     invalidatedComponents: new Queue(),
     state: 'render',
     testMode: !!options.testMode,
@@ -50,7 +56,8 @@ export const mount = (
   return function destroyApp(): void {
     app.invalidatedComponents = new Queue();
     app.effects.afterActions = [];
-    app.effects.refs = [];
+    app.effects.refsMount = [];
+    app.effects.refsUnmount = [];
     app.effects.layout = [];
     app.effects.normal = [];
 

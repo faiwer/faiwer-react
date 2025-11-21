@@ -133,6 +133,9 @@ describe('Compact rendering', () => {
 
     await act(() => solo.set(false));
     expectHtmlFull(root).toBe(`<!--r:null:1--><!--r:null:2-->`);
+
+    await act(() => solo.set(true));
+    expectHtmlFull(root).toBe(`<!--r:null:1-->`);
   });
 
   it('recursively re-compacts parent nodes when the only child is replaced', async () => {

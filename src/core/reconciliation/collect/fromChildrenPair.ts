@@ -38,11 +38,19 @@ export const collectActionsFromChildrenPair = (
 
   // Search for nodes that were in the past render but don't exist in the
   // current render. Then remove them.
+  let survived = left.size;
   for (const [key, l] of left.entries()) {
     if (!right.has(key)) {
+      --survived;
       // Don't run components from the removing node even if they were invalidated
       uninvalidateFiberSubTree(app, l.fiber);
-      actions.push({ type: 'Remove', fiber: l.fiber });
+      actions.push({
+        type: 'Remove',
+        fiber: l.fiber,
+        // Set to true if it's the last child of `fiber` and we remove them all.
+        // It's needed to convert the fiber to !--empty.
+        last: survived === 0,
+      });
       relayoutNeeded = true; // to handle the compact mode of the container.
     }
   }

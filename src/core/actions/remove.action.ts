@@ -3,14 +3,10 @@ import {
   type FiberNode,
   type TagFiberNode,
 } from 'faiwer-react/types';
-import {
-  isCompactSingleChild,
-  isContainer,
-  unwrapCompactFiber,
-} from '../compact';
-import { emptyFiberNode, getFiberDomNodes, unsetRef } from './helpers';
+import { emptyFiberNode, unsetRef } from './helpers';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 import { ReactError } from '../reconciliation/errors/ReactError';
+import { buildComment } from '../reconciliation/comments';
 
 /**
  * This action can be called directly (<div/> -> []), or indirectly (<div/> ->
@@ -18,13 +14,14 @@ import { ReactError } from '../reconciliation/errors/ReactError';
  */
 export function removeAction(
   fiber: FiberNode,
-  { immediate }: Pick<RemoveAction, 'immediate'> = {},
+  { immediate, last }: Pick<RemoveAction, 'immediate' | 'last'> = {},
 ) {
+  const lastChild = fiber.children.at(-1);
   for (const child of fiber.children) {
     // Recursively remove all children before removing the parent node. This is
     // critical for components with effects - we must run cleanup effects
     // before removing their parent nodes.
-    removeAction(child, { immediate });
+    removeAction(child, { immediate, last: child === lastChild });
   }
 
   if (fiber.type === 'component') {
@@ -38,18 +35,22 @@ export function removeAction(
     unlistenTagEvents(fiber);
   }
 
-  if (isCompactSingleChild(fiber.parent) || isContainer(fiber.parent)) {
-    // Can't remove `fiber` when its parent lacks its own direct DOM node.
-    // We need to unwrap the compact-fiber (create <!--begin|end--> wrappers).
-    unwrapCompactFiber(fiber.parent);
+  if (last && fiber.parent.type !== 'tag') {
+    // At this point if `fiber` is a component or a fragment its element is a
+    // !--empty comment. It was converted to !--empty on the last child removal.
+    const anchor = fiber.element as Node;
+    // Do the same for the parent fragment|component fiber node:
+    const empty = buildComment('empty', fiber.parent.id);
+    anchor.parentElement!.insertBefore(empty, anchor);
+    fiber.parent.element = empty;
   }
 
-  for (const n of getFiberDomNodes(fiber)) {
-    if (n.childNodes.length > 0) {
-      throw new ReactError(fiber, `Remove: Node is not empty`);
-    }
-    n.remove();
+  if (!(fiber.element instanceof Node)) {
+    throw new ReactError(fiber, `Couldn't remove a fiber without DOM element`);
   }
+
+  // Text, tag, !--null or !--empty
+  fiber.element.remove();
 
   if (fiber.ref) {
     unsetRef(fiber, !!immediate);
