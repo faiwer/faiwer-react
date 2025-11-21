@@ -1,6 +1,6 @@
 {
   "name": "@faiwer/react",
-  "version": "0.8.4",
+  "version": "0.9.0",
   "description": "A hobby project. A naive and simplified React implementation",
   "keywords": [
     "react",
