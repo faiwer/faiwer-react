@@ -1,7 +1,11 @@
 import { type App, type FiberNode } from 'faiwer-react/types';
 import { FAKE_CONTAINER_TAG } from './fibers';
 import { nullthrowsForFiber, ReactError } from './errors/ReactError';
-import { isCompactNone, isCompactSingleChild, isContainer } from '../compact';
+import {
+  isEmptyContainer,
+  isSingleChildContainer,
+  isAutoContainer,
+} from '../compact';
 
 export const validateApp = (app: App): void => {
   app.invalidatedComponents.traverse((fiber) => {
@@ -38,19 +42,19 @@ const validateTree = (node: FiberNode, path = ''): void => {
       throw new ReactError(node, `${path} has empty "component" field `);
     }
 
-    if (isContainer(node) && node.children.length < 2) {
-      if (!node.children[0] || !isContainer(node.children[0])) {
+    if (isAutoContainer(node) && node.children.length < 2) {
+      if (!node.children[0] || !isAutoContainer(node.children[0])) {
         throw new ReactError(
           node,
           `Fiber containers must have more than 1 child.`,
         );
       }
-    } else if (isCompactNone(node) && node.children.length !== 0) {
+    } else if (isEmptyContainer(node) && node.children.length !== 0) {
       throw new ReactError(
         node,
         `Empty fiber containers must have 0 children.`,
       );
-    } else if (isCompactSingleChild(node) && node.children.length !== 1) {
+    } else if (isSingleChildContainer(node) && node.children.length !== 1) {
       throw new ReactError(
         node,
         `Single-child fibers must have exactly 1 child.`,

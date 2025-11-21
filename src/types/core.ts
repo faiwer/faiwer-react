@@ -72,9 +72,6 @@ export type JsxElement =
 export type CommentMode =
   // JSX: null, undefined, false
   | 'null'
-  // JSX: a fragment with 2+ child-nodes
-  | 'begin'
-  | 'end'
   // createPortal()
   | 'portal'
   // JSX: a fragment with 0 child-nodes

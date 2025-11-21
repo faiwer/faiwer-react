@@ -55,7 +55,6 @@ createRoot(container).render(<App />);
   - Error handling
   - `useReducer`
 - 2rd line
-  - support solo-compact mode over bracket-compact mode
   - HMR
   - Resolve "TODO: add a test" comments
   - `runComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.

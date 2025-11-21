@@ -9,7 +9,6 @@ import type {
 /**
  * Returns true if the given fiber can contain children fiber nodes.
  */
-// !--TODO: rename
 export const isContainerFiber = (fiber: FiberNode): boolean =>
   fiber.type === 'component' ||
   fiber.type === 'fragment' ||

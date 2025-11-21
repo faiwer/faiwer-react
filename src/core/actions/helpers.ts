@@ -3,7 +3,11 @@ import {
   type FiberNode,
   type TagFiberNode,
 } from 'faiwer-react/types';
-import { isCompactNone, isCompactSingleChild, isContainer } from '../compact';
+import {
+  isEmptyContainer,
+  isSingleChildContainer,
+  isAutoContainer,
+} from '../compact';
 import { isFiberDead, NULL_FIBER } from '../reconciliation/fibers';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
@@ -27,8 +31,8 @@ export const isEventName = (name: string): boolean => name.startsWith('on');
 
 /**
  * Returns the DOM container for the given fiber node. This isn't always the
- * direct parent's element since the parent might be a compact node or a
- * fragment-like range (<!--begin|end-->), or it could be a portal node.
+ * direct parent's element since the parent might be a component, a fragment, or
+ * a portal node.
  */
 export const getParentElement = (fiber: FiberNode): Element => {
   while (
@@ -53,7 +57,10 @@ export const asElement = (node: Node | null): Element => {
   return node;
 };
 
-// !--TODO: Add a comment
+/**
+ * Returns the 1st DOM-node of the given auto-container fiber. Pass custom
+ * `children` if `fiber`'s children are incorrect.
+ */
 export const getFirstContainerElement = (
   fiber: FiberNode,
   children = fiber.children,
@@ -66,19 +73,21 @@ export const getFirstContainerElement = (
   return firstNode.element as DomNode;
 };
 
-// !--TODO: Add a comment
+/** Returns the last DOM-node of the given auto-container fiber */
 export const getLastContainerElement = (fiber: FiberNode): DomNode => {
   let lastNode = fiber.children.at(-1)!;
   while (!(lastNode.element instanceof Node)) {
     lastNode = lastNode.children.at(-1)!;
   }
+
   return lastNode.element as DomNode;
 };
 
 /**
  * Returns all direct DOM nodes associated with the given fiber. This isn't
- * always a single node since components and fragments may be in expanded state
- * (<!--begin--> + content + <!--end-->).
+ * always a single node since components and fragments may be in the
+ * auto-container mode. That means they contain more then one direct DOM-nodes
+ * that are inlined into the `fiber`'s DOM container.
  */
 export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
   if (isFiberDead(fiber)) {
@@ -88,7 +97,7 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
   switch (fiber.type) {
     case 'component':
     case 'fragment': {
-      if (isContainer(fiber)) {
+      if (isAutoContainer(fiber)) {
         const first = getFirstContainerElement(fiber);
         const last = getLastContainerElement(fiber);
         const result: DomNode[] = [first];
@@ -103,11 +112,11 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
         return result;
       }
 
-      if (isCompactSingleChild(fiber)) {
+      if (isSingleChildContainer(fiber)) {
         return getFiberDomNodes(fiber.children[0]);
       }
 
-      if (isCompactNone(fiber)) {
+      if (isEmptyContainer(fiber)) {
         return [fiber.element];
       }
 

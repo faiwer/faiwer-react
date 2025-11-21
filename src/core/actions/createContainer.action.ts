@@ -18,11 +18,9 @@ export function createContainerAction(fiber: FiberNode) {
     // than the `containerSym` approach.
     fiber.element = fiber.children[0].element;
   } else {
-    // Case 3: We have more then one children. Resort to the slow path:
+    // Case 3: We have more then one DOM children. Resort to the slow path:
     // containerSym. In such a mode to get the fiber's domNodes we need to
     // traverse through some of its children.
     fiber.element = containerSym;
   }
 }
-
-// rename file. a typo

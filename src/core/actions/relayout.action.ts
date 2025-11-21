@@ -1,6 +1,10 @@
 import { containerSym, type FiberNode } from 'faiwer-react/types';
 import type { RelayoutAction } from 'faiwer-react/types/actions';
-import { isCompactNone, isCompactSingleChild, isContainer } from '../compact';
+import {
+  isEmptyContainer,
+  isSingleChildContainer,
+  isAutoContainer,
+} from '../compact';
 import {
   asElement,
   getFiberDomNodes,
@@ -32,7 +36,7 @@ export function relayoutAction(
   fiber: FiberNode,
   { before, after }: RelayoutAction,
 ) {
-  if (isCompactSingleChild(fiber)) {
+  if (isSingleChildContainer(fiber)) {
     // Fiber couldn't come here remaing a true single-child container:
     // - Its only child is removed
     // - … or now has a neighbor
@@ -69,7 +73,7 @@ export function relayoutAction(
     (key) => nullthrowsForFiber(fiber, before.get(key) ?? after.get(key)).fiber,
   );
 
-  if (after.size > 0 && isCompactNone(fiber)) {
+  if (after.size > 0 && isEmptyContainer(fiber)) {
     // Convert !-- to auto-container, 'cause now it has children.
     fiber.element.remove();
     (fiber as FiberNode).element = containerSym;
@@ -156,13 +160,13 @@ const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
   }
 
   if (fiber.type === 'component' || fiber.type === 'fragment') {
-    if (isCompactNone(fiber)) {
+    if (isEmptyContainer(fiber)) {
       // Put other nodes right after !--empty. The !--empty will be removed
       // afterwards, but for now it'll be anchor.
       return [fiber.element.parentElement!, fiber.element];
     }
 
-    if (isCompactSingleChild(fiber)) {
+    if (isSingleChildContainer(fiber)) {
       // The node has only one node. This node was not removed in this render
       // (otherwise `fiber` would be converted into !--empty). Put other nodes
       // right after this one. It can temporarily violate the right order, but
@@ -170,7 +174,7 @@ const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
       return [fiber.element.parentElement!, fiber.element];
     }
 
-    if (isContainer(fiber)) {
+    if (isAutoContainer(fiber)) {
       // Find any child fiber that wasn't removed in this render. Use it's as an
       // anchor. It's not necessarily the 1st node, but relyout will recover the
       // right order anyway.
@@ -191,18 +195,18 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
   // Handle the node itself.
   switch (fiber.children.length) {
     case 0: {
-      if (!isCompactNone(fiber)) {
-        throw new ReactError(fiber, `Can't recover fiber none-container`);
+      if (!isEmptyContainer(fiber)) {
+        throw new ReactError(fiber, `Can't recover !--empty fiber container`);
       }
       break;
     }
 
     case 1: {
-      if (isCompactNone(fiber)) {
-        throw new ReactError(fiber, `None-fibers can't have child nodes`);
+      if (isEmptyContainer(fiber)) {
+        throw new ReactError(fiber, `!--empty fibers can't have child nodes`);
       }
 
-      if (isContainer(fiber) && !isContainer(fiber.children[0])) {
+      if (isAutoContainer(fiber) && !isAutoContainer(fiber.children[0])) {
         (fiber as FiberNode).element = getFirstContainerElement(fiber);
       }
 
@@ -210,11 +214,11 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
     }
 
     default: {
-      if (isCompactNone(fiber)) {
-        throw new ReactError(fiber, `Incorrect none-fiber`);
+      if (isEmptyContainer(fiber)) {
+        throw new ReactError(fiber, `Incorrect !--empty fiber`);
       }
 
-      if (isCompactSingleChild(fiber)) {
+      if (isSingleChildContainer(fiber)) {
         (fiber as FiberNode).element = containerSym;
       }
     }
@@ -243,7 +247,7 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
     }
 
     default: {
-      if (!isContainer(fiber.parent)) {
+      if (!isAutoContainer(fiber.parent)) {
         // Only auto-containers may contain 2+ nodes.
         tryFixContainerType(fiber.parent);
       }

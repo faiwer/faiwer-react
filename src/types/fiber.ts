@@ -74,7 +74,7 @@ export type NullFiberNode = CommonFiber & {
  * When `fiber.element` is `containerSym` it means it's a fragment or a
  * component with more than 1 children.
  */
-export const containerSym: unique symbol = Symbol.for(`r:container`);
+export const containerSym: unique symbol = Symbol.for(`r:auto`);
 export type Container = typeof containerSym;
 
 /**
@@ -86,14 +86,14 @@ export type ComponentFiberNode = CommonFiber & {
   data: ComponentState;
   props: UnknownProps;
   /**
-   * Since components can render everything we never know the element.
+   * Since components can render everything we never know the element. Each
+   * component might be in on of the following modes:
    *
-   * Note: when component is rendered in the compact mode `element` refers to
-   * the only rendered DOM node of one of its child fiber nodes.
-   *
-   * Note: when `element` refers to <!--r:end:id--> it means it renders a
-   * fragment-like content (2+ DOM nodes) that is clamped between
-   * <!--r:begin:id--> and <!--r:end:id--> HTML-comment nodes.
+   * - empty: it has no children, so that we render an !--empty comment.
+   * - single-child: it has exact one direct DOM-child. .element refers to that
+   *   child.
+   * - auto-container: it has more than one direct DOM children. These children
+   *   are inlined into the parent's DOM container. .element === containerSym.
    */
   element: Container | DomNode | null;
   key: ReactKey | null;

@@ -5,15 +5,14 @@ import { getFiberDomNodes } from 'faiwer-react/core/actions/helpers';
 
 describe('Compact rendering', () => {
   for (const mode of ['fragment', 'component']) {
-    it(`doesn't render !--brackets for a ${mode} with only one child`, () => {
+    it(`properly renders a single child in a ${mode}`, () => {
       const Comp = () => 'child';
       const middle: JSX.Element = mode === 'fragment' ? ['child'] : <Comp />;
       const root = mount(['before|', middle, '|after']);
       expectHtmlFull(root).toBe('before|child|after');
     });
 
-    // !--TODO: Rename?
-    it(`renders !--brackets for a ${mode} with multiple children`, () => {
+    it(`properly renders a pair of children in a ${mode}`, () => {
       const Comp = (): JSX.Element => ['a', 'b'];
       const middle: JSX.Element = mode === 'fragment' ? ['a', 'b'] : <Comp />;
       const root = mount(['before|', middle, '|after']);
@@ -21,8 +20,7 @@ describe('Compact rendering', () => {
     });
 
     for (const pos of ['last', 'only']) {
-      // !--TODO: Rename?
-      it(`recovers !--:empty html-comment for a ${mode} when the ${pos} child is gone`, async () => {
+      it(`recovers !--:empty for a ${mode}-container when the ${pos} child is gone`, async () => {
         const content: JSX.Element = pos === 'last' ? ['a', 'b'] : 'only';
         const Comp: ReactComponent<{ empty: boolean }> = ({ empty }) =>
           empty ? [] : content;
@@ -52,7 +50,7 @@ describe('Compact rendering', () => {
       });
     }
 
-    it(`renders an !--:empty html-comment for an empty ${mode}`, () => {
+    it(`renders an !--:empty for an empty ${mode}`, () => {
       const Empty = () => [];
       const middle =
         mode === 'fragment' ? (
@@ -66,7 +64,7 @@ describe('Compact rendering', () => {
     });
   }
 
-  it(`doesn't render !--brackets for a tag with an array as children`, () => {
+  it(`properly renders nodes from an array`, () => {
     expectHtmlFull(
       mount(
         <div>
@@ -78,8 +76,7 @@ describe('Compact rendering', () => {
     ).toBe('<div><span>1</span><span>2</span><span>3</span></div>');
   });
 
-  // !--TODO: Rename?
-  it(`does render !--brackets for a tag with an array as children`, () => {
+  it(`properly renders nodes from an array when they are surround by other nodes`, () => {
     expectHtmlFull(
       mount(
         <div>
@@ -91,12 +88,12 @@ describe('Compact rendering', () => {
     ).toBe('<div>before!12!after</div>');
   });
 
-  it(`doesn't render !--brackets for a regular component`, () => {
+  it(`properly renders a regular component`, () => {
     const Comp = () => <div>test</div>;
     expectHtmlFull(mount(<Comp />)).toBe('<div>test</div>');
   });
 
-  it(`doesn't render !-- brackets for a fragment with a single child`, () => {
+  it(`properly renders a fragment with a single child`, () => {
     expectHtmlFull(
       mount(
         <div>
@@ -106,7 +103,7 @@ describe('Compact rendering', () => {
     ).toBe(`<div>content</div>`);
   });
 
-  it(`doesn't render !-- brackets for a fragment with a single child in a component`, () => {
+  it(`properly renders a fragment with a single text child within a component`, () => {
     const Comp = () => <>content</>;
     expectHtmlFull(mount(<Comp />)).toBe(`content`);
   });

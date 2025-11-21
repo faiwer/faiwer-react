@@ -51,7 +51,7 @@ export const collectActionsFromChildrenPair = (
         // It's needed to convert the fiber to !--empty.
         last: survived === 0,
       });
-      relayoutNeeded = true; // to handle the compact mode of the container.
+      relayoutNeeded = true; // to correct the container's .element
     }
   }
 
@@ -85,7 +85,7 @@ export const collectActionsFromChildrenPair = (
     // It'll:
     // - update node positions when needed
     // - move new nodes from a temporary container to the existing l-container
-    // - wrap or unwrap !--brackets for the fiber's container
+    // - updates component's .element accordingly
     actions.push({ type: 'Relayout', fiber, before: left, after: right });
   }
 

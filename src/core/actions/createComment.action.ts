@@ -11,8 +11,7 @@ export function createCommentAction(
   { mode }: Pick<CreateCommentAction, 'mode'>,
 ) {
   // Only two scenarios lead here:
-  // - First render of a fragment or component. The parent's element is a
-  //   comment `r:begin:{id}`
+  // - Render a component or a fragment without children
   // - Render of a portal. The parent element is the portal target node.
   fiber.element = buildComment(mode, fiber.id);
   getParentElement(fiber).appendChild(fiber.element);
