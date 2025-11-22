@@ -130,7 +130,7 @@ export type PortalFiberNode = CommonFiber & {
   data: HTMLElement;
   key: ReactKey | null;
   role: 'portal';
-  element: HTMLElement | null;
+  element: Comment | null;
   tag: string;
   // Unused fields:
   props: null;

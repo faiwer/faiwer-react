@@ -36,7 +36,7 @@ export const getFiberLabel = (fiber: FiberNode): string => {
     // portal(<div#portal/>)
     case 'tag':
       return fiber.role === 'portal'
-        ? `portal(<${fiber.element?.tagName.toLowerCase()}${tagAttrs(fiber.element)}/>`
+        ? `portal(<${fiber.data?.tagName.toLowerCase()}${tagAttrs(fiber.data)}/>`
         : `<${fiber.tag}${tagAttrs(fiber)}/>${source(fiber)}`;
     // #hello world
     case 'text':

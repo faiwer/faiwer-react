@@ -10,7 +10,12 @@ import {
   useStateX,
   waitFor,
 } from '../helpers';
-import { ErrorHandler, Fragment, type ComponentFiberNode } from 'faiwer-react';
+import {
+  createPortal,
+  ErrorHandler,
+  Fragment,
+  type ComponentFiberNode,
+} from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
 import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
@@ -56,6 +61,10 @@ describe('Error handling', () => {
     useError(onError);
     return children;
   };
+  const expectDidCatch = () =>
+    waitFor(() => {
+      expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]);
+    });
 
   it(`finds the closest error boundary`, () => {
     const root = mount(
@@ -100,9 +109,6 @@ describe('Error handling', () => {
     jest.spyOn(console, 'error').mockImplementationOnce(() => null);
 
     error.set(true);
-    await waitFor(() =>
-      expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]),
-    );
   });
 
   const CompContainer = ({ children }: { children: JSX.Element }) => children;
@@ -142,10 +148,7 @@ describe('Error handling', () => {
       expect(boundaryFiber.children).toEqual([
         expect.objectContaining({ type: 'null' }),
       ]);
-
-      await waitFor(() => {
-        expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]);
-      });
+      await expectDidCatch();
     });
 
     it(`catches an error on rerender. mode=${wrapper}`, async () => {
@@ -180,9 +183,8 @@ describe('Error handling', () => {
       error.set(true);
       await waitFor(() => {
         expectHtmlFull(root).toBe(`before-1|<!--r:empty:1-->!after-1`);
-        expect(onError).toHaveBeenCalledTimes(1);
-        expect(onError).toHaveBeenLastCalledWith(expect.any(ReactError));
       });
+      await expectDidCatch();
     });
   }
 
@@ -239,5 +241,68 @@ describe('Error handling', () => {
     });
     expect(onBeforeRender).toHaveBeenCalledTimes(1);
     expect(onAfterRender).toHaveBeenCalledTimes(1);
+    await expectDidCatch();
+  });
+
+  it('errors are passed through a portal. mode=initial', async () => {
+    const target = document.createElement('x-target');
+    const root = mount(
+      <>
+        before-1!
+        <ErrorBoundary>
+          before-2!
+          {createPortal(
+            <div>
+              <Throw />
+            </div>,
+            target,
+          )}
+          !after-2
+        </ErrorBoundary>
+        !1-after
+      </>,
+    );
+
+    expectHtmlFull(root).toBe(`before-1!<!--r:null:1-->!1-after`);
+    expectHtmlFull(target).toBe('');
+    await expectDidCatch();
+  });
+
+  it('errors are passed through a portal. mode=sequential', async () => {
+    const error = useStateX<boolean>();
+    const Switch = () => {
+      if (error.use(false)) {
+        throw new Error('test');
+      }
+      return 'okay';
+    };
+
+    const target = document.createElement('x-target');
+    const root = mount(
+      <>
+        before-1!
+        <ErrorBoundary>
+          before-2!
+          {createPortal(
+            <div>
+              <Switch />
+            </div>,
+            target,
+          )}
+          !2-after
+        </ErrorBoundary>
+        !1-after
+      </>,
+    );
+
+    expectHtmlFull(root).toBe(
+      `before-1!before-2!<!--r:portal:1-->!2-after!1-after`,
+    );
+    expectHtmlFull(target).toBe(`<div>okay</div>`);
+
+    await act(() => error.set(true));
+
+    expectHtmlFull(root).toBe(`before-1!<!--r:empty:1-->!1-after`);
+    await expectDidCatch();
   });
 });
