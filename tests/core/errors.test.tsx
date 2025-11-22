@@ -1,5 +1,8 @@
-import { useError } from 'faiwer-react/hooks/useError';
-import { mount, useStateX } from '../helpers';
+import {
+  findClosestErrorBoundary,
+  useError,
+} from 'faiwer-react/hooks/useError';
+import { expectHtml, mount, useStateX } from '../helpers';
 import { ErrorHandler, type ComponentFiberNode } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
 
@@ -38,5 +41,31 @@ describe('Error handling', () => {
 
     await act(() => handler.set(() => fn2));
     expect(fiber.data.hooks![1]).toMatchObject({ fn: fn2 });
+  });
+
+  const onError = jest.fn();
+  const ErrorBoundary = ({ children }: { children: JSX.Element }) => {
+    useError(onError);
+    return children;
+  };
+
+  it(`finds the closest error boundary`, () => {
+    const root = mount(
+      <article>
+        <ErrorBoundary>
+          <p>
+            <ErrorBoundary>
+              <span />
+            </ErrorBoundary>
+          </p>
+        </ErrorBoundary>
+      </article>,
+    );
+    expectHtml(root).toBe(`<article><p><span></span></p></article>`);
+
+    const spanFiber = root.querySelector('span')!.__fiber!;
+    const boundaryFiber = spanFiber.parent as ComponentFiberNode;
+    expect(boundaryFiber.data.isErrorBoundary).toBe(true);
+    expect(findClosestErrorBoundary(spanFiber)).toBe(boundaryFiber);
   });
 });
