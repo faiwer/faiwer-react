@@ -14,6 +14,7 @@ import {
   createPortal,
   ErrorHandler,
   Fragment,
+  useState,
   type ComponentFiberNode,
 } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
@@ -327,7 +328,7 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe('<!--r:empty:1-->');
   });
 
-  it('catches an error caused by a new own wrapped child ', async () => {
+  it('catches an error caused by a new own wrapped child', async () => {
     const fork = useStateX<'tag' | 'comp'>();
     const Parent = () =>
       fork.use('tag') === 'tag' ? (
@@ -347,5 +348,58 @@ describe('Error handling', () => {
 
     await act(() => fork.set('comp'));
     await expectDidCatch();
+    expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
+  });
+
+  it('catches errors in new error boundaries', async () => {
+    const fork = useStateX<'tag' | 'comp'>();
+    const Parent = () =>
+      fork.use('tag') === 'tag' ? (
+        <b />
+      ) : (
+        <div>
+          <ErrorBoundary>
+            <Throw />
+          </ErrorBoundary>
+        </div>
+      );
+
+    const root = mount(<Parent />);
+    expectHtmlFull(root).toBe(`<b></b>`);
+
+    await act(() => fork.set('comp'));
+    await expectDidCatch();
+    expectHtmlFull(root).toBe(`<div><!--r:null:1--></div>`);
+  });
+
+  it(`catches errors happening during an error boundary's rerender`, async () => {
+    const showError = useStateX<boolean>();
+
+    const Parent = () => {
+      const showErrorValue = showError.use(false);
+
+      const [error, setError] = useState<Error | null>(null);
+      useError((error) => {
+        onError(error);
+        setError(error as ReactError);
+      });
+
+      if (error) {
+        return <code>{error.name}</code>;
+      }
+
+      return <div>{showErrorValue ? <Throw /> : 'okay'}</div>;
+    };
+
+    const root = mount(<Parent />);
+    expectHtmlFull(root).toBe(`<div>okay</div>`);
+
+    await act(() => showError.set(true));
+    expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
+
+    await expectDidCatch();
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+    });
   });
 });

@@ -1,10 +1,9 @@
-import type { App, FiberNode } from 'faiwer-react/types';
+import type { App, FiberNode, NullFiberNode } from 'faiwer-react/types';
 import { runComponent } from '../components';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
-import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
+import { createFiberNode, FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 import { ReactError } from './errors/ReactError';
 import type { Action } from 'faiwer-react/types/actions';
-import { isErrorBoundary } from 'faiwer-react/hooks/useError';
 
 /**
  * By default we don't run all components. We run only those that were manually
@@ -33,20 +32,24 @@ export const runFiberComponents = (
 
     case 'component': {
       const compX = runComponent(fiber, null);
-      if (compX instanceof ReactError) {
-        if (isErrorBoundary(fiber)) {
-          throw new Error(`Not yet implemented`);
-        } else return compX;
-      }
+      // `fiber` can't be an error boundary for itself.
+      if (compX instanceof ReactError) return compX;
 
       const [newChildren, compActions] = compX;
-      const childrenX = jsxElementToFiberNode(
+      let childrenX = jsxElementToFiberNode(
         newChildren,
         fiber,
         true /* run children-components recursively */,
       );
       if (childrenX instanceof ReactError) {
-        throw new Error(`Not yet implemented`);
+        // `fiber` is not mounted yet, and it must have at least one child node.
+        const nullFiber: NullFiberNode = {
+          ...createFiberNode(fiber),
+          type: 'null',
+          parent: fiber,
+          props: null,
+        };
+        childrenX = [nullFiber, [childrenX.genCatchAction()!]];
       }
 
       const [child, childrenActions] = childrenX;

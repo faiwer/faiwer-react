@@ -29,17 +29,22 @@ export const collectActionsFromComponent = (
     false, // Don't unwrap sub-components when it's not needed
   );
   if (childrenX instanceof ReactError) {
-    throw new Error(`Not yet implemented`);
+    // It should never happen, because `childrenX` could be a `ReactError` only
+    // if ran some component that threw an error. But we don't unwrap components
+    // here.
+    throw new ReactError(fiber, `Unknown fiber error`);
   }
 
-  const [newFiber, childrenActions] = childrenX;
-  const diffActionsX = collectActionsFromChildrenPair(
+  let [newFiber, childrenActions] = childrenX;
+  let diffActionsX = collectActionsFromChildrenPair(
     fiber,
     toFiberChildren(newFiber),
   );
+
   if (diffActionsX instanceof ReactError) {
     if (isErrorBoundary(fiber)) {
-      throw new Error(`Not yet implemented`);
+      childrenActions = [];
+      diffActionsX = [diffActionsX.genCatchAction()!];
     } else return diffActionsX;
   }
 

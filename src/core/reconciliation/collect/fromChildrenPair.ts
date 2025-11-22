@@ -78,7 +78,7 @@ export const collectActionsFromChildrenPair = (
       continue;
     } else {
       const diffActionsX = collectActionsFromFiberPair(app, l.fiber, r.fiber);
-      // If `fiber` is a component than `fromComponent` (a caller) will handled it.
+      // If `fiber` is a component than `fromComponent` (a caller) will handle it.
       if (diffActionsX instanceof ReactError) return diffActionsX;
 
       // No need to recreate the existing node, but we might need to update it
@@ -140,7 +140,9 @@ const createFiberActions = (
     const compActionsX = runFiberComponents(app, fiber);
     if (compActionsX instanceof ReactError) {
       if (isErrorBoundary(fiber)) {
-        throw new Error(`Not yet implemented`);
+        // It should never happen, because this case is specially treated in
+        // `runFiberComponents`. So get here a ['CatchError'] action list.
+        throw new ReactError(fiber, `Unknown react error`);
       } else return compActionsX;
     }
     // Since all inner components are also new we need to run them.
