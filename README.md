@@ -2,6 +2,14 @@
 
 A naive React implementation. Why? What's wrong with the existing one? Nothing. I just wanted to implement it from scratch by myself. It can be used as a drop-in replacement for some simple React apps. May require some trivial changes, though.
 
+A few stats:
+
+- ~5.5k LoC in TypeScript
+- ~122 KiB: transpiled JS code
+- ~44 KiB: minified by `terser`
+- ~16 KiB: minified gzipped
+  - `preact` is about ~10 KiB
+
 ## It supports
 
 - JSX
@@ -56,8 +64,11 @@ createRoot(container).render(<App />);
   - `useReducer`
 - 2rd line
   - HMR
+  - JSX: Math namespace
+  - Lazy
+  - Make all hooks pure
   - Resolve "TODO: add a test" comments
-  - `runComponent` is not pure. Some hooks change the state during the rendering phase. Fix it.
+  - Preact Devtools?
   - leverage `isStaticChildren` in `jsx()`
 
 ## It does NOT support
@@ -91,5 +102,5 @@ createRoot(container).render(<App />);
 - It renders HTML-comment for nullable nodes and some fragments. Why? It helps a lot to keep the reconciliation algorithm simple. Took this idea from Angular.
 - No synthetic events. I don't see any reason to implement them.
 - All components are memoized by default. Why not?
-- No custom DOM-related code. This library is supposed to be simple and silly. Whereas React-DOM lib is huge.
+- Not too much custom DOM-related code. This library is supposed to be simple and silly. Whereas React-DOM lib is huge.
 - No modern fiber-driven stuff like `<Suspense>`, `cacheSignal`, or `use`. Too much work. It took React many years to cook it well :)
