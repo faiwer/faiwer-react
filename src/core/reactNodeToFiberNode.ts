@@ -136,7 +136,7 @@ export const jsxElementToFiberNode = (
       component: jsxElement.type as ReactComponent,
       key,
       props: jsxElement.props,
-      data: { hooks: null, actions: [] },
+      data: { hooks: null, actions: [], isErrorBoundary: false },
       source: jsxElement.source,
     };
     if (unwrapComponents) {

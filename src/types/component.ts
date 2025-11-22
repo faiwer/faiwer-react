@@ -7,6 +7,8 @@ export type ComponentState = {
   /** A temporary storage for actions that must be applied after the component's
    * render. */
   actions: Action[];
+  /** True when a component contains at least one useError handler. */
+  isErrorBoundary: boolean;
 };
 
 export type ReactComponent<TProps extends UnknownProps = UnknownProps> = {
