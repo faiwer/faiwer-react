@@ -9,7 +9,7 @@ import {
   useStateX,
   waitFor,
 } from '../helpers';
-import { ErrorHandler, type ComponentFiberNode } from 'faiwer-react';
+import { ErrorHandler, Fragment, type ComponentFiberNode } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
 import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
@@ -104,68 +104,84 @@ describe('Error handling', () => {
     );
   });
 
-  it(`doesn't mount erroneous content`, async () => {
-    const root = mount(
-      <>
-        before-1|
-        <ErrorBoundary>
-          before-2
-          <div>
-            before-3
-            <Throw />
-            after-3
-          </div>
-          after-2
-        </ErrorBoundary>
-        !after-1
-      </>,
-    );
+  const CompContainer = ({ children }: { children: JSX.Element }) => children;
 
-    // It's !--null, not !--empty. Why? Because we don't an action type to
-    // create an empty comment based from a fiber. The error happens during the
-    // initial render, and we must create at least one DOM-node for the failed
-    // fiber to keep the engine working.
-    expectHtmlFull(root).toBe(`before-1|<!--r:null:1-->!after-1`);
-    const boundaryFiber = root.__fiber!.children[1] as ComponentFiberNode;
-    expect(boundaryFiber.data.isErrorBoundary).toBe(true);
-    expect(boundaryFiber.children).toEqual([
-      expect.objectContaining({ type: 'null' }),
-    ]);
+  for (const wrapper of ['fragment', 'tag', 'component']) {
+    const Wrapper =
+      wrapper === 'tag'
+        ? 'div'
+        : wrapper === 'fragment'
+          ? Fragment
+          : CompContainer;
 
-    await waitFor(() => {
-      expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]);
-    });
-  });
-
-  it(`catches an error on rerender`, async () => {
-    const error = useStateX<boolean>();
-    const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
-
-    const Comp = () => {
-      return (
+    it(`doesn't mount erroneous content. mode=${wrapper}`, async () => {
+      const root = mount(
         <>
           before-1|
           <ErrorBoundary>
             before-2
-            <div>
+            <Wrapper>
               before-3
-              <Switch />
+              <Throw />
               after-3
-            </div>
+            </Wrapper>
             after-2
           </ErrorBoundary>
           !after-1
-        </>
+        </>,
       );
-    };
 
-    const root = mount(<Comp />);
+      // It's !--null, not !--empty. Why? Because we don't an action type to
+      // create an empty comment based from a fiber. The error happens during the
+      // initial render, and we must create at least one DOM-node for the failed
+      // fiber to keep the engine working.
+      expectHtmlFull(root).toBe(`before-1|<!--r:null:1-->!after-1`);
+      const boundaryFiber = root.__fiber!.children[1] as ComponentFiberNode;
+      expect(boundaryFiber.data.isErrorBoundary).toBe(true);
+      expect(boundaryFiber.children).toEqual([
+        expect.objectContaining({ type: 'null' }),
+      ]);
 
-    error.set(true);
-    await waitFor(() => {
-      expectHtmlFull(root).toBe(`before-1|<!--r:empty:1-->!after-1`);
-      expect(onError).toHaveBeenCalledTimes(1);
-      expect(onError).toHaveBeenLastCalledWith(expect.any(ReactError));
+      await waitFor(() => {
+        expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]);
+      });
     });
-  });
+
+    it(`catches an error on rerender. mode=${wrapper}`, async () => {
+      const error = useStateX<boolean>();
+      const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+      const Comp = () => {
+        return (
+          <>
+            before-1|
+            <ErrorBoundary>
+              before-2|
+              <Wrapper>
+                before-3|
+                <Switch />
+                !after-3
+              </Wrapper>
+              !after-2
+            </ErrorBoundary>
+            !after-1
+          </>
+        );
+      };
+
+      const root = mount(<Comp />);
+      const [open, close] = wrapper === 'tag' ? ['<div>', '</div>'] : ['', ''];
+      expectHtmlFull(root).toBe(
+        `before-1|before-2|${open}before-3|okay` +
+          `!after-3${close}!after-2!after-1`,
+      );
+
+      error.set(true);
+      await waitFor(() => {
+        expectHtmlFull(root).toBe(`before-1|<!--r:empty:1-->!after-1`);
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError).toHaveBeenLastCalledWith(expect.any(ReactError));
+      });
+    });
+  }
 });
