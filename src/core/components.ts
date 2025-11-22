@@ -13,6 +13,7 @@ import {
   nullthrowsForFiber,
   ReactError,
 } from './reconciliation/errors/ReactError';
+import type { Action } from 'faiwer-react/types/actions';
 
 /** Component that is rendered right now. */
 let currentFiber: ComponentFiberNode | null;
@@ -43,13 +44,13 @@ export const isFirstFiberRender = (): boolean => firstFiberRender;
 /**
  * Runs the functional component. Before running, it prepares everything that
  * is required to make hooks work. The result is JSX returned from the component
- * function.
+ * function & the list of actions that must be applied in the commit phase.
  */
 export const runComponent = (
   fiber: FiberNode,
   /** Source of `.props`. If not given `fiber.props` are used. */
   props: UnknownProps | null,
-): JSX.Element => {
+): [JSX.Element, Action[]] => {
   if (fiber.type !== 'component') {
     throw new ReactError(fiber, `Can't run ${fiber.type} as a component`);
   }
@@ -63,14 +64,18 @@ export const runComponent = (
   hookIdx = -1;
 
   let jsxElement: JSX.Element;
+  let actions: Action[] = [];
   try {
     jsxElement = fiber.component!(props ?? fiber.props);
+    actions.push(...fiber.data.actions);
   } catch (error: unknown) {
     throw new ReactError(
       fiber,
       error,
       `Error during rendering a component: %fiber%`,
     );
+  } finally {
+    fiber.data.actions = [];
   }
 
   if (!firstFiberRender && hookIdx !== fiber.data.hooks.length - 1) {
@@ -83,7 +88,7 @@ export const runComponent = (
   currentFiber = null;
   firstFiberRender = false;
 
-  return jsxElement;
+  return [jsxElement, actions];
 };
 
 let hookIdx = -1;

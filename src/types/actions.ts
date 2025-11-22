@@ -1,6 +1,7 @@
 import type { CommentMode, UnknownProps } from './core';
 import type { TagAttrValue } from './dom';
 import type { FiberMap, FiberNode } from './fiber';
+import type { EffectMode } from './hooks';
 import type { RefObject, RefSetter } from './refs';
 
 type CommonAction = {
@@ -66,4 +67,15 @@ export type ReplaceAction = CommonAction & {
 };
 type LayoutAction = RemoveAction | RelayoutAction | ReplaceAction;
 
-export type Action = CreateAction | UpdateAction | LayoutAction;
+// Other kind of actions
+export type ScheduleEffectAction = CommonAction & {
+  type: 'ScheduleEffect';
+  fn: () => void;
+  mode: EffectMode;
+};
+
+export type Action =
+  | CreateAction
+  | UpdateAction
+  | LayoutAction
+  | ScheduleEffectAction;

@@ -124,13 +124,17 @@ const createFiberActions = (
   // parent.
   fiber.parent = fakeParent;
 
+  const actions: Action[] = [];
+
   if (isContainerFiber(fiber)) {
     // Since all inner components are also new we need to run them.
-    runFiberComponents(app, fiber);
+    actions.push(...runFiberComponents(app, fiber));
   }
 
   // Reuse the same tooling we use for mounting the app.
-  return collectActionsFromNewFiber(fiber);
+  actions.push(...collectActionsFromNewFiber(fiber));
+
+  return actions;
 };
 
 /**

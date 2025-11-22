@@ -1,3 +1,4 @@
+import type { Action } from 'faiwer-react/types/actions';
 import {
   type RefObject,
   type RefSetter,
@@ -32,7 +33,7 @@ export const jsxElementToFiberNode = (
   /** Pass `true` on the 1st render for the given node to run internal
    * components recursively. By default it doesn't run any components. */
   unwrapComponents: boolean,
-): FiberNode => {
+): [FiberNode, Action[]] => {
   // []-based version of a fragment. Not a <Fragment/>.
   if (Array.isArray(jsxElement)) {
     jsxElement = {
@@ -52,7 +53,7 @@ export const jsxElementToFiberNode = (
       parent,
       props: null,
     };
-    return nullFiber;
+    return [nullFiber, NO_ACTIONS];
   }
 
   // A text node (string, number or boolean).
@@ -63,7 +64,7 @@ export const jsxElementToFiberNode = (
       parent,
       props: { text: String(jsxElement) },
     };
-    return textFiber;
+    return [textFiber, NO_ACTIONS];
   }
 
   const { key = null } = jsxElement;
@@ -79,10 +80,13 @@ export const jsxElementToFiberNode = (
       role: 'portal',
       data: jsxElement.type,
     };
-    portalFiber.children = jsxElement.children.map(
-      (n): FiberNode => jsxElementToFiberNode(n, portalFiber, unwrapComponents),
+    const [children, childrenActions] = childrenToNodes(
+      portalFiber,
+      jsxElement.children,
+      unwrapComponents,
     );
-    return portalFiber;
+    portalFiber.children = children;
+    return [portalFiber, childrenActions];
   }
 
   // <ctx.Provider value=?/>
@@ -97,11 +101,13 @@ export const jsxElementToFiberNode = (
       data: { ctx: jsxElement.type.__ctx, consumers: new Set() },
       source: jsxElement.source,
     };
-    contextFiber.children = jsxElement.children.map(
-      (n): FiberNode =>
-        jsxElementToFiberNode(n, contextFiber, unwrapComponents),
+    const [children, childrenActions] = childrenToNodes(
+      contextFiber,
+      jsxElement.children,
+      unwrapComponents,
     );
-    return contextFiber;
+    contextFiber.children = children;
+    return [contextFiber, childrenActions];
   }
 
   // [], </> or <Fragment/>.
@@ -112,30 +118,38 @@ export const jsxElementToFiberNode = (
       key,
       source: jsxElement.source,
     };
-    fragmentFiber.children = jsxElement.children.map(
-      (n): FiberNode =>
-        jsxElementToFiberNode(n, fragmentFiber, unwrapComponents),
+    const [children, childrenActions] = childrenToNodes(
+      fragmentFiber,
+      jsxElement.children,
+      unwrapComponents,
     );
-    return fragmentFiber;
+    fragmentFiber.children = children;
+    return [fragmentFiber, childrenActions];
   }
 
   // A component node (<Message/>):
   if (typeof jsxElement.type === 'function') {
+    const actions: Action[] = [];
     const fiber: ComponentFiberNode = {
       ...createFiberNode(parent),
       type: 'component',
       component: jsxElement.type as ReactComponent,
       key,
       props: jsxElement.props,
-      data: { hooks: null },
+      data: { hooks: null, actions: [] },
       source: jsxElement.source,
     };
     if (unwrapComponents) {
-      const content: JSX.Element = runComponent(fiber, null);
-      const child = jsxElementToFiberNode(content, fiber, unwrapComponents);
+      const [content, compActions] = runComponent(fiber, null);
+      const [child, childrenActions] = jsxElementToFiberNode(
+        content,
+        fiber,
+        unwrapComponents,
+      );
       fiber.children = toFiberChildren(child);
+      actions.push(...compActions, ...childrenActions);
     }
-    return fiber;
+    return [fiber, actions];
   }
 
   if (typeof jsxElement.type === 'string') {
@@ -150,13 +164,37 @@ export const jsxElementToFiberNode = (
       data: { events: {}, styles: null },
       source: jsxElement.source,
     };
-    tagFiber.children = jsxElement.children
-      .map((n) => jsxElementToFiberNode(n, tagFiber, unwrapComponents))
-      .flat();
-    return tagFiber;
+    const [children, childrenActions] = childrenToNodes(
+      tagFiber,
+      jsxElement.children,
+      unwrapComponents,
+    );
+    tagFiber.children = children;
+    return [tagFiber, childrenActions];
   }
 
   throw new Error(`Unknown format of JSX.Element (${jsxElement.type})`);
+};
+
+const childrenToNodes = (
+  tagFiber: FiberNode,
+  elements: JSX.Element[],
+  unwrapComponents: boolean,
+): [FiberNode[], Action[]] => {
+  const children: FiberNode[] = [];
+  const actions: Action[] = [];
+
+  for (const childEl of elements) {
+    const [node, childrenActions] = jsxElementToFiberNode(
+      childEl,
+      tagFiber,
+      unwrapComponents,
+    );
+    children.push(node);
+    actions.push(...childrenActions);
+  }
+
+  return [children, actions];
 };
 
 function validateContextProviderProps(
@@ -181,3 +219,5 @@ function validateRef<T = unknown>(
 
   throw new Error(`Unsupported format of a ref or a ref handler`);
 }
+
+const NO_ACTIONS: Action[] = [];

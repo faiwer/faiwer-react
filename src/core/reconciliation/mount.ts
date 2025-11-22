@@ -42,11 +42,18 @@ export const mount = (
     tempContext: new Map(),
   }));
 
-  const content: FiberNode = jsxElementToFiberNode(jsxElement, app.root, true);
+  const actions: Action[] = [];
+
+  const [content, mountActions] = jsxElementToFiberNode(
+    jsxElement,
+    app.root,
+    true,
+  );
+  actions.push(...mountActions);
   app.root.children = toFiberChildren(content);
   app.root.element = container;
 
-  const actions: Action[] = collectActionsFromNewFiber(app.root).flat();
+  actions.push(...collectActionsFromNewFiber(app.root).flat());
 
   applyActions(app, actions);
   if (app.testMode) validateApp(app);

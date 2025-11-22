@@ -3,6 +3,7 @@ import { runComponent } from '../components';
 import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 import { ReactError } from './errors/ReactError';
+import type { Action } from 'faiwer-react/types/actions';
 
 /**
  * By default we don't run all components. We run only those that were manually
@@ -11,28 +12,32 @@ import { ReactError } from './errors/ReactError';
  * given fiber DOM subtree nodes and runs all found components to fill their
  * `.children`. Should be used only for not-yet-mounted component fiber nodes.
  */
-export const runFiberComponents = (app: App, fiber: FiberNode): void => {
+export const runFiberComponents = (app: App, fiber: FiberNode): Action[] => {
   if (app.testMode) checkParents(fiber);
+  const actions: Action[] = [];
 
   switch (fiber.type) {
     case 'fragment':
     case 'tag':
       for (const child of fiber.children) {
-        runFiberComponents(app, child);
+        actions.push(...runFiberComponents(app, child));
       }
       break;
 
     case 'component': {
-      const newChildren: JSX.Element = runComponent(fiber, null);
-      const child: FiberNode = jsxElementToFiberNode(
+      const [newChildren, compActions] = runComponent(fiber, null);
+      const [child, childrenActions] = jsxElementToFiberNode(
         newChildren,
         fiber,
         true /* run children-components recursively */,
       );
       fiber.children = toFiberChildren(child);
+      actions.push(...compActions, ...childrenActions);
       break;
     }
   }
+
+  return actions;
 };
 
 const checkParents = (fiber: FiberNode): void => {

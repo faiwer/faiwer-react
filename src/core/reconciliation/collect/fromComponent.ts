@@ -16,11 +16,15 @@ export const collectActionsFromComponent = (
   /** Custom props (when `fiber.props` are stale). */
   props: UnknownProps | null,
 ): Action[] => {
-  const newReactChildren: JSX.Element = runComponent(fiber, props);
-  const newFiber: FiberNode = jsxElementToFiberNode(
+  const [newReactChildren, compActions] = runComponent(fiber, props);
+  const [newFiber, childrenActions] = jsxElementToFiberNode(
     newReactChildren,
     fiber,
     false, // Don't unwrap sub-components when it's not needed
   );
-  return collectActionsFromChildrenPair(fiber, toFiberChildren(newFiber));
+  return [
+    ...compActions,
+    ...childrenActions,
+    ...collectActionsFromChildrenPair(fiber, toFiberChildren(newFiber)),
+  ];
 };

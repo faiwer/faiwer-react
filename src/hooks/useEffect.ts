@@ -1,18 +1,20 @@
-import { getCurrentApp, isFirstFiberRender } from '~/core/components';
+import {
+  getCurrentComponentFiber,
+  isFirstFiberRender,
+} from '~/core/components';
 import {
   type EffectMode,
   type EffectHandler,
   type UseEffectItem,
 } from '../types';
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
-import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
 
 export function useBaseEffect(
   mode: EffectMode,
   fn: EffectHandler,
   deps?: unknown[],
 ) {
-  const item = getNextHookOrCreate('effect', (): UseEffectItem => {
+  const item = getNextHookOrCreate('effect', (fiber): UseEffectItem => {
     const item: UseEffectItem = {
       type: 'effect',
       mode,
@@ -20,14 +22,25 @@ export function useBaseEffect(
       destructor: null,
       deps: deps ? saveDeps(deps) : null,
     };
-    scheduleEffect(getCurrentApp(), () => runEffect(item), mode);
+    fiber.data.actions.push({
+      type: 'ScheduleEffect',
+      fiber,
+      mode,
+      fn: () => runEffect(item),
+    });
     return item;
   });
 
   item.fn = fn;
 
   if (!isFirstFiberRender() && (!deps || !checkDeps(item.deps!, deps))) {
-    scheduleEffect(getCurrentApp(), () => runEffect(item), mode);
+    const fiber = getCurrentComponentFiber();
+    fiber.data.actions.push({
+      type: 'ScheduleEffect',
+      fiber,
+      mode,
+      fn: () => runEffect(item),
+    });
     item.deps = deps ? saveDeps(deps) : null;
   }
 }
