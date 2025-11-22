@@ -37,12 +37,19 @@ export type UseContextItem<T = unknown> = {
   providerFiber: ContextFiberNode | null;
 };
 
+export type ErrorHandler = (error: unknown) => void;
+export type UseErrorItem = {
+  type: 'error';
+  fn: ErrorHandler;
+};
+
 export type HookStateItem =
   | UseStateItem
   | UseMemoItem
   | UseRefItem
   | UseEffectItem
-  | UseContextItem;
+  | UseContextItem
+  | UseErrorItem;
 
 export type HookStore = HookStateItem[];
 
