@@ -50,7 +50,7 @@ export const runComponent = (
   fiber: FiberNode,
   /** Source of `.props`. If not given `fiber.props` are used. */
   props: UnknownProps | null,
-): [JSX.Element, Action[]] => {
+): ReactError | [JSX.Element, Action[]] => {
   if (fiber.type !== 'component') {
     throw new ReactError(fiber, `Can't run ${fiber.type} as a component`);
   }
@@ -69,7 +69,7 @@ export const runComponent = (
     jsxElement = fiber.component!(props ?? fiber.props);
     actions.push(...fiber.data.actions);
   } catch (error: unknown) {
-    throw new ReactError(
+    return new ReactError(
       fiber,
       error,
       `Error during rendering a component: %fiber%`,

@@ -13,6 +13,7 @@ import { removeApp, registerApp } from './app';
 import type { Action } from 'faiwer-react/types/actions';
 import { createFiberNode, toFiberChildren } from './fibers';
 import { Queue } from './queue';
+import { ReactError } from './errors/ReactError';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
@@ -44,11 +45,13 @@ export const mount = (
 
   const actions: Action[] = [];
 
-  const [content, mountActions] = jsxElementToFiberNode(
-    jsxElement,
-    app.root,
-    true,
-  );
+  const mountX = jsxElementToFiberNode(jsxElement, app.root, true);
+  if (mountX instanceof ReactError) {
+    // Could not mount the app. No error boundary was found. Terminate the app.
+    throw mountX;
+  }
+
+  const [content, mountActions] = mountX;
   actions.push(...mountActions);
   app.root.children = toFiberChildren(content);
   app.root.element = container;

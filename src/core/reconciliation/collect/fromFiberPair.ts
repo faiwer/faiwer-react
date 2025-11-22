@@ -10,6 +10,7 @@ import type { Action, SetRefAction } from 'faiwer-react/types/actions';
 import { collectActionsFromChildrenPair } from './fromChildrenPair';
 import { areFiberPropsEq } from '../compare/areFiberPropsEq';
 import { isFiberDead } from '../fibers';
+import { ReactError } from '../errors/ReactError';
 
 /**
  * `l` and `r` are the same node, but `r` may have some updates. This method
@@ -20,7 +21,7 @@ export const collectActionsFromFiberPair = (
   app: App,
   l: FiberNode,
   r: FiberNode,
-): Action[] => {
+): ReactError | Action[] => {
   const actions: Action[] = [];
   const eqProps = areFiberPropsEq(l, r);
 
@@ -33,7 +34,10 @@ export const collectActionsFromFiberPair = (
   }
 
   if (l.type === 'tag' || l.type === 'fragment') {
-    actions.push(...collectActionsFromChildrenPair(l, r.children));
+    const childrenActionsX = collectActionsFromChildrenPair(l, r.children);
+    // Tags & fragments cannot be error boundaries. Pass it through.
+    if (childrenActionsX instanceof ReactError) return childrenActionsX;
+    actions.push(...childrenActionsX);
   }
 
   if (

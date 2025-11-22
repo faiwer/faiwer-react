@@ -4,6 +4,7 @@ import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 import { ReactError } from './errors/ReactError';
 import type { Action } from 'faiwer-react/types/actions';
+import { isErrorBoundary } from 'faiwer-react/hooks/useError';
 
 /**
  * By default we don't run all components. We run only those that were manually
@@ -12,7 +13,10 @@ import type { Action } from 'faiwer-react/types/actions';
  * given fiber DOM subtree nodes and runs all found components to fill their
  * `.children`. Should be used only for not-yet-mounted component fiber nodes.
  */
-export const runFiberComponents = (app: App, fiber: FiberNode): Action[] => {
+export const runFiberComponents = (
+  app: App,
+  fiber: FiberNode,
+): ReactError | Action[] => {
   if (app.testMode) checkParents(fiber);
   const actions: Action[] = [];
 
@@ -20,17 +24,32 @@ export const runFiberComponents = (app: App, fiber: FiberNode): Action[] => {
     case 'fragment':
     case 'tag':
       for (const child of fiber.children) {
-        actions.push(...runFiberComponents(app, child));
+        const childActionsX = runFiberComponents(app, child);
+        // Tags & fragemtns can't be error boundaries. Pass it through.
+        if (childActionsX instanceof ReactError) return childActionsX;
+        actions.push(...childActionsX);
       }
       break;
 
     case 'component': {
-      const [newChildren, compActions] = runComponent(fiber, null);
-      const [child, childrenActions] = jsxElementToFiberNode(
+      const compX = runComponent(fiber, null);
+      if (compX instanceof ReactError) {
+        if (isErrorBoundary(fiber)) {
+          throw new Error(`Not yet implemented`);
+        } else return compX;
+      }
+
+      const [newChildren, compActions] = compX;
+      const childrenX = jsxElementToFiberNode(
         newChildren,
         fiber,
         true /* run children-components recursively */,
       );
+      if (childrenX instanceof ReactError) {
+        throw new Error(`Not yet implemented`);
+      }
+
+      const [child, childrenActions] = childrenX;
       fiber.children = toFiberChildren(child);
       actions.push(...compActions, ...childrenActions);
       break;

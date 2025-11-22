@@ -14,6 +14,8 @@ import { collectActionsFromNewFiber } from 'faiwer-react/core/reconciliation/col
 import { createFiberNode, FAKE_CONTAINER_TAG } from '../fibers';
 import { areFiberNodesEq } from '../compare/areFiberNodesEq';
 import { isContainerFiber } from '../typeGuards';
+import { ReactError } from '../errors/ReactError';
+import { isErrorBoundary } from 'faiwer-react/hooks/useError';
 
 /**
  * Returns a list of actions needed to convert `before` to `after`, where
@@ -25,7 +27,7 @@ export const collectActionsFromChildrenPair = (
   fiber: FiberNode,
   /** New children set (some component's direct or indirect update) */
   after: FiberNode[],
-): Action[] => {
+): ReactError | Action[] => {
   const app = getAppByFiber(fiber);
   const left = getChildrenMap(fiber.children);
   const right = getChildrenMap(after);
@@ -62,7 +64,11 @@ export const collectActionsFromChildrenPair = (
       // 1. There was no node with this key before. Create a new one.
       // 2. There was one, but it was very different. Replace it.
       relayoutNeeded = true;
-      actions.push(...createFiberActions(app, r.fiber, fiber));
+
+      const createActionsX = createFiberActions(app, r.fiber, fiber);
+      // If `fiber` is a component than `fromComponent` (a caller) will handled it.
+      if (createActionsX instanceof ReactError) return createActionsX;
+      actions.push(...createActionsX);
 
       if (l) {
         // Don't run components from the removing node even if they were invalidated
@@ -71,9 +77,13 @@ export const collectActionsFromChildrenPair = (
       }
       continue;
     } else {
+      const diffActionsX = collectActionsFromFiberPair(app, l.fiber, r.fiber);
+      // If `fiber` is a component than `fromComponent` (a caller) will handled it.
+      if (diffActionsX instanceof ReactError) return diffActionsX;
+
       // No need to recreate the existing node, but we might need to update it
       // or one of its children.
-      actions.push(...collectActionsFromFiberPair(app, l.fiber, r.fiber));
+      actions.push(...diffActionsX);
     }
 
     // Handle the case when the node changed its position. It's possible for
@@ -115,7 +125,7 @@ const createFiberActions = (
   app: App,
   fiber: FiberNode,
   parent: FiberNode,
-): Action[] => {
+): ReactError | Action[] => {
   const fakeParent = createFakeFiberContainer(parent);
 
   // Wrap the given node with a fake <x-container/> node to force `applyActions`
@@ -127,8 +137,14 @@ const createFiberActions = (
   const actions: Action[] = [];
 
   if (isContainerFiber(fiber)) {
+    const compActionsX = runFiberComponents(app, fiber);
+    if (compActionsX instanceof ReactError) {
+      if (isErrorBoundary(fiber)) {
+        throw new Error(`Not yet implemented`);
+      } else return compActionsX;
+    }
     // Since all inner components are also new we need to run them.
-    actions.push(...runFiberComponents(app, fiber));
+    actions.push(...compActionsX);
   }
 
   // Reuse the same tooling we use for mounting the app.

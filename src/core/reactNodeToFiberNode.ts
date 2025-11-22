@@ -20,6 +20,8 @@ import {
   toFiberChildren,
 } from './reconciliation/fibers';
 import { isContextProvider } from './reconciliation/typeGuards';
+import { ReactError } from './reconciliation/errors/ReactError';
+import { isErrorBoundary } from 'faiwer-react/hooks/useError';
 
 /**
  * Converts any possible JSX.Element to a FiberNode, that is used by the engine
@@ -33,7 +35,7 @@ export const jsxElementToFiberNode = (
   /** Pass `true` on the 1st render for the given node to run internal
    * components recursively. By default it doesn't run any components. */
   unwrapComponents: boolean,
-): [FiberNode, Action[]] => {
+): ReactError | [FiberNode, Action[]] => {
   // []-based version of a fragment. Not a <Fragment/>.
   if (Array.isArray(jsxElement)) {
     jsxElement = {
@@ -80,11 +82,15 @@ export const jsxElementToFiberNode = (
       role: 'portal',
       data: jsxElement.type,
     };
-    const [children, childrenActions] = childrenToNodes(
+    const childrenX = childrenToNodes(
       portalFiber,
       jsxElement.children,
       unwrapComponents,
     );
+    // Portals cannot be error boundaries. Pass through.
+    if (childrenX instanceof ReactError) return childrenX;
+
+    const [children, childrenActions] = childrenX;
     portalFiber.children = children;
     return [portalFiber, childrenActions];
   }
@@ -101,11 +107,16 @@ export const jsxElementToFiberNode = (
       data: { ctx: jsxElement.type.__ctx, consumers: new Set() },
       source: jsxElement.source,
     };
-    const [children, childrenActions] = childrenToNodes(
+
+    const childrenX = childrenToNodes(
       contextFiber,
       jsxElement.children,
       unwrapComponents,
     );
+    // Context providers cannot be error boundaries. Pass through.
+    if (childrenX instanceof ReactError) return childrenX;
+
+    const [children, childrenActions] = childrenX;
     contextFiber.children = children;
     return [contextFiber, childrenActions];
   }
@@ -118,11 +129,16 @@ export const jsxElementToFiberNode = (
       key,
       source: jsxElement.source,
     };
-    const [children, childrenActions] = childrenToNodes(
+
+    const childrenX = childrenToNodes(
       fragmentFiber,
       jsxElement.children,
       unwrapComponents,
     );
+    // Fragments cannot be error boundaries. Pass through.
+    if (childrenX instanceof ReactError) return childrenX;
+
+    const [children, childrenActions] = childrenX;
     fragmentFiber.children = children;
     return [fragmentFiber, childrenActions];
   }
@@ -140,12 +156,28 @@ export const jsxElementToFiberNode = (
       source: jsxElement.source,
     };
     if (unwrapComponents) {
-      const [content, compActions] = runComponent(fiber, null);
-      const [child, childrenActions] = jsxElementToFiberNode(
-        content,
-        fiber,
-        unwrapComponents,
-      );
+      const compX = runComponent(fiber, null);
+      // Component can't be its own error boundary, thus pass it through.
+      if (compX instanceof ReactError) return compX;
+
+      const [content, compActions] = compX;
+      let childrenX = jsxElementToFiberNode(content, fiber, unwrapComponents);
+      if (childrenX instanceof ReactError) {
+        if (isErrorBoundary(fiber)) {
+          // Since it's a brand new fiber we don't have any DOM nodes yet. But
+          // it must have one. Create a new null nodes to make it an anchor for
+          // the error boundary.
+          const nullFiber: NullFiberNode = {
+            ...createFiberNode(fiber),
+            type: 'null',
+            parent: fiber,
+            props: null,
+          };
+          childrenX = [nullFiber, [childrenX.genCatchAction()!]];
+        } else return childrenX;
+      }
+
+      const [child, childrenActions] = childrenX;
       fiber.children = toFiberChildren(child);
       actions.push(...compActions, ...childrenActions);
     }
@@ -164,11 +196,16 @@ export const jsxElementToFiberNode = (
       data: { events: {}, styles: null },
       source: jsxElement.source,
     };
-    const [children, childrenActions] = childrenToNodes(
+
+    const childrenX = childrenToNodes(
       tagFiber,
       jsxElement.children,
       unwrapComponents,
     );
+    // Tags cannot be error boundaries. Pass through.
+    if (childrenX instanceof ReactError) return childrenX;
+
+    const [children, childrenActions] = childrenX;
     tagFiber.children = children;
     return [tagFiber, childrenActions];
   }
@@ -177,19 +214,24 @@ export const jsxElementToFiberNode = (
 };
 
 const childrenToNodes = (
-  tagFiber: FiberNode,
+  fiber: FiberNode,
   elements: JSX.Element[],
   unwrapComponents: boolean,
-): [FiberNode[], Action[]] => {
+): ReactError | [FiberNode[], Action[]] => {
   const children: FiberNode[] = [];
   const actions: Action[] = [];
 
   for (const childEl of elements) {
-    const [node, childrenActions] = jsxElementToFiberNode(
-      childEl,
-      tagFiber,
-      unwrapComponents,
-    );
+    const childX = jsxElementToFiberNode(childEl, fiber, unwrapComponents);
+    if (childX instanceof ReactError) {
+      if (isErrorBoundary(fiber)) {
+        throw new Error(`Not yet implemented`);
+      }
+      // No error boundary found. That means we should drop all its neighbors.
+      else return childX;
+    }
+
+    const [node, childrenActions] = childX;
     children.push(node);
     actions.push(...childrenActions);
   }

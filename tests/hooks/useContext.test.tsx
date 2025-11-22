@@ -184,7 +184,7 @@ describe('Hooks: useContext', () => {
     const root = mount(<Comp />);
     expectHtml(root).toBe('1');
 
-    // Switch to the coontext (also a fragment)
+    // Switch to the context (also a fragment)
     await act(() => mode.set('context'));
     expectHtml(root).toBe('24');
     expect(childCreated).toHaveBeenCalledTimes(1);

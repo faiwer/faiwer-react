@@ -1,5 +1,9 @@
 import type { FiberNode } from 'faiwer-react/types';
 import { captureStack, getFiberLabel } from './stack';
+import type { CatchErrorAction } from 'faiwer-react/types/actions';
+import { findClosestErrorBoundary } from 'faiwer-react/hooks/useError';
+import { traverseFiberTree } from 'faiwer-react/core/actions/helpers';
+import { getAppByFiber } from '../app';
 
 export class ReactError extends Error {
   fiber: FiberNode;
@@ -17,6 +21,31 @@ export class ReactError extends Error {
     const stack = captureStack(fiber);
     this.message +=
       '\nReact stack:\n' + stack.map((line) => ` ├— ${line}`).join('\n');
+  }
+
+  /**
+   * Finds the closest error boundary and prepares a CatchError action. If a
+   * boundary wasn't found it returns null.
+   */
+  genCatchAction(): CatchErrorAction | null {
+    const boundary = findClosestErrorBoundary(this.fiber);
+    if (!boundary) return null;
+
+    const app = getAppByFiber(this.fiber);
+    // Remove from the whole app.invalidatedComponents all components that are
+    // children from `fiber`?
+    traverseFiberTree(boundary, (child) => {
+      if (child.type === 'component') {
+        app.invalidatedComponents.delete(child);
+      }
+    });
+
+    return { type: 'CatchError', fiber: boundary, error: this };
+  }
+
+  catchActionArrOrPassThru(): CatchErrorAction[] | ReactError {
+    const catchAction = this.genCatchAction();
+    return catchAction ? [catchAction] : this;
   }
 }
 

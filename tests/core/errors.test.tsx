@@ -2,9 +2,16 @@ import {
   findClosestErrorBoundary,
   useError,
 } from 'faiwer-react/hooks/useError';
-import { expectHtml, mount, useStateX } from '../helpers';
+import {
+  expectHtml,
+  expectHtmlFull,
+  mount,
+  useStateX,
+  waitFor,
+} from '../helpers';
 import { ErrorHandler, type ComponentFiberNode } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
 describe('Error handling', () => {
   it('a component with useError is marked as error boundary', () => {
@@ -67,5 +74,98 @@ describe('Error handling', () => {
     const boundaryFiber = spanFiber.parent as ComponentFiberNode;
     expect(boundaryFiber.data.isErrorBoundary).toBe(true);
     expect(findClosestErrorBoundary(spanFiber)).toBe(boundaryFiber);
+  });
+
+  const Throw = () => {
+    throw new Error('test');
+  };
+  const Okay = () => 'okay';
+
+  it(`throws when it can't mount an app`, () => {
+    expect(() => mount(<Throw />)).toThrow(expect.any(ReactError));
+  });
+
+  it(`throws when it can't rerender the app`, async () => {
+    const error = useStateX<boolean>();
+    const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+    const root = mount(<Switch />);
+    expectHtml(root).toBe('okay');
+
+    const onError = jest.fn();
+    window.addEventListener('error', (evt) => onError(evt.error), {
+      once: true,
+    });
+    jest.spyOn(console, 'error').mockImplementationOnce(() => null);
+
+    error.set(true);
+    await waitFor(() =>
+      expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]),
+    );
+  });
+
+  it(`doesn't mount erroneous content`, async () => {
+    const root = mount(
+      <>
+        before-1|
+        <ErrorBoundary>
+          before-2
+          <div>
+            before-3
+            <Throw />
+            after-3
+          </div>
+          after-2
+        </ErrorBoundary>
+        !after-1
+      </>,
+    );
+
+    // It's !--null, not !--empty. Why? Because we don't an action type to
+    // create an empty comment based from a fiber. The error happens during the
+    // initial render, and we must create at least one DOM-node for the failed
+    // fiber to keep the engine working.
+    expectHtmlFull(root).toBe(`before-1|<!--r:null:1-->!after-1`);
+    const boundaryFiber = root.__fiber!.children[1] as ComponentFiberNode;
+    expect(boundaryFiber.data.isErrorBoundary).toBe(true);
+    expect(boundaryFiber.children).toEqual([
+      expect.objectContaining({ type: 'null' }),
+    ]);
+
+    await waitFor(() => {
+      expect(onError.mock.calls).toEqual([[expect.any(ReactError)]]);
+    });
+  });
+
+  it(`catches an error on rerender`, async () => {
+    const error = useStateX<boolean>();
+    const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+    const Comp = () => {
+      return (
+        <>
+          before-1|
+          <ErrorBoundary>
+            before-2
+            <div>
+              before-3
+              <Switch />
+              after-3
+            </div>
+            after-2
+          </ErrorBoundary>
+          !after-1
+        </>
+      );
+    };
+
+    const root = mount(<Comp />);
+
+    error.set(true);
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`before-1|<!--r:empty:1-->!after-1`);
+      expect(onError).toHaveBeenCalledTimes(1);
+      expect(onError).toHaveBeenLastCalledWith(expect.any(ReactError));
+    });
   });
 });

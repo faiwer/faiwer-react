@@ -3,6 +3,7 @@ import { validateApp } from './validateApp';
 import { collectActionsFromApp } from './collect/fromApp';
 import { postCommit } from './postCommit';
 import { applyActions } from './applyActions';
+import { ReactError } from './errors/ReactError';
 
 /**
  * Performs another rendering round. Once anything changes a component's state
@@ -28,10 +29,15 @@ export function reactRender(app: App, depth = 0) {
   if (app.testMode) validateApp(app);
 
   app.state = 'render';
-  const actions = collectActionsFromApp(app);
+  const actionsX = collectActionsFromApp(app);
+  if (actionsX instanceof ReactError) {
+    // Couldn't perform a subsequent render. No error boundary found or could
+    // manage this render error. Pass it through.
+    throw actionsX;
+  }
   if (app.testMode) validateApp(app);
 
-  applyActions(app, actions);
+  applyActions(app, actionsX);
   if (app.testMode) validateApp(app);
 
   postCommit(app, depth);

@@ -1,3 +1,4 @@
+import type { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 import type { CommentMode, UnknownProps } from './core';
 import type { TagAttrValue } from './dom';
 import type { FiberMap, FiberNode } from './fiber';
@@ -73,9 +74,14 @@ export type ScheduleEffectAction = CommonAction & {
   fn: () => void;
   mode: EffectMode;
 };
+export type CatchErrorAction = CommonAction & {
+  type: 'CatchError';
+  error: ReactError;
+};
 
 export type Action =
   | CreateAction
   | UpdateAction
   | LayoutAction
-  | ScheduleEffectAction;
+  | ScheduleEffectAction
+  | CatchErrorAction;

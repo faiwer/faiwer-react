@@ -12,6 +12,7 @@ import { replaceAction } from './replace.action';
 import { relayoutAction } from './relayout.action';
 import { createContainerAction } from './createContainer.action';
 import { scheduleEffectAction } from './scheduleEffect.action';
+import { catchErrorAction } from './catchError.action';
 
 /**
  * The commit phase of the rendering process contains two parts:
@@ -44,4 +45,5 @@ const actionHandlers: {
   Replace: replaceAction,
   Relayout: relayoutAction,
   ScheduleEffect: scheduleEffectAction,
+  CatchError: catchErrorAction,
 };
