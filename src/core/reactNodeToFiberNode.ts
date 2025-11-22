@@ -214,7 +214,7 @@ export const jsxElementToFiberNode = (
 };
 
 const childrenToNodes = (
-  fiber: FiberNode,
+  fiber: PortalFiberNode | TagFiberNode | FragmentFiberNode | ContextFiberNode,
   elements: JSX.Element[],
   unwrapComponents: boolean,
 ): ReactError | [FiberNode[], Action[]] => {
@@ -223,13 +223,8 @@ const childrenToNodes = (
 
   for (const childEl of elements) {
     const childX = jsxElementToFiberNode(childEl, fiber, unwrapComponents);
-    if (childX instanceof ReactError) {
-      if (isErrorBoundary(fiber)) {
-        throw new Error(`Not yet implemented`);
-      }
-      // No error boundary found. That means we should drop all its neighbors.
-      else return childX;
-    }
+    // `fiber` can't be a component here, thus it can't be an error boundary.
+    if (childX instanceof ReactError) return childX;
 
     const [node, childrenActions] = childX;
     children.push(node);

@@ -305,4 +305,47 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe(`before-1!<!--r:empty:1-->!1-after`);
     await expectDidCatch();
   });
+
+  it('catches an error caused by an own wrapped child', async () => {
+    const error = useStateX<boolean>();
+    const Parent = () => {
+      // Don't remove the <div/> wrapper.
+      return <div>{error.use(false) ? <Throw /> : 'okay'}</div>;
+    };
+
+    const root = mount(
+      <ErrorBoundary>
+        <Parent />
+      </ErrorBoundary>,
+    );
+    expectHtmlFull(root).toBe('<div>okay</div>');
+
+    await act(() => {
+      error.set(true);
+    });
+    await expectDidCatch();
+    expectHtmlFull(root).toBe('<!--r:empty:1-->');
+  });
+
+  it('catches an error caused by a new own wrapped child ', async () => {
+    const fork = useStateX<'tag' | 'comp'>();
+    const Parent = () =>
+      fork.use('tag') === 'tag' ? (
+        <b />
+      ) : (
+        <div>
+          <Throw />
+        </div>
+      );
+
+    const root = mount(
+      <ErrorBoundary>
+        <Parent />
+      </ErrorBoundary>,
+    );
+    expectHtmlFull(root).toBe(`<b></b>`);
+
+    await act(() => fork.set('comp'));
+    await expectDidCatch();
+  });
 });
