@@ -6,6 +6,7 @@ import {
   expectHtml,
   expectHtmlFull,
   mount,
+  useRerender,
   useStateX,
   waitFor,
 } from '../helpers';
@@ -184,4 +185,59 @@ describe('Error handling', () => {
       });
     });
   }
+
+  it(`skip rendering for components that will be removed`, async () => {
+    const onBeforeRender = jest.fn();
+    let renderBefore: () => void;
+    const Before = () => {
+      onBeforeRender();
+      renderBefore = useRerender();
+
+      return 'before!';
+    };
+
+    const onAfterRender = jest.fn();
+    let renderAfter: () => void;
+    const After = () => {
+      onAfterRender();
+      renderAfter = useRerender();
+
+      return '!after';
+    };
+
+    const error = useStateX<boolean>();
+    const Switch = () => {
+      if (error.use(false)) {
+        throw new Error('test');
+      }
+      return 'okay';
+    };
+
+    const root = mount(
+      <ErrorBoundary>
+        <Fragment key="before">
+          <Before />
+        </Fragment>
+        <Switch />
+        <Fragment key="after">
+          <After />
+        </Fragment>
+      </ErrorBoundary>,
+    );
+    expectHtmlFull(root).toBe(`before!okay!after`);
+    expect(onBeforeRender).toHaveBeenCalledTimes(1);
+    expect(onAfterRender).toHaveBeenCalledTimes(1);
+
+    await act(() => {
+      renderBefore();
+      error.set(true);
+      renderAfter();
+    });
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
+    });
+    expect(onBeforeRender).toHaveBeenCalledTimes(1);
+    expect(onAfterRender).toHaveBeenCalledTimes(1);
+  });
 });
