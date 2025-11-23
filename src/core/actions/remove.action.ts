@@ -16,12 +16,11 @@ export function removeAction(
   fiber: FiberNode,
   { immediate, last }: Pick<RemoveAction, 'immediate' | 'last'> = {},
 ) {
-  const lastChild = fiber.children.at(-1);
-  for (const child of fiber.children) {
+  for (const [idx, child] of fiber.children.entries()) {
     // Recursively remove all children before removing the parent node. This is
     // critical for components with effects - we must run cleanup effects
     // before removing their parent nodes.
-    removeAction(child, { immediate, last: child === lastChild });
+    removeAction(child, { immediate, last: idx === fiber.children.length - 1 });
   }
 
   if (fiber.type === 'component') {

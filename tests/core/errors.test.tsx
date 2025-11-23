@@ -14,6 +14,8 @@ import {
   createPortal,
   ErrorHandler,
   Fragment,
+  useEffect,
+  useLayoutEffect,
   useState,
   type ComponentFiberNode,
 } from 'faiwer-react';
@@ -61,6 +63,14 @@ describe('Error handling', () => {
   const ErrorBoundary = ({ children }: { children: JSX.Element }) => {
     useError(onError);
     return children;
+  };
+  const ErrorBoundaryX = ({ children }: { children: JSX.Element }) => {
+    const [error, setError] = useState<ReactError | null>(null);
+    useError((err) => {
+      onError(err);
+      setError(err as ReactError);
+    });
+    return error ? <code>{error.name}</code> : children;
   };
   const expectDidCatch = () =>
     waitFor(() => {
@@ -401,5 +411,125 @@ describe('Error handling', () => {
     await waitFor(() => {
       expectHtmlFull(root).toBe(`<code>ReactError</code>`);
     });
+  });
+
+  it('drops effects on error on mount', async () => {
+    const fn = jest.fn();
+
+    const Before = () => {
+      useLayoutEffect(() => {
+        fn();
+        return fn();
+      });
+      useEffect(() => {
+        fn();
+        return fn();
+      });
+      return <div ref={fn}>before</div>;
+    };
+
+    const After = () => {
+      fn();
+      useLayoutEffect(() => {
+        fn();
+        return fn();
+      });
+      useEffect(() => {
+        fn();
+        return fn();
+      });
+      return <div ref={fn}>after</div>;
+    };
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <Before />
+        <Throw />
+        <After />
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+    await waitFor(() => expectHtmlFull(root).toBe('<code>ReactError</code>'));
+    expect(fn).toHaveBeenCalledTimes(0);
+    await expectDidCatch();
+  });
+
+  it('drops effects on error on rerender', async () => {
+    const beforeFn = jest.fn();
+    const afterFn = jest.fn();
+    let rerenderBefore: () => void;
+    let rerenderAfter: () => void;
+
+    const Before = () => {
+      beforeFn('render');
+      rerenderBefore = useRerender();
+      useLayoutEffect(() => {
+        beforeFn('layout:b');
+        return () => beforeFn('layout:e');
+      });
+      useEffect(() => {
+        beforeFn('normal:b');
+        return () => beforeFn('normal:e');
+      });
+      return <div ref={(v) => beforeFn(`ref:${v ? 'b' : 'e'}`)}>before</div>;
+    };
+
+    const After = () => {
+      afterFn('render');
+      rerenderAfter = useRerender();
+      useLayoutEffect(() => {
+        afterFn('layout:b');
+        return () => afterFn('layout:e');
+      });
+      useEffect(() => {
+        afterFn('normal:b');
+        return () => afterFn('normal:e');
+      });
+      return <div ref={(v) => afterFn(`ref:${v ? 'b' : 'e'}`)}>after</div>;
+    };
+
+    const showErr = useStateX<boolean>();
+    const Switch = () => (showErr.use(false) ? <Throw /> : null);
+
+    const Comp = () => (
+      <ErrorBoundaryX>
+        <Before />
+        <Switch />
+        <After />
+      </ErrorBoundaryX>
+    );
+
+    const root = mount(<Comp />);
+    expectHtmlFull(root).toBe(
+      '<div>before</div><!--r:null:1--><div>after</div>',
+    );
+
+    await waitFor(() => {
+      for (const mock of [beforeFn, afterFn]) {
+        expect(mock.mock.calls.map((c) => c[0]).join(',')).toEqual(
+          `render,ref:b,layout:b,normal:b`,
+        );
+      }
+    });
+
+    await act(() => {
+      beforeFn.mockReset();
+      afterFn.mockReset();
+      // In this order we have the next sequence: Before -> Switch -> After.
+      showErr.set(true);
+      rerenderAfter();
+      rerenderBefore();
+    });
+
+    await waitFor(() => expectHtmlFull(root).toBe('<code>ReactError</code>'));
+    // expect(fn).toHaveBeenCalledTimes(0);
+    await expectDidCatch();
+    expect(beforeFn.mock.calls.map((c) => c[0]).join(',')).toEqual(
+      `render,layout:e,normal:e,ref:e`,
+    );
+    expect(afterFn.mock.calls.map((c) => c[0]).join(',')).toEqual(
+      `layout:e,normal:e,ref:e`,
+    );
   });
 });

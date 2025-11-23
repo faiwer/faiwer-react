@@ -3,6 +3,7 @@ import { removeAction } from './remove.action';
 import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
 import type { CatchErrorAction } from 'faiwer-react/types/actions';
+import { tryFixContainerType } from './relayout.action';
 
 /**
  * During the current render one of the components failed. This is the error
@@ -29,12 +30,14 @@ export function catchErrorAction(
 
   if (fiber.element) {
     // Not the 1st render. Nodes are mounted. Must be removed.
-    let last = fiber.children.at(-1);
-    for (const child of fiber.children) {
-      removeAction(child, { last: child === last });
+    for (const [idx, child] of fiber.children.entries()) {
+      removeAction(child, { last: idx === fiber.children.length - 1 });
     }
 
     fiber.children = [];
+    if (fiber.parent.type === 'component') {
+      tryFixContainerType(fiber.parent);
+    }
   }
   // else: fiber.children === [nullNode].
 }
