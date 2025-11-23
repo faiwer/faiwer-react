@@ -678,4 +678,11 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
     await waitFor(() => expectHtmlFull(root).toBe(`okay`));
   });
+
+  it.todo('componentDidCatch in class-components');
+  it.todo(`catch errors in onRef`);
+  it.todo(`catch errors in "componentDidCatch" handler`);
+  it.todo(`catch errors in useError handler`);
+  it.todo(`catch errors in layout & normal effects`);
+  it.todo(`catch errors in useImperativeHandle`);
 });
