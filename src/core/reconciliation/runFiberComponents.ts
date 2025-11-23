@@ -4,6 +4,7 @@ import { jsxElementToFiberNode } from '../reactNodeToFiberNode';
 import { createFiberNode, FAKE_CONTAINER_TAG, toFiberChildren } from './fibers';
 import { ReactError } from './errors/ReactError';
 import type { Action } from 'faiwer-react/types/actions';
+import { isErrorBoundary } from 'faiwer-react/hooks/useError';
 
 /**
  * By default we don't run all components. We run only those that were manually
@@ -42,14 +43,16 @@ export const runFiberComponents = (
         true /* run children-components recursively */,
       );
       if (childrenX instanceof ReactError) {
-        // `fiber` is not mounted yet, and it must have at least one child node.
-        const nullFiber: NullFiberNode = {
-          ...createFiberNode(fiber),
-          type: 'null',
-          parent: fiber,
-          props: null,
-        };
-        childrenX = [nullFiber, [childrenX.genCatchAction()!]];
+        if (isErrorBoundary(fiber)) {
+          // `fiber` is not mounted yet, and it must have at least one child node.
+          const nullFiber: NullFiberNode = {
+            ...createFiberNode(fiber),
+            type: 'null',
+            parent: fiber,
+            props: null,
+          };
+          childrenX = [nullFiber, [childrenX.genCatchAction()!]];
+        } else return childrenX;
       }
 
       const [child, childrenActions] = childrenX;

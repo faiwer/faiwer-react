@@ -4,6 +4,7 @@ import { scheduleEffect } from '../reconciliation/effects';
 import { getAppByFiber } from '../reconciliation/app';
 import type { CatchErrorAction } from 'faiwer-react/types/actions';
 import { tryFixContainerType } from './relayout.action';
+import { isFiberDead } from '../reconciliation/fibers';
 
 /**
  * During the current render one of the components failed. This is the error
@@ -15,15 +16,30 @@ export function catchErrorAction(
   fiber: FiberNode,
   { error }: Pick<CatchErrorAction, 'error'>,
 ) {
+  const app = getAppByFiber(fiber);
   scheduleEffect(
-    getAppByFiber(fiber),
+    app,
     () => {
-      const handlers = (fiber as ComponentFiberNode).data.hooks!.filter(
-        (h) => h.type === 'error',
-      );
+      const compFiber = fiber as ComponentFiberNode;
+      // Disable this node as an error boundary for one render cycle to avoid
+      // an eternal loop if the sequential render again leads to an error.
+      compFiber.data.isErrorBoundary = false;
+
+      const handlers = compFiber.data.hooks!.filter((h) => h.type === 'error');
       for (const { fn } of handlers) {
         fn(error);
       }
+
+      // Recover `isErrorBoundary` after a sucessful rerender.
+      scheduleEffect(
+        app,
+        () => {
+          if (!isFiberDead(compFiber)) {
+            compFiber.data.isErrorBoundary = true;
+          }
+        },
+        'afterActions',
+      );
     },
     'normal',
   );

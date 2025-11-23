@@ -532,4 +532,150 @@ describe('Error handling', () => {
       `layout:e,normal:e,ref:e`,
     );
   });
+
+  it(`doesn't reuse the same error boundary on repetitive error. mode="initial"`, async () => {
+    const onOuterError = jest.fn();
+    const onOuterRender = jest.fn();
+
+    const OuterBoundary = ({ children }: { children: JSX.Element }) => {
+      onOuterRender();
+      const [error, setError] = useState<ReactError | null>(null);
+      useError((err) => {
+        onOuterError(err);
+        setError(err as ReactError);
+      });
+      return error ? <code>{error.name}</code> : children;
+    };
+
+    const onInnerError = jest.fn();
+    const onInnerRender = jest.fn();
+
+    const InnerBoundary = ({ children }: { children: JSX.Element }) => {
+      onInnerRender();
+      const rerender = useRerender();
+      useError((err) => {
+        onInnerError(err);
+        rerender();
+      });
+      return children;
+    };
+
+    const root = mount(
+      <OuterBoundary>
+        <InnerBoundary>
+          <Throw />
+        </InnerBoundary>
+      </OuterBoundary>,
+    );
+    expectHtmlFull(root).toBe(`<!--r:null:1-->`);
+
+    await waitFor(() => {
+      expect(onInnerError.mock.calls).toEqual([[expect.any(ReactError)]]);
+      expect(onInnerRender).toHaveBeenCalledTimes(2);
+      expect(onOuterError).toHaveBeenCalledTimes(0);
+      expect(onOuterRender).toHaveBeenCalledTimes(1); // only initial.
+    });
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code>ReactError</code>');
+      expect(onInnerRender).toHaveBeenCalledTimes(2); // Still 2
+      expect(onOuterError).toHaveBeenCalledTimes(1);
+      expect(onOuterRender).toHaveBeenCalledTimes(2); // Got the 2nd error.
+    });
+  });
+
+  it(`doesn't reuse the same error boundary on repetitive error. mode="rerender"`, async () => {
+    const onOuterError = jest.fn();
+    const onOuterRender = jest.fn();
+
+    const OuterBoundary = ({ children }: { children: JSX.Element }) => {
+      onOuterRender();
+      const [error, setError] = useState<ReactError | null>(null);
+      useError((err) => {
+        onOuterError(err);
+        setError(err as ReactError);
+      });
+      return error ? <code>{error.name}</code> : children;
+    };
+
+    const onInnerError = jest.fn();
+    const onInnerRender = jest.fn();
+
+    const InnerBoundary = ({ children }: { children: JSX.Element }) => {
+      onInnerRender();
+      const rerender = useRerender();
+      useError((err) => {
+        onInnerError(err);
+        rerender();
+      });
+      return children;
+    };
+
+    const showError = useStateX<boolean>();
+    let globalErr = false;
+    const Switch = () =>
+      showError.use(false) || globalErr ? <Throw /> : 'okay';
+
+    const root = mount(
+      <OuterBoundary>
+        <InnerBoundary>
+          <Switch />
+        </InnerBoundary>
+      </OuterBoundary>,
+    );
+    expectHtmlFull(root).toBe(`okay`);
+
+    expect(onInnerRender).toHaveBeenCalledTimes(1);
+    expect(onOuterRender).toHaveBeenCalledTimes(1);
+
+    await act(() => {
+      globalErr = true;
+      showError.set(true);
+    });
+    expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
+
+    await waitFor(() => {
+      expect(onInnerError.mock.calls).toEqual([[expect.any(ReactError)]]);
+      expect(onInnerRender).toHaveBeenCalledTimes(2);
+      expect(onOuterError).toHaveBeenCalledTimes(0);
+      expect(onOuterRender).toHaveBeenCalledTimes(1); // only initial.
+    });
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code>ReactError</code>');
+      expect(onInnerRender).toHaveBeenCalledTimes(2); // Still 2
+      expect(onOuterError).toHaveBeenCalledTimes(1);
+      expect(onOuterRender).toHaveBeenCalledTimes(2); // Got the 2nd error.
+    });
+  });
+
+  it('gives an error boundary a 2nd chance', async () => {
+    const InnerBoundary = ({ children }: { children: JSX.Element }) => {
+      useError(useRerender()); // Just render it once more, hoping it won't fail again.
+      return children;
+    };
+
+    const showError = useStateX<boolean>();
+    // Each time <Switch/> is recreated it's off.
+    const Switch = () => (showError.use(false) ? <Throw /> : 'okay');
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <InnerBoundary>
+          <Switch />
+        </InnerBoundary>
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe(`okay`);
+
+    // Break the <Switch/>.
+    await act(() => showError.set(true));
+    expectHtmlFull(root).toBe(`<!--r:empty:1-->`); // Step 1.
+    await waitFor(() => expectHtmlFull(root).toBe(`okay`)); // Sucessful rerender.
+
+    // Repeat this trick again.
+    await act(() => showError.set(true));
+    expectHtmlFull(root).toBe(`<!--r:empty:1-->`);
+    await waitFor(() => expectHtmlFull(root).toBe(`okay`));
+  });
 });
