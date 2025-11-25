@@ -55,7 +55,14 @@ export type App = {
   /** The current stage of the app rendering cycle. */
   state: AppState;
   /** The lists of pending effect handlers. */
-  effects: Record<EffectMode, Array<() => void>>;
+  effects: Record<
+    EffectMode,
+    Array<{
+      fn: (fiber: FiberNode) => void;
+      fiber: FiberNode;
+      cancelled: boolean;
+    }>
+  >;
   /** The list of components to rerender. */
   invalidatedComponents: Queue;
   /** If `true`, extra validators are applied. */

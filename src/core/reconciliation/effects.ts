@@ -10,10 +10,10 @@ import { getAppByFiber } from './app';
  */
 export const scheduleEffect = (
   fiber: FiberNode,
-  effect: () => void,
+  fn: () => void,
   mode: EffectMode,
 ): void => {
-  getAppByFiber(fiber).effects[mode].push(effect);
+  getAppByFiber(fiber).effects[mode].push({ fiber, fn, cancelled: false });
 };
 
 /**
@@ -23,7 +23,9 @@ export const runEffects = (app: App, mode: EffectMode) => {
   const effects = app.effects[mode];
   app.effects[mode] = [];
 
-  for (const fn of effects) {
-    fn();
+  for (const { fn, fiber, cancelled } of effects) {
+    if (!cancelled) {
+      fn(fiber);
+    }
   }
 };
