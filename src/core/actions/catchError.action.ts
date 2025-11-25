@@ -43,15 +43,19 @@ export function catchErrorAction(
   );
 
   if (fiber.element) {
-    // Not the 1st render. Nodes are mounted. Must be removed.
-    for (const [idx, child] of fiber.children.entries()) {
-      removeAction(child, { last: idx === fiber.children.length - 1 });
-    }
-
-    fiber.children = [];
-    if (fiber.parent.type === 'component') {
-      tryFixContainerType(fiber.parent);
-    }
+    killChildrenOnError(fiber);
   }
   // else: fiber.children === [nullNode].
 }
+
+const killChildrenOnError = (fiber: FiberNode) => {
+  // Not the 1st render. Nodes are mounted. Must be removed.
+  for (const [idx, child] of fiber.children.entries()) {
+    removeAction(child, { last: idx === fiber.children.length - 1 });
+  }
+
+  fiber.children = [];
+  if (fiber.parent.type === 'component') {
+    tryFixContainerType(fiber.parent);
+  }
+};

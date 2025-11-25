@@ -679,6 +679,66 @@ describe('Error handling', () => {
     await waitFor(() => expectHtmlFull(root).toBe(`okay`));
   });
 
+  it(`catches errors in layout effects: mode=mount`, async () => {
+    const goodie = {
+      layout: {
+        mount: jest.fn(),
+        unmount: jest.fn(),
+      },
+      normal: {
+        mount: jest.fn(),
+        unmount: jest.fn(),
+      },
+      ref: {
+        mount: jest.fn(),
+        unmount: jest.fn(),
+      },
+    };
+
+    const Goodie = () => {
+      useLayoutEffect(() => {
+        goodie.layout.mount();
+        return goodie.layout.unmount();
+      });
+      useEffect(() => {
+        goodie.normal.mount();
+        return goodie.normal.unmount;
+      });
+      return <br ref={(v) => goodie.ref[v ? 'mount' : 'unmount'](v)} />;
+    };
+
+    const Baddie = () => {
+      useLayoutEffect(() => {
+        throw new Error(`test`);
+      });
+      return 42;
+    };
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <Goodie />
+        <Baddie />
+        <Goodie />
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('<!--r:empty:1-->');
+    await expectDidCatch();
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+    });
+
+    expect(goodie.normal.mount).toHaveBeenCalledTimes(0);
+    // No effects installed = no destructors run.
+    expect(goodie.normal.unmount).toHaveBeenCalledTimes(0);
+
+    // The 1st <Goodie/> manages to run its effect before <Baddie/> fails.
+    expect(goodie.layout.mount).toHaveBeenCalledTimes(1);
+    expect(goodie.layout.unmount).toHaveBeenCalledTimes(1);
+    // Refs are called before layout hooks. So both <Goodie/>s get it.
+    expect(goodie.ref.mount).toHaveBeenCalledTimes(2);
+    expect(goodie.ref.unmount).toHaveBeenCalledTimes(2);
+  });
+
   it.todo('componentDidCatch in class-components');
   it.todo(`catch errors in onRef`);
   it.todo(`catch errors in "componentDidCatch" handler`);
