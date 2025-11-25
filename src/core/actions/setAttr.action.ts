@@ -6,7 +6,6 @@ import { setTagStyles } from './dom/css';
 import { setEventHandler } from './dom/events';
 import { setHtmlAttribute } from './dom/attributes';
 import { changeControlValue, setValueAttr } from './dom/value';
-import { getAppByFiber } from '../reconciliation/app';
 import {
   nullthrowsForFiber,
   ReactError,
@@ -36,7 +35,7 @@ export function setAttrAction(
     setValueAttr(fiber, name, value);
   } else if (name === 'defaultChecked' && element instanceof HTMLInputElement) {
     if (creation) {
-      changeControlValue(getAppByFiber(fiber), element, 'checked', value);
+      changeControlValue(fiber, element, 'checked', value);
     }
   } else if (
     name === 'defaultValue' &&
@@ -45,7 +44,7 @@ export function setAttrAction(
       element instanceof HTMLSelectElement)
   ) {
     if (creation) {
-      changeControlValue(getAppByFiber(fiber), element, 'value', value);
+      changeControlValue(fiber, element, 'value', value);
     }
   } else if (isEventName(name) || name in fiber.data.events) {
     setEventHandler(fiber, element, name, value);

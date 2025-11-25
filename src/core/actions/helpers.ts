@@ -10,7 +10,6 @@ import {
 } from '../compact';
 import { isFiberDead, NULL_FIBER } from '../reconciliation/fibers';
 import { scheduleEffect } from '../reconciliation/effects';
-import { getAppByFiber } from '../reconciliation/app';
 import {
   nullthrowsForFiber,
   ReactError,
@@ -146,7 +145,7 @@ export const unsetRef = (fiber: TagFiberNode, immediate: boolean): void => {
       // shouldn't allow invalidating components during commit phase we need
       // to schedule an async update.
       scheduleEffect(
-        getAppByFiber(fiber),
+        fiber,
         () => {
           ref(null);
         },

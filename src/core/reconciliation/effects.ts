@@ -1,4 +1,5 @@
-import type { App, EffectMode } from 'faiwer-react/types';
+import type { App, EffectMode, FiberNode } from 'faiwer-react/types';
+import { getAppByFiber } from './app';
 
 /**
  * Adds to a planner the given effect.
@@ -8,11 +9,11 @@ import type { App, EffectMode } from 'faiwer-react/types';
  *   invalidates a component).
  */
 export const scheduleEffect = (
-  app: App,
+  fiber: FiberNode,
   effect: () => void,
   mode: EffectMode,
 ): void => {
-  app.effects[mode].push(effect);
+  getAppByFiber(fiber).effects[mode].push(effect);
 };
 
 /**

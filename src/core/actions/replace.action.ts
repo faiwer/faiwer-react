@@ -8,6 +8,7 @@ import type { ReplaceAction } from 'faiwer-react/types/actions';
 import { getFiberDomNodes } from './helpers';
 import { removeAction } from './remove.action';
 import { nullthrowsForFiber } from '../reconciliation/errors/ReactError';
+import { updateValueStore } from './dom/value';
 
 /**
  * Handles fiber replacement when a component with the same key renders a
@@ -66,6 +67,8 @@ const displaceFiber = (before: FiberNode, after: FiberNode): void => {
     moveHooks(before, after);
   } else if (after.role === 'context') {
     updateContext(before, after);
+  } else if (after.type === 'tag') {
+    updateValueStore(before);
   }
 
   // For debug purposes mark dead nodes with a negative number.

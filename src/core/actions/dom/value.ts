@@ -1,7 +1,12 @@
 import { getAppByFiber } from 'faiwer-react/core/reconciliation/app';
 import { scheduleEffect } from 'faiwer-react/core/reconciliation/effects';
 import { nullthrowsForFiber } from 'faiwer-react/core/reconciliation/errors/ReactError';
-import type { App, TagAttrValue, TagFiberNode } from 'faiwer-react/types';
+import type {
+  App,
+  FiberNode,
+  TagAttrValue,
+  TagFiberNode,
+} from 'faiwer-react/types';
 
 const stores = new WeakMap<Element, Store>();
 
@@ -29,7 +34,7 @@ export const setValueAttr = (
   const { events } = fiber.data;
 
   if (!events[VALUE_EVENT]) {
-    const store = setUpStore(app, element, attrName);
+    const store = setUpStore(fiber, element, attrName);
 
     const onInput = createOnInputHandler(
       app,
@@ -59,14 +64,22 @@ export const setValueAttr = (
 const VALUE_EVENT = 'x:input';
 
 const setUpStore = (
-  app: App,
+  fiber: FiberNode,
   element: FormControl,
   attrName: 'value' | 'checked',
 ): Store => {
   const store: Store = {
+    fiber,
     prev: null,
     cursor: null,
-    set: changeControlValue.bind(null, app, element, attrName),
+    set: (valueRaw: unknown, restoreCursor?: boolean) =>
+      changeControlValue(
+        store.fiber,
+        element,
+        attrName,
+        valueRaw,
+        restoreCursor,
+      ),
   };
 
   stores.set(element, store);
@@ -74,7 +87,7 @@ const setUpStore = (
 };
 
 export const changeControlValue = (
-  app: App,
+  fiber: FiberNode,
   element: FormControl,
   attrName: 'checked' | 'value',
   valueRaw: unknown,
@@ -83,7 +96,7 @@ export const changeControlValue = (
   const value = toNativeValue(attrName, valueRaw);
 
   if (element instanceof HTMLSelectElement) {
-    setSelectValue(app, element, value);
+    setSelectValue(fiber, element, value);
     return;
   }
 
@@ -121,7 +134,7 @@ const createOnInputHandler = (
       element.name
     ) {
       // Radio buttons require special group-based handling
-      onRadioClick(app, element);
+      onRadioClick(app, store.fiber, element);
       return;
     }
 
@@ -129,7 +142,7 @@ const createOnInputHandler = (
     if (store.prev == null) return; // Uncontrolled component - allow changes
     if (store.prev === newValue) return; // No actual change occurred
 
-    scheduleResetValueEffect(app, () => {
+    scheduleResetValueEffect(store.fiber, () => {
       // The following render could make the control uncontrolled. In such a
       // case we shouldn't restore the value. Now it's in free flight.
       if (store.prev == null) return;
@@ -164,8 +177,12 @@ const createOnInputHandler = (
  * radio buttons in the group must have "checked=false", even if they don't
  * explicitly define a "checked" attribute (React assumes they do).
  */
-const onRadioClick = (app: App, element: HTMLInputElement): void => {
-  scheduleResetValueEffect(app, () => {
+const onRadioClick = (
+  app: App,
+  fiber: FiberNode,
+  element: HTMLInputElement,
+): void => {
+  scheduleResetValueEffect(fiber, () => {
     // Find all radio buttons in the same group (same name within the form)
     const form = element.closest('form') ?? (app.root.element as HTMLElement);
     const radios = form.querySelectorAll(`input[type="radio"]`);
@@ -208,6 +225,7 @@ const toNativeValue = (
         : String(newValue);
 
 type Store = {
+  fiber: FiberNode;
   /** The value from the user's React code */
   prev: TagAttrValue;
   /** Original DOM setter method before our override */
@@ -225,7 +243,7 @@ type Store = {
  * where the new value hasn't been reset yet. This function ensures the callback
  * runs at the appropriate time to restore the controlled value.
  */
-const scheduleResetValueEffect = (app: App, fn: () => void) => {
+const scheduleResetValueEffect = (fiber: FiberNode, fn: () => void) => {
   let executed = false;
 
   requestAnimationFrame(() => {
@@ -236,7 +254,7 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
   });
 
   scheduleEffect(
-    app,
+    fiber,
     () => {
       if (!executed) {
         executed = true;
@@ -258,14 +276,14 @@ const scheduleResetValueEffect = (app: App, fn: () => void) => {
  * for each of the <option/>s.
  */
 const setSelectValue = (
-  app: App,
+  fiber: FiberNode,
   element: HTMLSelectElement,
   value: unknown,
 ): void => {
   // Unfortunately, we can't do it right away, because:
   // 1. on the 1st render we have no inner options here yet
   // 2. on subsequent render the inner options may not be fully updated yet.
-  scheduleResetValueEffect(app, () => {
+  scheduleResetValueEffect(fiber, () => {
     const arr = Array.isArray(value) ? value : [value];
     const set = new Set(arr.map((v) => String(v)));
     for (const option of element.options) {
@@ -278,3 +296,10 @@ const setSelectValue = (
 };
 
 type FormControl = HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+
+export const updateValueStore = (fiber: FiberNode): void => {
+  const store = stores.get(fiber.element as Element);
+  if (store) {
+    store.fiber = fiber;
+  }
+};

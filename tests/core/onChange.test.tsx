@@ -2,6 +2,7 @@ import { nullthrows } from 'faiwer-react/utils';
 import {
   actAndWaitRAF,
   expectHtml,
+  expectHtmlFull,
   mount,
   useRerender,
   useStateX,
@@ -408,6 +409,32 @@ describe('value &| onChange', () => {
 
       await act(() => revision.set(2));
       expect(get(control, valueProp)).toBe(newVal2); // should be intact
+    });
+
+    it(`${PRE}: can be mount and unmount dynamically`, async () => {
+      const show = useStateX<boolean>();
+      const values =
+        valueProp === 'checked'
+          ? { initial: true, changed: false }
+          : { initial: '42', changed: '12' };
+      const Comp = () => {
+        return show.use(false) ? (
+          <Tag type={inputType} {...{ [valueProp]: values.initial }} />
+        ) : null;
+      };
+      const root = mount(<Comp />);
+      expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+      await act(() => show.set(true));
+      checkHtml(root);
+      const control = root.querySelector(Tag)!;
+      expect(get(control, valueProp)).toBe(values.initial);
+
+      await act(() => changeByUser(control, valueProp, values.changed));
+      expect(get(control, valueProp)).toBe(values.changed);
+
+      await act(() => show.set(false));
+      expectHtmlFull(root).toBe('<!--r:null:1-->');
     });
   }
 
