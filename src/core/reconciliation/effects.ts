@@ -36,6 +36,10 @@ export const runEffects = (app: App, mode: EffectMode) => {
     try {
       fn(fiber);
     } catch (errorRaw: unknown) {
+      if (mode === 'refsMount') {
+        fiber.ref = null; // Don't run the ref-destructor for this fiber.
+      }
+
       const error = new ReactError(
         fiber,
         `Error during running effect. ${String(errorRaw)}`,

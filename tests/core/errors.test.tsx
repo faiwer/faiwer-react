@@ -679,22 +679,22 @@ describe('Error handling', () => {
     await waitFor(() => expectHtmlFull(root).toBe(`okay`));
   });
 
-  it(`catches errors in layout effects: mode=mount`, async () => {
-    const goodie = {
-      layout: {
-        mount: jest.fn(),
-        unmount: jest.fn(),
-      },
-      normal: {
-        mount: jest.fn(),
-        unmount: jest.fn(),
-      },
-      ref: {
-        mount: jest.fn(),
-        unmount: jest.fn(),
-      },
-    };
+  const goodie = {
+    layout: {
+      mount: jest.fn(),
+      unmount: jest.fn(),
+    },
+    normal: {
+      mount: jest.fn(),
+      unmount: jest.fn(),
+    },
+    ref: {
+      mount: jest.fn(),
+      unmount: jest.fn(),
+    },
+  };
 
+  it(`catches errors in layout effects: mode=mount`, async () => {
     const Goodie = () => {
       useLayoutEffect(() => {
         goodie.layout.mount();
@@ -737,6 +737,104 @@ describe('Error handling', () => {
     // Refs are called before layout hooks. So both <Goodie/>s get it.
     expect(goodie.ref.mount).toHaveBeenCalledTimes(2);
     expect(goodie.ref.unmount).toHaveBeenCalledTimes(2);
+  });
+
+  it(`catches errors in normal effects: mode=mount`, async () => {
+    const Goodie = () => {
+      useLayoutEffect(() => {
+        goodie.layout.mount();
+        return goodie.layout.unmount();
+      });
+      useEffect(() => {
+        goodie.normal.mount();
+        return goodie.normal.unmount;
+      });
+      return <br ref={(v) => goodie.ref[v ? 'mount' : 'unmount'](v)} />;
+    };
+
+    const Baddie = () => {
+      useEffect(() => {
+        throw new Error(`test`);
+      });
+      return 42;
+    };
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <Goodie />
+        <Baddie />
+        <Goodie />
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('<br>42<br>');
+    await expectDidCatch();
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+    });
+
+    expect(goodie.normal.mount).toHaveBeenCalledTimes(1);
+    // Only the 1st one manages to run the normal effect.
+    expect(goodie.normal.unmount).toHaveBeenCalledTimes(1);
+
+    // Since normal effects are run before normal effects both goodies did it.
+    expect(goodie.layout.mount).toHaveBeenCalledTimes(2);
+    expect(goodie.layout.unmount).toHaveBeenCalledTimes(2);
+    // It's the same with refs.
+    expect(goodie.ref.mount).toHaveBeenCalledTimes(2);
+    expect(goodie.ref.unmount).toHaveBeenCalledTimes(2);
+  });
+
+  it(`catches errors in ref effects: mode=mount`, async () => {
+    const Goodie = () => {
+      useLayoutEffect(() => {
+        goodie.layout.mount();
+        return goodie.layout.unmount();
+      });
+      useEffect(() => {
+        goodie.normal.mount();
+        return goodie.normal.unmount;
+      });
+      return <br ref={(v) => goodie.ref[v ? 'mount' : 'unmount'](v)} />;
+    };
+
+    const Baddie = () => {
+      useEffect(() => {
+        throw new Error(`test`);
+      });
+      return (
+        <div
+          ref={() => {
+            throw new Error('test');
+          }}
+        />
+      );
+    };
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <Goodie />
+        <Baddie />
+        <Goodie />
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('<!--r:empty:1-->');
+    await expectDidCatch();
+    await waitFor(() => {
+      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+    });
+
+    // Since normal & layout effects are set after ref effects we have none.
+    // Note: In origin React refs & layout effects might have random order.
+    expect(goodie.normal.mount).toHaveBeenCalledTimes(0);
+    expect(goodie.normal.unmount).toHaveBeenCalledTimes(0);
+    expect(goodie.layout.mount).toHaveBeenCalledTimes(0);
+    expect(goodie.layout.unmount).toHaveBeenCalledTimes(0);
+    // the 1st <Goodie/> managed to get it.
+    expect(goodie.ref.mount).toHaveBeenCalledTimes(1);
+    // We call it for the 2nd <Goodie/> in vain, because it wasn't called with
+    // the positive value before. But it's not a big deal. The origin React
+    // runs even more effects in vain in this test.
+    expect(goodie.ref.unmount.mock.calls.length).toBeGreaterThan(1);
   });
 
   it.todo('componentDidCatch in class-components');
