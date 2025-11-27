@@ -36,7 +36,7 @@ export const runEffects = (app: App, mode: EffectMode) => {
     try {
       fn(fiber);
     } catch (errorRaw: unknown) {
-      if (mode === 'refsMount') {
+      if (mode === 'refsMount' || mode === 'refsUnmount') {
         fiber.ref = null; // Don't run the ref-destructor for this fiber.
       }
 

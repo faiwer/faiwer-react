@@ -846,7 +846,6 @@ describe('Error handling', () => {
         rerender[pos] = useRerender();
         goodie.render();
         useLayoutEffect(() => {
-          console.log('G-LE', pos);
           goodie.layout.mount();
           return goodie.layout.unmount();
         });
@@ -863,7 +862,6 @@ describe('Error handling', () => {
 
         if (mode !== 'ref') {
           (mode === 'normal' ? useEffect : useLayoutEffect)(() => {
-            console.log('B-LE');
             if (throwErrValue) {
               throw new Error(`test`);
             }
@@ -893,9 +891,9 @@ describe('Error handling', () => {
       expectHtmlFull(root).toBe('<br><div></div><br>');
 
       await act(() => {
-        throwErr.set(true); // 3
-        rerender.before!(); // 1
-        rerender.after!(); // 2
+        throwErr.set(true);
+        rerender.before!();
+        rerender.after!();
       });
       await expectDidCatch();
       await waitFor(() => {
@@ -932,10 +930,106 @@ describe('Error handling', () => {
     });
   }
 
+  for (const mode of ['layout', 'normal', 'ref']) {
+    it(`catches errors in the destructors of ${mode} effects: mode=rerender`, async () => {
+      const rerender: Partial<Record<'before' | 'after', () => void>> = {};
+      let globalThrow = false;
+
+      const Goodie = ({ pos }: { pos: keyof typeof rerender }) => {
+        rerender[pos] = useRerender();
+        goodie.render();
+        useLayoutEffect(() => {
+          goodie.layout.mount();
+          return goodie.layout.unmount();
+        });
+        useEffect(() => {
+          goodie.normal.mount();
+          return goodie.normal.unmount;
+        });
+        return <br ref={(v) => goodie.ref[v ? 'mount' : 'unmount'](v)} />;
+      };
+
+      let baddieRerender: () => void;
+      const Baddie = () => {
+        baddieRerender = useRerender();
+
+        if (mode !== 'ref') {
+          (mode === 'normal' ? useEffect : useLayoutEffect)(() => () => {
+            if (globalThrow) {
+              throw new Error(`test`);
+            }
+          });
+        }
+
+        return (
+          <div
+            ref={
+              mode === 'ref'
+                ? (v) => {
+                    if (globalThrow && !v) throw new Error('test');
+                  }
+                : undefined
+            }
+          />
+        );
+      };
+
+      const root = mount(
+        <ErrorBoundaryX>
+          <Goodie pos="before" />
+          <Baddie />
+          <Goodie pos="after" />
+        </ErrorBoundaryX>,
+      );
+      expectHtmlFull(root).toBe('<br><div></div><br>');
+
+      await act(() => {
+        globalThrow = true;
+        baddieRerender();
+        rerender.before!();
+        rerender.after!();
+      });
+      await expectDidCatch();
+      await waitFor(() => {
+        expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+      });
+      expect(goodie.render).toHaveBeenCalledTimes(4); // two renders for both.
+
+      if (mode === 'layout') {
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(2); // only 1st render
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
+
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(3); // Only 1 <Goodie/>
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(3);
+        // Refs are called before layout hooks. So both <Goodie/>s get it twice.
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.unmount).toHaveBeenCalledTimes(4);
+      } else if (mode === 'normal') {
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(3); // only one <Goodie/>
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(3);
+        // Refs & layout effects are called before normal hooks.
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.unmount).toHaveBeenCalledTimes(4);
+      } else {
+        // We run unref-effects before ref-effects, so we don't run any set-ref
+        // effects in the 2nd render.
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(2);
+        // For both <Goodie/>s:
+        expect(goodie.ref.unmount.mock.calls.length).toBeGreaterThan(2);
+        // layout & normal effects are set up after ref effects.
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(2);
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(2);
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(2);
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
+      }
+    });
+  }
+
   it.todo('componentDidCatch in class-components');
   it.todo(`catch errors in "componentDidCatch" handler`);
   it.todo(`catch errors in useError handler`);
-  it.todo(`catch errors in destroy part of ref, layout & normal effects`);
   it.todo(`catch errors in useImperativeHandle`);
   it.todo(`doesn't throw on setState in ref destructors`);
 });

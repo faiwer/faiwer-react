@@ -116,8 +116,12 @@ export const useLayoutEffect = (
 };
 
 const runEffect = (item: UseEffectItem): void => {
-  item.destructor?.();
+  const destructor = item.destructor;
+  // Clear it before running to avoid double-calling in the case of an error.
+  // "Remove" action would try to call it again, because it calls all fiber's
+  // hook destructors.
   item.destructor = null;
+  destructor?.();
 
   const controller = new AbortController();
   const result = item.fn(controller.signal);
