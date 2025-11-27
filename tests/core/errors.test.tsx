@@ -680,6 +680,7 @@ describe('Error handling', () => {
   });
 
   const goodie = {
+    render: jest.fn(),
     layout: {
       mount: jest.fn(),
       unmount: jest.fn(),
@@ -837,10 +838,104 @@ describe('Error handling', () => {
     expect(goodie.ref.unmount.mock.calls.length).toBeGreaterThan(1);
   });
 
+  for (const mode of ['normal', 'layout', 'ref']) {
+    it(`catches errors in ${mode} effects: mode=rerender`, async () => {
+      const rerender: Partial<Record<'before' | 'after', () => void>> = {};
+
+      const Goodie = ({ pos }: { pos: keyof typeof rerender }) => {
+        rerender[pos] = useRerender();
+        goodie.render();
+        useLayoutEffect(() => {
+          console.log('G-LE', pos);
+          goodie.layout.mount();
+          return goodie.layout.unmount();
+        });
+        useEffect(() => {
+          goodie.normal.mount();
+          return goodie.normal.unmount;
+        });
+        return <br ref={(v) => goodie.ref[v ? 'mount' : 'unmount'](v)} />;
+      };
+
+      const throwErr = useStateX<boolean>();
+      const Baddie = () => {
+        const throwErrValue = throwErr.use(false);
+
+        if (mode !== 'ref') {
+          (mode === 'normal' ? useEffect : useLayoutEffect)(() => {
+            console.log('B-LE');
+            if (throwErrValue) {
+              throw new Error(`test`);
+            }
+          });
+        }
+
+        return (
+          <div
+            ref={
+              mode === 'ref'
+                ? () => {
+                    if (throwErrValue) throw new Error('test');
+                  }
+                : undefined
+            }
+          />
+        );
+      };
+
+      const root = mount(
+        <ErrorBoundaryX>
+          <Goodie pos="before" />
+          <Baddie />
+          <Goodie pos="after" />
+        </ErrorBoundaryX>,
+      );
+      expectHtmlFull(root).toBe('<br><div></div><br>');
+
+      await act(() => {
+        throwErr.set(true); // 3
+        rerender.before!(); // 1
+        rerender.after!(); // 2
+      });
+      await expectDidCatch();
+      await waitFor(() => {
+        expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+      });
+      expect(goodie.render).toHaveBeenCalledTimes(4); // two renders for both.
+
+      if (mode === 'layout') {
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(2); // only 1st render
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
+
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(3); // Only 1 <Goodie/>
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(3);
+        // Refs are called before layout hooks. So both <Goodie/>s get it twice.
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.unmount).toHaveBeenCalledTimes(4);
+      } else if (mode === 'normal') {
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(3); // only one <Goodie/>
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(3);
+        // Refs & layout effects are called before normal hooks.
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(4);
+        expect(goodie.ref.unmount).toHaveBeenCalledTimes(4);
+      } else {
+        expect(goodie.ref.mount).toHaveBeenCalledTimes(3); // Only for 1 <Goodie/>
+        expect(goodie.ref.unmount.mock.calls.length).toBeGreaterThan(2);
+        // layout & normal effects are set up after ref effects.
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(2);
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(2);
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(2);
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
+      }
+    });
+  }
+
   it.todo('componentDidCatch in class-components');
-  it.todo(`catch errors in onRef`);
   it.todo(`catch errors in "componentDidCatch" handler`);
   it.todo(`catch errors in useError handler`);
-  it.todo(`catch errors in layout & normal effects`);
+  it.todo(`catch errors in destroy part of ref, layout & normal effects`);
   it.todo(`catch errors in useImperativeHandle`);
+  it.todo(`doesn't throw on setState in ref destructors`);
 });
