@@ -75,7 +75,7 @@ describe('Error handling', () => {
       onError(err);
       setError(err as ReactError);
     });
-    return error ? <code>{error.name}</code> : children;
+    return error ? <code id="outer">{error.name}</code> : children;
   };
   const expectDidCatch = () =>
     waitFor(() => {
@@ -455,7 +455,9 @@ describe('Error handling', () => {
     );
     expectHtmlFull(root).toBe('<!--r:null:1-->');
 
-    await waitFor(() => expectHtmlFull(root).toBe('<code>ReactError</code>'));
+    await waitFor(() =>
+      expectHtmlFull(root).toBe('<code id="outer">ReactError</code>'),
+    );
     expect(fn).toHaveBeenCalledTimes(0);
     await expectDidCatch();
   });
@@ -527,7 +529,9 @@ describe('Error handling', () => {
       rerenderBefore();
     });
 
-    await waitFor(() => expectHtmlFull(root).toBe('<code>ReactError</code>'));
+    await waitFor(() =>
+      expectHtmlFull(root).toBe('<code id="outer">ReactError</code>'),
+    );
     // expect(fn).toHaveBeenCalledTimes(0);
     await expectDidCatch();
     expect(beforeFn.mock.calls.map((c) => c[0]).join(',')).toEqual(
@@ -730,7 +734,7 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe('<!--r:empty:1-->');
     await expectDidCatch();
     await waitFor(() => {
-      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+      expectHtmlFull(root).toBe(`<code id="outer">ReactError</code>`);
     });
 
     expect(goodie.normal.mount).toHaveBeenCalledTimes(0);
@@ -775,7 +779,7 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe('<br>42<br>');
     await expectDidCatch();
     await waitFor(() => {
-      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+      expectHtmlFull(root).toBe(`<code id="outer">ReactError</code>`);
     });
 
     expect(goodie.normal.mount).toHaveBeenCalledTimes(1);
@@ -826,7 +830,7 @@ describe('Error handling', () => {
     expectHtmlFull(root).toBe('<!--r:empty:1-->');
     await expectDidCatch();
     await waitFor(() => {
-      expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+      expectHtmlFull(root).toBe(`<code id="outer">ReactError</code>`);
     });
 
     // Since normal & layout effects are set after ref effects we have none.
@@ -902,7 +906,7 @@ describe('Error handling', () => {
       });
       await expectDidCatch();
       await waitFor(() => {
-        expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+        expectHtmlFull(root).toBe(`<code id="outer">ReactError</code>`);
       });
       expect(goodie.render).toHaveBeenCalledTimes(4); // two renders for both.
 
@@ -996,7 +1000,7 @@ describe('Error handling', () => {
       });
       await expectDidCatch();
       await waitFor(() => {
-        expectHtmlFull(root).toBe(`<code>ReactError</code>`);
+        expectHtmlFull(root).toBe(`<code id="outer">ReactError</code>`);
       });
       expect(goodie.render).toHaveBeenCalledTimes(4); // two renders for both.
 
