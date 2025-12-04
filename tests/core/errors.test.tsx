@@ -11,6 +11,7 @@ import {
   waitFor,
 } from '../helpers';
 import {
+  Component,
   createPortal,
   ErrorHandler,
   Fragment,
@@ -1027,9 +1028,61 @@ describe('Error handling', () => {
     });
   }
 
-  it.todo('componentDidCatch in class-components');
+  class ClassBoundary extends Component<
+    { children: JSX.Element },
+    { error: ReactError | null }
+  > {
+    state: { error: ReactError | null } = { error: null };
+    componentDidCatch(error: unknown): void {
+      onError(error);
+      this.setState({ error: error as ReactError });
+    }
+    render() {
+      return this.state.error ? (
+        <code>{this.state.error.name}</code>
+      ) : (
+        this.props.children
+      );
+    }
+  }
+
+  it('componentDidCatch catches errors on initial mount', async () => {
+    const root = mount(
+      <ClassBoundary>
+        <Throw />
+      </ClassBoundary>,
+    );
+    expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code>ReactError</code>');
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
+  it(`class components doen't catch errors if componentDidCatch is not given`, async () => {
+    class Comp extends Component<{ children: JSX.Element }> {
+      render = () => this.props.children;
+    }
+
+    const root = mount(
+      <ClassBoundary>
+        <Comp>
+          <Throw />
+        </Comp>
+      </ClassBoundary>,
+    );
+    expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code>ReactError</code>');
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
   it.todo(`catch errors in "componentDidCatch" handler`);
   it.todo(`catch errors in useError handler`);
   it.todo(`catch errors in useImperativeHandle`);
   it.todo(`doesn't throw on setState in ref destructors`);
+  it.todo(`pass the info params`);
 });

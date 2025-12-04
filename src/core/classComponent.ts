@@ -13,6 +13,7 @@ import type {
 } from 'faiwer-react/types';
 import { getCurrentComponentFiber } from './components';
 import { ReactError } from './reconciliation/errors/ReactError';
+import { useError } from 'faiwer-react/hooks/useError';
 
 export const isComponentClass = (value: unknown): value is ComponentClass => {
   return (
@@ -73,9 +74,7 @@ export class Component<
     );
   }
 
-  componentDidCatch(_error: unknown, _info: unknown): void {
-    throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
-  }
+  componentDidCatch(_error: unknown, _info?: unknown): void {}
 
   getSnapshotBeforeUpdate(_prevProps: unknown, _prevState: unknown): unknown {
     throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
@@ -85,6 +84,8 @@ export class Component<
     return {};
   }
 }
+
+const ComponentPrototype = Component.prototype;
 
 /**
  * Since we're running `convertClassComponentToFC` for the same component each
@@ -182,6 +183,9 @@ export const convertClassComponentToFC = <
       ...props,
     };
     instance.state = state;
+    if (instance.componentDidCatch !== ComponentPrototype.componentDidCatch) {
+      useError((error) => instance.componentDidCatch(error));
+    }
 
     if (!ref.mounted || instance.shouldComponentUpdate(props, instance.state)) {
       ref.prevOutput = instance.render();
