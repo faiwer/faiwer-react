@@ -183,6 +183,7 @@ export const convertClassComponentToFC = <
       ...props,
     };
     instance.state = state;
+
     if (instance.componentDidCatch !== ComponentPrototype.componentDidCatch) {
       useError((error) => instance.componentDidCatch(error));
     }

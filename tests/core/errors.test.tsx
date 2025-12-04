@@ -1060,6 +1060,25 @@ describe('Error handling', () => {
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
+  it('componentDidCatch catches errors on rerender', async () => {
+    const error = useStateX<boolean>();
+    const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+    const root = mount(
+      <ClassBoundary>
+        <Switch />
+      </ClassBoundary>,
+    );
+    expectHtmlFull(root).toBe('okay');
+
+    await act(() => error.set(true));
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code>ReactError</code>');
+    });
+    expect(onError).toHaveBeenCalledTimes(1);
+  });
+
   it(`class components doen't catch errors if componentDidCatch is not given`, async () => {
     class Comp extends Component<{ children: JSX.Element }> {
       render = () => this.props.children;
