@@ -61,9 +61,13 @@ describe('Error handling', () => {
   });
 
   const onError = jest.fn();
-  const ErrorBoundary = ({ children }: { children: JSX.Element }) => {
-    useError(onError);
-    return children;
+  const NullErrorBoundary = ({ children }: { children: JSX.Element }) => {
+    const [isError, setIsError] = useState(false);
+    useError((error) => {
+      onError(error);
+      setIsError(true);
+    });
+    return isError ? null : children;
   };
   const ErrorBoundaryX = ({ children }: { children: JSX.Element }) => {
     const [error, setError] = useState<ReactError | null>(null);
@@ -81,13 +85,13 @@ describe('Error handling', () => {
   it(`finds the closest error boundary`, () => {
     const root = mount(
       <article>
-        <ErrorBoundary>
+        <NullErrorBoundary>
           <p>
-            <ErrorBoundary>
+            <NullErrorBoundary>
               <span />
-            </ErrorBoundary>
+            </NullErrorBoundary>
           </p>
-        </ErrorBoundary>
+        </NullErrorBoundary>
       </article>,
     );
     expectHtml(root).toBe(`<article><p><span></span></p></article>`);
@@ -137,7 +141,7 @@ describe('Error handling', () => {
       const root = mount(
         <>
           before-1|
-          <ErrorBoundary>
+          <NullErrorBoundary>
             before-2
             <Wrapper>
               before-3
@@ -145,7 +149,7 @@ describe('Error handling', () => {
               after-3
             </Wrapper>
             after-2
-          </ErrorBoundary>
+          </NullErrorBoundary>
           !after-1
         </>,
       );
@@ -171,7 +175,7 @@ describe('Error handling', () => {
         return (
           <>
             before-1|
-            <ErrorBoundary>
+            <NullErrorBoundary>
               before-2|
               <Wrapper>
                 before-3|
@@ -179,7 +183,7 @@ describe('Error handling', () => {
                 !after-3
               </Wrapper>
               !after-2
-            </ErrorBoundary>
+            </NullErrorBoundary>
             !after-1
           </>
         );
@@ -228,7 +232,7 @@ describe('Error handling', () => {
     };
 
     const root = mount(
-      <ErrorBoundary>
+      <NullErrorBoundary>
         <Fragment key="before">
           <Before />
         </Fragment>
@@ -236,7 +240,7 @@ describe('Error handling', () => {
         <Fragment key="after">
           <After />
         </Fragment>
-      </ErrorBoundary>,
+      </NullErrorBoundary>,
     );
     expectHtmlFull(root).toBe(`before!okay!after`);
     expect(onBeforeRender).toHaveBeenCalledTimes(1);
@@ -261,7 +265,7 @@ describe('Error handling', () => {
     const root = mount(
       <>
         before-1!
-        <ErrorBoundary>
+        <NullErrorBoundary>
           before-2!
           {createPortal(
             <div>
@@ -270,7 +274,7 @@ describe('Error handling', () => {
             target,
           )}
           !after-2
-        </ErrorBoundary>
+        </NullErrorBoundary>
         !1-after
       </>,
     );
@@ -293,7 +297,7 @@ describe('Error handling', () => {
     const root = mount(
       <>
         before-1!
-        <ErrorBoundary>
+        <NullErrorBoundary>
           before-2!
           {createPortal(
             <div>
@@ -302,7 +306,7 @@ describe('Error handling', () => {
             target,
           )}
           !2-after
-        </ErrorBoundary>
+        </NullErrorBoundary>
         !1-after
       </>,
     );
@@ -326,9 +330,9 @@ describe('Error handling', () => {
     };
 
     const root = mount(
-      <ErrorBoundary>
+      <NullErrorBoundary>
         <Parent />
-      </ErrorBoundary>,
+      </NullErrorBoundary>,
     );
     expectHtmlFull(root).toBe('<div>okay</div>');
 
@@ -351,9 +355,9 @@ describe('Error handling', () => {
       );
 
     const root = mount(
-      <ErrorBoundary>
+      <NullErrorBoundary>
         <Parent />
-      </ErrorBoundary>,
+      </NullErrorBoundary>,
     );
     expectHtmlFull(root).toBe(`<b></b>`);
 
@@ -369,9 +373,9 @@ describe('Error handling', () => {
         <b />
       ) : (
         <div>
-          <ErrorBoundary>
+          <NullErrorBoundary>
             <Throw />
-          </ErrorBoundary>
+          </NullErrorBoundary>
         </div>
       );
 
