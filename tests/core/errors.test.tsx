@@ -1079,6 +1079,115 @@ describe('Error handling', () => {
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
+  for (const placement of ['componentDidCatch', 'useError']) {
+    const onInnerError = jest.fn();
+    const BadBoundary =
+      placement === 'componentDidCatch'
+        ? class ClassBoundary extends Component<{ children: JSX.Element }> {
+            componentDidCatch(error: ReactError): void {
+              onInnerError(error);
+              throw new Error('test');
+            }
+            render() {
+              return this.props.children;
+            }
+          }
+        : ({ children }: { children: JSX.Element }) => {
+            useError((error) => {
+              onInnerError(error);
+              throw new Error('test');
+            });
+            return children;
+          };
+
+    it(`handles errros happened in ${placement}: mode=initial`, async () => {
+      const root = mount(
+        <ErrorBoundaryX>
+          before!
+          <BadBoundary>
+            <Throw />
+          </BadBoundary>
+          !after
+        </ErrorBoundaryX>,
+      );
+      expectHtmlFull(root).toBe('before!<!--r:null:1-->!after');
+
+      await waitFor(() => {
+        expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+      });
+      expect(onError).toHaveBeenCalledTimes(1); // Outer
+      expect(onInnerError).toHaveBeenCalledTimes(1);
+    });
+
+    it(`handles errros happened in ${placement}: mode=rerender`, async () => {
+      const error = useStateX<boolean>();
+      const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+      const root = mount(
+        <ErrorBoundaryX>
+          before!
+          <BadBoundary>
+            <Switch />
+          </BadBoundary>
+          !after
+        </ErrorBoundaryX>,
+      );
+      expectHtmlFull(root).toBe('before!okay!after');
+
+      error.set(true);
+      await waitFor(() => {
+        expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+      });
+      expect(onError).toHaveBeenCalledTimes(1); // Outer
+      expect(onInnerError).toHaveBeenCalledTimes(1);
+    });
+
+    it(`throws globally on uncaught error happened in ${placement}. mode=initial`, async () => {
+      const onGlobalError = jest.fn();
+      window.addEventListener('error', (evt) => onGlobalError(evt.error), {
+        once: true,
+      });
+      jest.spyOn(console, 'error').mockImplementationOnce(() => null);
+
+      mount(
+        <BadBoundary>
+          <Throw />
+        </BadBoundary>,
+      );
+
+      await waitFor(() => {
+        expect(onGlobalError).toHaveBeenCalledTimes(1);
+      });
+      expect(onInnerError).toHaveBeenCalledTimes(1);
+    });
+
+    it(`throws globally on uncaught error happened in ${placement}. mode=rerender`, async () => {
+      const error = useStateX<boolean>();
+      const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+      const onGlobalError = jest.fn();
+      window.addEventListener('error', (evt) => onGlobalError(evt.error), {
+        once: true,
+      });
+      jest.spyOn(console, 'error').mockImplementationOnce(() => null);
+
+      const root = mount(
+        <BadBoundary>
+          <Switch />
+        </BadBoundary>,
+      );
+
+      expectHtmlFull(root).toBe('okay');
+
+      act(() => error.set(true));
+
+      await waitFor(() => {
+        expect(onGlobalError).toHaveBeenCalledTimes(1);
+      });
+      expect(onInnerError).toHaveBeenCalledTimes(1);
+    });
+  }
+
   it(`class components doen't catch errors if componentDidCatch is not given`, async () => {
     class Comp extends Component<{ children: JSX.Element }> {
       render = () => this.props.children;
@@ -1107,6 +1216,12 @@ describe('Error handling', () => {
         return children;
       };
 
+      const onEffect = jest.fn();
+      const Effect = () => {
+        useEffect(() => onEffect());
+        return 42;
+      };
+
       const onGlobalError = jest.fn();
       window.addEventListener('error', (evt) => onGlobalError(evt.error), {
         once: true,
@@ -1114,29 +1229,34 @@ describe('Error handling', () => {
       jest.spyOn(console, 'error').mockImplementationOnce(() => null);
 
       const root = mount(
-        mode === 'initial' ? (
-          <SilentBoundary>
-            <Throw />
-          </SilentBoundary>
-        ) : (
-          <ErrorBoundaryX>
+        <>
+          {mode === 'initial' ? (
             <SilentBoundary>
               <Throw />
             </SilentBoundary>
-          </ErrorBoundaryX>
-        ),
+          ) : (
+            <ErrorBoundaryX>
+              <SilentBoundary>
+                <Throw />
+              </SilentBoundary>
+            </ErrorBoundaryX>
+          )}
+          <Effect />
+        </>,
       );
-      expectHtmlFull(root).toBe('<!--r:null:1-->');
+      expectHtmlFull(root).toBe('<!--r:null:1-->42');
 
       if (mode === 'initial-nested') {
         await waitFor(() => {
-          expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+          expectHtmlFull(root).toBe('<code id="outer">ReactError</code>42');
+          expect(onEffect).toHaveBeenCalledTimes(1);
         });
         expect(onGlobalError).toHaveBeenCalledTimes(0);
       } else {
         await waitFor(() => {
           expect(onGlobalError).toHaveBeenCalledTimes(1);
         });
+        expect(onEffect).toHaveBeenCalledTimes(0);
       }
       expect(onInnerError).toHaveBeenCalledTimes(1);
     });
@@ -1170,8 +1290,6 @@ describe('Error handling', () => {
     expect(onInnerError).toHaveBeenCalledTimes(1);
   });
 
-  it.todo(`catch errors in "componentDidCatch" handler`);
-  it.todo(`catch errors in useError handler`);
   it.todo(`catch errors in useImperativeHandle`);
   it.todo(`doesn't throw on setState in ref destructors`);
   it.todo(`pass the info params`);
