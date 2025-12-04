@@ -1080,6 +1080,77 @@ describe('Error handling', () => {
     expect(onError).toHaveBeenCalledTimes(1);
   });
 
+  for (const mode of ['initial', `initial-nested`]) {
+    it(`throws if useError's handler didn't update the state of the error boundary. mode=${mode}`, async () => {
+      const onInnerError = jest.fn();
+      const SilentBoundary = ({ children }: { children: JSX.Element }) => {
+        useError(onInnerError);
+        return children;
+      };
+
+      const onGlobalError = jest.fn();
+      window.addEventListener('error', (evt) => onGlobalError(evt.error), {
+        once: true,
+      });
+      jest.spyOn(console, 'error').mockImplementationOnce(() => null);
+
+      const root = mount(
+        mode === 'initial' ? (
+          <SilentBoundary>
+            <Throw />
+          </SilentBoundary>
+        ) : (
+          <ErrorBoundaryX>
+            <SilentBoundary>
+              <Throw />
+            </SilentBoundary>
+          </ErrorBoundaryX>
+        ),
+      );
+      expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+      if (mode === 'initial-nested') {
+        await waitFor(() => {
+          expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+        });
+        expect(onGlobalError).toHaveBeenCalledTimes(0);
+      } else {
+        await waitFor(() => {
+          expect(onGlobalError).toHaveBeenCalledTimes(1);
+        });
+      }
+      expect(onInnerError).toHaveBeenCalledTimes(1);
+    });
+  }
+
+  it(`throws if useError's handler didn't update the state of the error boundary. mode=rerender`, async () => {
+    const onInnerError = jest.fn();
+    const SilentBoundary = ({ children }: { children: JSX.Element }) => {
+      useError(onInnerError);
+      return children;
+    };
+
+    const error = useStateX<boolean>();
+    const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <SilentBoundary>
+          <Switch />
+        </SilentBoundary>
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('okay');
+
+    await act(() => error.set(true));
+    expectHtmlFull(root).toBe('<!--r:empty:1-->');
+
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+    });
+    expect(onInnerError).toHaveBeenCalledTimes(1);
+  });
+
   it.todo(`catch errors in "componentDidCatch" handler`);
   it.todo(`catch errors in useError handler`);
   it.todo(`catch errors in useImperativeHandle`);

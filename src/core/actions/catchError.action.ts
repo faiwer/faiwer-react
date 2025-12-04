@@ -4,6 +4,8 @@ import { scheduleEffect } from '../reconciliation/effects';
 import type { CatchErrorAction } from 'faiwer-react/types/actions';
 import { tryFixContainerType } from './relayout.action';
 import { isFiberDead } from '../reconciliation/fibers';
+import { getAppByFiber } from '../reconciliation/app';
+import { ReactError } from '../reconciliation/errors/ReactError';
 
 /**
  * During the current render one of the components failed. This is the error
@@ -26,6 +28,13 @@ export function catchErrorAction(
       const handlers = compFiber.data.hooks!.filter((h) => h.type === 'error');
       for (const { fn } of handlers) {
         fn(error);
+      }
+
+      if (!getAppByFiber(fiber).invalidatedComponents.has(compFiber)) {
+        throw new ReactError(
+          compFiber,
+          `ErrorBoundaries must update their state on error`,
+        );
       }
 
       // Recover `isErrorBoundary` after a sucessful rerender.
