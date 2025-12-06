@@ -1327,6 +1327,30 @@ describe('Error handling', () => {
     });
   }
 
-  it.todo(`doesn't throw on setState in ref destructors`);
+  it(`doesn't throw when "setState" is called in the ref-unmount handler`, async () => {
+    const warn = jest.spyOn(console, 'warn');
+    const error = jest.spyOn(console, 'error');
+
+    const Inner = () => {
+      const [st, setState] = useState<HTMLButtonElement | null>(null);
+      return <button ref={setState}>{st?.tagName ?? 'n/a'}</button>;
+    };
+
+    const show = useStateX<boolean>();
+    const Parent = () => show.use(true) && <Inner />;
+
+    const root = mount(<Parent />);
+    expectHtmlFull(root).toBe('<button>n/a</button>');
+    await waitFor(() => {
+      expectHtmlFull(root).toBe('<button>BUTTON</button>');
+    });
+
+    await act(() => show.set(false));
+    expectHtmlFull(root).toBe('<!--r:null:1-->');
+
+    expect(error).toHaveBeenCalledTimes(0);
+    expect(warn).toHaveBeenCalledTimes(0);
+  });
+
   it.todo(`pass the info params`);
 });
