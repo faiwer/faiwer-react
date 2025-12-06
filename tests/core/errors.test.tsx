@@ -19,9 +19,11 @@ import {
   useLayoutEffect,
   useState,
   type ComponentFiberNode,
+  type Ref,
 } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
 import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
+import { useImperativeHandle } from 'faiwer-react/hooks/useRef';
 
 describe('Error handling', () => {
   it('a component with useError is marked as error boundary', () => {
@@ -1290,7 +1292,41 @@ describe('Error handling', () => {
     expect(onInnerError).toHaveBeenCalledTimes(1);
   });
 
-  it.todo(`catch errors in useImperativeHandle`);
+  for (const mode of ['mount', 'rerender']) {
+    it(`catches errros in useImperativeHandle: ${mode}`, async () => {
+      const ref = { current: null };
+      const error = useStateX<boolean>();
+
+      const Comp = ({ ref }: { ref?: Ref<unknown> }) => {
+        const fail = error.use(mode === 'mount');
+
+        useImperativeHandle(ref, () => {
+          if (fail) {
+            throw new Error('test');
+          }
+        }, [Math.random()]);
+        return 42;
+      };
+      const root = mount(
+        <ErrorBoundaryX>
+          <Comp ref={ref} />
+        </ErrorBoundaryX>,
+      );
+
+      if (mode === 'rerender') {
+        expectHtmlFull(root).toBe('42');
+        await act(() => error.set(true));
+      } else {
+        expectHtmlFull(root).toBe('<!--r:empty:1-->');
+      }
+
+      await expectDidCatch();
+      await waitFor(() => {
+        expectHtmlFull(root).toBe('<code id="outer">ReactError</code>');
+      });
+    });
+  }
+
   it.todo(`doesn't throw on setState in ref destructors`);
   it.todo(`pass the info params`);
 });
