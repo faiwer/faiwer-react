@@ -74,7 +74,7 @@ export class Component<
     );
   }
 
-  componentDidCatch(_error: unknown, _info?: unknown): void {}
+  componentDidCatch(_error: unknown, _info: unknown): void {}
 
   getSnapshotBeforeUpdate(_prevProps: unknown, _prevState: unknown): unknown {
     throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
@@ -122,6 +122,9 @@ export const convertClassComponentToFC = <
   }
 
   function FromClassComponent(props: Props): JSX.Element {
+    // Use the component class name as the component name to simplify debugging.
+    (FromClassComponent as ReactComponent).displayName = Component.name;
+
     const { current: ref } = useRef<InternalState<Props, State>>({
       mounted: false,
       rendered: 0,
@@ -185,7 +188,7 @@ export const convertClassComponentToFC = <
     instance.state = state;
 
     if (instance.componentDidCatch !== ComponentPrototype.componentDidCatch) {
-      useError((error) => instance.componentDidCatch(error));
+      useError((error, info) => instance.componentDidCatch(error, info));
     }
 
     if (!ref.mounted || instance.shouldComponentUpdate(props, instance.state)) {

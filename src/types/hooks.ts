@@ -37,7 +37,11 @@ export type UseContextItem<T = unknown> = {
   providerFiber: ContextFiberNode | null;
 };
 
-export type ErrorHandler = (error: unknown) => void;
+export type ErrorInfo = {
+  componentStack: string;
+};
+
+export type ErrorHandler = (error: unknown, info: ErrorInfo) => void;
 export type UseErrorItem = {
   type: 'error';
   fn: ErrorHandler;

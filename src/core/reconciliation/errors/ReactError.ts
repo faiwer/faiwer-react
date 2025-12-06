@@ -7,6 +7,8 @@ import { getAppByFiber } from '../app';
 
 export class ReactError extends Error {
   fiber: FiberNode;
+  // Like .stack but contains the label of the node where the error occured.
+  fullStack: string;
 
   constructor(fiber: FiberNode, error: unknown, prefix?: string) {
     let message = ((prefix ? `${prefix}. ` : '') + errToStr(error)).replace(
@@ -21,6 +23,9 @@ export class ReactError extends Error {
     const stack = captureStack(fiber);
     this.message +=
       '\nReact stack:\n' + stack.map((line) => ` ├— ${line}`).join('\n');
+    this.fullStack = captureStack(fiber, false)
+      .map((line) => ` ├— ${line}`)
+      .join('\n');
   }
 
   /**

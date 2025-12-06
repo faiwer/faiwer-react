@@ -7,8 +7,8 @@ import { isFiberDead } from '../fibers';
  * @example
  * ['<div.test/>', '<Label/>', '<App/>']
  */
-export const captureStack = (fiber: FiberNode): string[] => {
-  const result: string[] = [];
+export const captureStack = (fiber: FiberNode, skipRoot = true): string[] => {
+  const result: string[] = skipRoot ? [] : [getFiberLabel(fiber)];
 
   while (fiber.parent && fiber.parent.tag !== 'root') {
     result.push(getFiberLabel(fiber.parent));

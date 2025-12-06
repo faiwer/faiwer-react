@@ -1,4 +1,8 @@
-import { type ComponentFiberNode, type FiberNode } from 'faiwer-react/types';
+import {
+  type ComponentFiberNode,
+  type ErrorInfo,
+  type FiberNode,
+} from 'faiwer-react/types';
 import { removeAction } from './remove.action';
 import { scheduleEffect } from '../reconciliation/effects';
 import type { CatchErrorAction } from 'faiwer-react/types/actions';
@@ -25,9 +29,13 @@ export function catchErrorAction(
       // an eternal loop if the sequential render again leads to an error.
       compFiber.data.isErrorBoundary = false;
 
+      const info: ErrorInfo = {
+        componentStack: error.fullStack,
+      };
+
       const handlers = compFiber.data.hooks!.filter((h) => h.type === 'error');
       for (const { fn } of handlers) {
-        fn(error);
+        fn(error, info);
       }
 
       if (!getAppByFiber(fiber).invalidatedComponents.has(compFiber)) {

@@ -19,6 +19,7 @@ import {
   useLayoutEffect,
   useState,
   type ComponentFiberNode,
+  type ErrorInfo,
   type Ref,
 } from 'faiwer-react';
 import { act } from 'faiwer-react/testing';
@@ -1352,5 +1353,52 @@ describe('Error handling', () => {
     expect(warn).toHaveBeenCalledTimes(0);
   });
 
-  it.todo(`pass the info params`);
+  for (const mode of ['mount', 'rerender']) {
+    for (const placement of ['class component', 'useError hook']) {
+      it(`passes to the error handler in a ${placement} an ErrorInfo object`, async () => {
+        const ErrorBoundary =
+          placement === 'class component'
+            ? class Boundary extends Component<{
+                children: JSX.Element;
+              }> {
+                state = { stackTrace: '' };
+
+                componentDidCatch(_: unknown, info: ErrorInfo): void {
+                  this.setState({ stackTrace: info.componentStack });
+                }
+
+                render() {
+                  return this.state.stackTrace || this.props.children;
+                }
+              }
+            : function Boundary({ children }: { children: JSX.Element }) {
+                const [stackTrace, setStackTrace] = useState('');
+                useError((_, info) => {
+                  setStackTrace(info.componentStack);
+                });
+                return stackTrace || children;
+              };
+
+        const error = useStateX<boolean>();
+        const Switch = () => (error.use(false) ? <Throw /> : <Okay />);
+
+        const root = mount(
+          <ErrorBoundary>
+            {mode === 'mount' ? <Throw /> : <Switch />}
+          </ErrorBoundary>,
+        );
+
+        if (mode === 'mount') {
+          expectHtmlFull(root).toBe('<!--r:null:1-->');
+        } else {
+          expectHtmlFull(root).toBe('okay');
+          error.set(true);
+        }
+
+        await waitFor(() => {
+          expect(root.outerHTML).toMatch(/(Switch|Throw).*\n.*Boundary/m);
+        });
+      });
+    }
+  }
 });
