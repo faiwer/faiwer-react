@@ -38,6 +38,8 @@ export class Component<
   context: unknown;
   static defaultProps?: object;
   static contextType?: ReactContext<any>;
+  static getDerivedStateFromError?: (error: unknown) => object;
+  static getDerivedStateFromProps?: (_props: object, _state: object) => object;
 
   constructor(props: Props) {
     this.props = props;
@@ -79,10 +81,6 @@ export class Component<
   getSnapshotBeforeUpdate(_prevProps: unknown, _prevState: unknown): unknown {
     throw new ReactError(getCurrentComponentFiber(), `Not implemented`);
   }
-
-  static getDerivedStateFromProps(_props: any, _state: any): Partial<any> {
-    return {};
-  }
 }
 
 const ComponentPrototype = Component.prototype;
@@ -109,17 +107,17 @@ export const convertClassComponentToFC = <
     return cache.get(Component)!;
   }
 
-  let { defaultProps, contextType, getDerivedStateFromProps } =
-    Component as unknown as {
-      defaultProps?: Partial<Props>;
-      contextType?: ReactContext<unknown>;
-      getDerivedStateFromProps?: (props: Props, state: State) => Partial<State>;
-    };
-  if (
-    getDerivedStateFromProps === Component.prototype.getDerivedStateFromProps
-  ) {
-    getDerivedStateFromProps = undefined;
-  }
+  let {
+    defaultProps,
+    contextType,
+    getDerivedStateFromProps,
+    getDerivedStateFromError,
+  } = Component as unknown as {
+    defaultProps?: Partial<Props>;
+    contextType?: ReactContext<unknown>;
+    getDerivedStateFromProps?: (props: Props, state: State) => Partial<State>;
+    getDerivedStateFromError?: (error: unknown) => State;
+  };
 
   function FromClassComponent(props: Props): JSX.Element {
     // Use the component class name as the component name to simplify debugging.
@@ -187,8 +185,16 @@ export const convertClassComponentToFC = <
     };
     instance.state = state;
 
-    if (instance.componentDidCatch !== ComponentPrototype.componentDidCatch) {
-      useError((error, info) => instance.componentDidCatch(error, info));
+    if (
+      instance.componentDidCatch !== ComponentPrototype.componentDidCatch ||
+      getDerivedStateFromError
+    ) {
+      useError((error, info) => {
+        instance.componentDidCatch(error, info);
+        if (getDerivedStateFromError) {
+          setState(getDerivedStateFromError(error));
+        }
+      });
     }
 
     if (!ref.mounted || instance.shouldComponentUpdate(props, instance.state)) {
