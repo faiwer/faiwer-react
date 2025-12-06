@@ -6,3 +6,4 @@ export { useId } from './useId';
 export { useMemo } from './useMemo';
 export { useRef, forwardRef } from './useRef';
 export { useState } from './useState';
+export { useError } from './useError';

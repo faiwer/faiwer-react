@@ -19,10 +19,6 @@ export type ComponentType<Props extends UnknownProps = UnknownProps> =
 export type ForwardRefExoticComponent<
   Props extends UnknownProps = UnknownProps,
 > = FC<Props>;
-export type ErrorInfo = {
-  componentStack: string | null;
-  digest?: string | null;
-};
 
 //
 // Events
