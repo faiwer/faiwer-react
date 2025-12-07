@@ -59,17 +59,13 @@ createRoot(container).render(<App />);
 
 ## TODO
 
-- 1st line
-  - Error handling
-  - `useReducer`
-- 2rd line
-  - HMR
-  - JSX: Math namespace
-  - Lazy
-  - Make all hooks pure
-  - Resolve "TODO: add a test" comments
-  - Preact Devtools?
-  - leverage `isStaticChildren` in `jsx()`
+- HMR
+- Preact Devtools?
+- JSX: Math namespace
+- Lazy
+- Make all hooks pure
+- Resolve "TODO: add a test" comments
+- leverage `isStaticChildren` in `jsx()`
 
 ## It does NOT support
 

@@ -1,5 +1,5 @@
 import type { ReactContext } from './context';
-import type { ContextFiberNode, FiberNode } from './fiber';
+import type { ContextFiberNode, FiberNode, TagState } from './fiber';
 import type { RefObject } from './refs';
 
 export type UseStateItem<T = unknown> = {
@@ -85,3 +85,10 @@ export type EffectMode =
   | 'layout'
   // useEffect();
   | 'normal';
+
+export type Reducer<TState, TAction> = (
+  state: TState,
+  action: TAction,
+) => TagState;
+
+export type Dispatch<A> = (action: A) => void;
