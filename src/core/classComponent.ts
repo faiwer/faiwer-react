@@ -39,7 +39,7 @@ export class Component<
   static defaultProps?: object;
   static contextType?: ReactContext<any>;
   static getDerivedStateFromError?: (error: unknown) => object;
-  static getDerivedStateFromProps?: (_props: object, _state: object) => object;
+  static getDerivedStateFromProps?: (_props: any, _state: any) => object;
 
   constructor(props: Props) {
     this.props = props;

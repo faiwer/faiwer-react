@@ -14,6 +14,7 @@ import type { Action } from 'faiwer-react/types/actions';
 import { createFiberNode, toFiberChildren } from './fibers';
 import { Queue } from './queue';
 import { ReactError } from './errors/ReactError';
+import { createAppDevTools, prepareHMR } from './devTools';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
@@ -41,7 +42,16 @@ export const mount = (
     testMode: !!options.testMode,
     transformSource: options.transformSource,
     tempContext: new Map(),
+    devTools: createAppDevTools(),
   }));
+
+  if (app.devTools.global) {
+    try {
+      prepareHMR(app);
+    } catch (error: unknown) {
+      console.error(error);
+    }
+  }
 
   const actions: Action[] = [];
 

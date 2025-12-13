@@ -1,3 +1,4 @@
+import type { ReactDevTools } from './devTools';
 import type { FiberNode, JsxSource } from './fiber';
 import type { EffectMode } from './hooks';
 import type { Queue } from 'faiwer-react/core/reconciliation/queue';
@@ -77,6 +78,13 @@ export type App = {
    * context values.
    */
   tempContext: Map<number, unknown>;
+  devTools: {
+    /** DevTools or HMR assigns a unique id (return value from `hook.inject`) */
+    id: number | null;
+    /** window.__REACT_DEVTOOLS_GLOBAL_HOOK__. It's set by HMR or React DevTools */
+    global: ReactDevTools | null;
+    root: InternalRoot;
+  };
 };
 
 export type AppOptions = {
@@ -96,4 +104,9 @@ export type AppOptions = {
 export type AppRoot = {
   render: (element: JSX.Element) => void;
   unmount: () => void;
+};
+
+/** React's createRoot()._internalRoot. Used in DevTools & HMR */
+export type InternalRoot = {
+  current: object;
 };
