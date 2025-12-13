@@ -9,6 +9,8 @@ export type ComponentState = {
   actions: Action[];
   /** True when a component contains at least one useError handler. */
   isErrorBoundary: boolean;
+  /** Is `true` when HMR marks this node to be remounted. */
+  remount: boolean;
 };
 
 export type ReactComponent<TProps extends UnknownProps = UnknownProps> = {

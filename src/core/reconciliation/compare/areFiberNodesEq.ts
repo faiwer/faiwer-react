@@ -11,6 +11,9 @@ export const areFiberNodesEq = (
   if (!left || !right) return left === right;
 
   if (left.type !== right.type || left.role !== right.role) return false;
+  // HMR marked this component to be remounted. E.g., there were changes in the
+  // hooks order.
+  if (left.type === 'component' && left.data?.remount) return false;
 
   const lNode = left.tag ?? left.component;
   const rNode = right.tag ?? right.component;

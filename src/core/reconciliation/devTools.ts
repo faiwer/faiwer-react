@@ -1,10 +1,15 @@
-import type { App, InternalRoot, ReactComponent } from 'faiwer-react/types';
+import type {
+  App,
+  FiberNode,
+  InternalRoot,
+  ReactComponent,
+} from 'faiwer-react/types';
 import type {
   HMRFamily,
   ReactDevTools,
   ReactRenderer,
 } from 'faiwer-react/types/devTools';
-import { traverseFiberTree } from '../actions/helpers';
+import { SKIP_CHILDREN, traverseFiberTree } from '../actions/helpers';
 import { invalidateFiber } from './invalidateFiber';
 
 export const createAppDevTools = (): App['devTools'] => ({
@@ -13,6 +18,7 @@ export const createAppDevTools = (): App['devTools'] => ({
       .__REACT_DEVTOOLS_GLOBAL_HOOK__ ?? null,
   id: null,
   root: createInternalRoot(),
+  remapped: null,
 });
 
 /** Creates a unique object that mimics `createRoot()._internalRoot. */
@@ -32,6 +38,7 @@ export const prepareHMR = (app: App): void => {
   const rendrerer: ReactRenderer = createHMRRenderer(app);
   const id = (app.devTools.id = globalTools.inject(rendrerer));
   globalTools.renderers.set(id, rendrerer);
+  app.devTools.remapped = new WeakMap();
 };
 
 /**
@@ -64,12 +71,15 @@ const createHMRRenderer = (app: App): ReactRenderer => {
         // This component was not involved yet in HMR in any way.
         if (!family) return;
 
-        if (updatedFamilies.has(family)) {
-          // HMR considers it's safe to preserve the state. Thus we can just
-          // rerender the component.
-          fiber.component = family.current;
-          invalidateFiber(fiber);
-        } else if (staleFamilies.has(family)) {
+        const remount = staleFamilies.has(family);
+
+        if (remount || updatedFamilies.has(family)) {
+          app.devTools.remapped?.set(component, family.current);
+          fiber.data.remount = remount;
+          invalidateFiber(remount ? getParentComponent(fiber) : fiber);
+          if (remount) {
+            return SKIP_CHILDREN;
+          }
         }
       });
     },
@@ -77,3 +87,8 @@ const createHMRRenderer = (app: App): ReactRenderer => {
     setRefreshHandler: (handler) => (resolveFamily = handler),
   };
 };
+
+const getParentComponent = (fiber: FiberNode): FiberNode =>
+  fiber.parent.type === 'component'
+    ? fiber.parent
+    : getParentComponent(fiber.parent);

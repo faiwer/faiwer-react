@@ -66,7 +66,13 @@ export const runComponent = (
   let jsxElement: JSX.Element;
   let actions: Action[] = [];
   try {
-    jsxElement = fiber.component!(props ?? fiber.props);
+    const { remapped } = getAppByFiber(fiber).devTools;
+    const component =
+      // HMR, the freshest version
+      remapped?.get(fiber.component) ??
+      // Regular rendering
+      fiber.component;
+    jsxElement = component!(props ?? fiber.props);
     actions.push(...fiber.data.actions);
   } catch (error: unknown) {
     return new ReactError(

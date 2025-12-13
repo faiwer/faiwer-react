@@ -1,3 +1,4 @@
+import type { ReactComponent } from './component';
 import type { ReactDevTools } from './devTools';
 import type { FiberNode, JsxSource } from './fiber';
 import type { EffectMode } from './hooks';
@@ -84,6 +85,8 @@ export type App = {
     /** window.__REACT_DEVTOOLS_GLOBAL_HOOK__. It's set by HMR or React DevTools */
     global: ReactDevTools | null;
     root: InternalRoot;
+    /** Map<old component, the freshest HMR version of it> */
+    remapped: null | WeakMap<ReactComponent, ReactComponent>;
   };
 };
 

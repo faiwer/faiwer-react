@@ -180,10 +180,14 @@ export const emptyFiberNode = (fiber: FiberNode): void => {
  */
 export const traverseFiberTree = (
   fiber: FiberNode,
-  fn: (fiber: FiberNode) => boolean | void,
+  fn: (fiber: FiberNode) => boolean | typeof SKIP_CHILDREN | void,
 ): boolean => {
-  if (fn(fiber) === false) {
+  const result = fn(fiber);
+
+  if (result === false) {
     return false;
+  } else if (result === SKIP_CHILDREN) {
+    return true;
   }
 
   for (const child of fiber.children) {
@@ -194,3 +198,5 @@ export const traverseFiberTree = (
 
   return true;
 };
+
+export const SKIP_CHILDREN = 'SKIP_CHILDREN';
