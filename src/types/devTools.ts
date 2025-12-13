@@ -6,7 +6,7 @@ import type { ReactComponent } from './component';
  *  node. */
 export type HMRFamily = {
   // Always leads to the freshest version of the given component family.
-  current: ReactComponent;
+  current: ReactComponent<any>;
 };
 
 /** A shallow version of ReactRenderer that includes only HMR stuff. */
