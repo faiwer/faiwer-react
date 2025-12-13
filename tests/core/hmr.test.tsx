@@ -84,24 +84,26 @@ describe('HMR', () => {
     expectHtmlFull(root).toBe('31' + `32` + `33`);
   });
 
-  it('HMR remounts components', async () => {
-    const V1 = ({ v }: { v: number }) => v ** 2;
-    const Parent = () => [1, 2, 3].map((v) => <V1 v={v} />);
-    const root = mount(<Parent />);
-    expectHtmlFull(root).toBe(`1` + `4` + `9`);
+  for (const mode of ['wrapped', 'sub-root']) {
+    it(`HMR remounts components. mode=${mode}`, async () => {
+      const V1 = ({ v }: { v: number }) => v ** 2;
+      const Parent = () => [1, 2, 3].map((v) => <V1 v={v} />);
+      const root = mount(mode === 'sub-root' ? Parent() : <Parent />);
+      expectHtmlFull(root).toBe(`1` + `4` + `9`);
 
-    const V2 = ({ v }: { v: number }) => v + useState(30)[0];
-    const family: HMRFamily = { current: V2 };
-    for (const Comp of [V1, V2]) map.set(Comp, family);
-    const renderer = renderers.get(1)!;
-    renderer.setRefreshHandler(refreshHandler);
+      const V2 = ({ v }: { v: number }) => v + useState(30)[0];
+      const family: HMRFamily = { current: V2 };
+      for (const Comp of [V1, V2]) map.set(Comp, family);
+      const renderer = renderers.get(1)!;
+      renderer.setRefreshHandler(refreshHandler);
 
-    await act(() => {
-      renderer.scheduleRefresh(internalRoot, {
-        updatedFamilies: new Set(),
-        staleFamilies: new Set([family]),
+      await act(() => {
+        renderer.scheduleRefresh(internalRoot, {
+          updatedFamilies: new Set(),
+          staleFamilies: new Set([family]),
+        });
       });
+      expectHtmlFull(root).toBe('31' + `32` + `33`);
     });
-    expectHtmlFull(root).toBe('31' + `32` + `33`);
-  });
+  }
 });

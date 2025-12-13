@@ -66,3 +66,50 @@ export const toFiberChildren = (fiber: FiberNode): FiberNode[] => {
  * - was abandoned (its content moved to another node)
  */
 export const isFiberDead = (fiber: FiberNode) => fiber.id < 0;
+
+/**
+ * Returns a new fiber node that is identical to the given one, besides it
+ * doesn't have any state. Like if it was just created from a JSX element.
+ */
+export const cloneFiber = (node: FiberNode): FiberNode => {
+  switch (node.type) {
+    case 'component': {
+      return {
+        ...node,
+        children: [], // Children will be set on the component run()
+        data: {
+          hooks: null, // 1st render,
+          actions: [],
+          isErrorBoundary: false,
+          remount: false,
+        },
+      };
+    }
+
+    case 'tag': {
+      return node.role === 'portal'
+        ? {
+            ...node,
+            children: node.children.map((n) => cloneFiber(n)),
+            // .data is HTMLElement, keep it
+          }
+        : {
+            ...node,
+            children: node.children.map((n) => cloneFiber(n)),
+            data: {
+              events: {},
+              styles: null,
+            },
+          };
+    }
+
+    case 'fragment':
+    case 'null':
+    case 'text':
+      return {
+        ...node,
+        children: node.children.map((n) => cloneFiber(n)),
+        // .data is either null or ContextState.
+      };
+  }
+};

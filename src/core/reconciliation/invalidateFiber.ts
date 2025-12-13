@@ -10,10 +10,10 @@ import { ReactError } from './errors/ReactError';
  * if invalidation is happening in the wrong app state.
  */
 export const invalidateFiber = (fiber: FiberNode): void => {
-  if (fiber.type !== 'component') {
+  if (fiber.type !== 'component' && fiber.tag !== 'root') {
     throw new ReactError(
       fiber,
-      `Cannot invalidate a non-component fiber (${fiber.type})`,
+      `Cannot invalidate a non-component and non-root fiber (${fiber.type})`,
     );
   }
   if (isFiberDead(fiber)) {

@@ -11,6 +11,7 @@ import type {
 } from 'faiwer-react/types/devTools';
 import { SKIP_CHILDREN, traverseFiberTree } from '../actions/helpers';
 import { invalidateFiber } from './invalidateFiber';
+import { getAppByFiber } from './app';
 
 export const createAppDevTools = (): App['devTools'] => ({
   global:
@@ -75,8 +76,13 @@ const createHMRRenderer = (app: App): ReactRenderer => {
 
         if (remount || updatedFamilies.has(family)) {
           app.devTools.remapped?.set(component, family.current);
-          fiber.data.remount = remount;
-          invalidateFiber(remount ? getParentComponent(fiber) : fiber);
+          if (remount) {
+            fiber.data.remount = true;
+            const parent = getParentComponent(fiber);
+            invalidateFiber(parent ?? getAppByFiber(fiber).root);
+          } else {
+            invalidateFiber(fiber);
+          }
           if (remount) {
             return SKIP_CHILDREN;
           }
@@ -88,7 +94,9 @@ const createHMRRenderer = (app: App): ReactRenderer => {
   };
 };
 
-const getParentComponent = (fiber: FiberNode): FiberNode =>
-  fiber.parent.type === 'component'
-    ? fiber.parent
-    : getParentComponent(fiber.parent);
+const getParentComponent = (fiber: FiberNode): FiberNode | null =>
+  fiber?.parent
+    ? fiber.parent.type === 'component'
+      ? fiber.parent
+      : getParentComponent(fiber.parent)
+    : null;

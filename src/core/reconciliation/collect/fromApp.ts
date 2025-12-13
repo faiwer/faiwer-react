@@ -2,6 +2,8 @@ import type { App } from 'faiwer-react/types';
 import type { Action } from 'faiwer-react/types/actions';
 import { collectActionsFromComponent } from './fromComponent';
 import { ReactError } from '../errors/ReactError';
+import { collectActionsFromChildrenPair } from './fromChildrenPair';
+import { cloneFiber } from '../fibers';
 
 /**
  * Goes through the list of invalidated components, runs them, finds the diff,
@@ -13,7 +15,15 @@ export const collectActionsFromApp = (app: App): ReactError | Action[] => {
 
   while (!app.invalidatedComponents.isEmpty()) {
     const [fiber, props] = app.invalidatedComponents.poll();
-    const actionsX = collectActionsFromComponent(fiber, props);
+    const actionsX =
+      fiber.tag === 'root'
+        ? // HMR may require a root rerender, when one of the root's direct children
+          // components got hooks changes.
+          collectActionsFromChildrenPair(
+            app.root,
+            app.root.children.map((n) => cloneFiber(n)),
+          )
+        : collectActionsFromComponent(fiber, props);
     if (actionsX instanceof ReactError) {
       return actionsX.catchActionArrOrPassThru();
     }

@@ -19,6 +19,9 @@ export class ReactError extends Error {
     super(message);
     this.fiber = fiber;
     this.name = 'ReactError';
+    if (error instanceof Error && !(error instanceof ReactError)) {
+      this.cause = error;
+    }
 
     const stack = captureStack(fiber);
     this.message +=
