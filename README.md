@@ -19,7 +19,7 @@ A few stats:
   - `useState`
   - `useRef`
   - `useMemo`, `useCallback`
-  - `useStableCallback` (better version of `useEffectEvent`)
+  - `useStableCallback` (a better version of `useEffectEvent`)
   - `useLayoutEffect`, `useEffect` (improved versions)
   - `useId`
   - `useContext`
@@ -27,6 +27,7 @@ A few stats:
 - Context
 - Portals
 - Fragments
+- Hot Module Replacement
 
 ## Installation
 
