@@ -18,3 +18,27 @@ export function memo<T>(Comp: T, isEq?: unknown): T {
 
 /** <Fragment/> */
 export { FRAGMENT_TAG as Fragment } from '~/core/reconciliation/fibers';
+
+import * as typesE from './types';
+import * as reactTypesE from './types/react';
+import * as hooksE from './hooks/index';
+import * as createRootE from '~/core/createRoot';
+import * as createElementE from '~/core/createElement';
+import * as classComponentE from '~/core/classComponent';
+import * as mocksE from './mocks';
+import { isValidElement } from './core/reconciliation/typeGuards';
+import { Children } from './core/Children';
+
+// Some modular systems require this "default export".
+export default {
+  ...typesE,
+  ...reactTypesE,
+  ...hooksE,
+  ...createRootE,
+  ...createElementE,
+  ...classComponentE,
+  ...mocksE,
+  isValidElement,
+  Children,
+  PureComponent: classComponentE.Component,
+};
