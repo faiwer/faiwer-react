@@ -59,7 +59,6 @@ createRoot(container).render(<App />);
 
 ## TODO
 
-- HMR
 - Preact Devtools?
 - JSX: Math namespace
 - Lazy
