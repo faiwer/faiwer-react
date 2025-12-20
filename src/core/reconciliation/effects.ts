@@ -44,6 +44,8 @@ export const runEffects = (app: App, mode: EffectMode) => {
         fiber,
         `Error during running effect. ${String(errorRaw)}`,
       );
+      error.cause = errorRaw;
+
       const boundary = findClosestErrorBoundary(fiber);
       if (!boundary) {
         throw error;
