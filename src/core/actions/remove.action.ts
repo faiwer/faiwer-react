@@ -7,6 +7,7 @@ import { emptyFiberNode, unsetRef } from './helpers';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 import { ReactError } from '../reconciliation/errors/ReactError';
 import { buildComment } from '../reconciliation/comments';
+import { getAppByFiber } from '../reconciliation/app';
 
 /**
  * This action can be called directly (<div/> -> []), or indirectly (<div/> ->
@@ -55,6 +56,7 @@ export function removeAction(
     unsetRef(fiber, !!immediate);
   }
 
+  getAppByFiber(fiber).preact?.api.unmount(fiber);
   emptyFiberNode(fiber); // Help with garbage collection.
 }
 

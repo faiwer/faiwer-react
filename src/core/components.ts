@@ -58,6 +58,9 @@ export const runComponent = (
     throw new ReactError(fiber, `Can't run a dead component`);
   }
 
+  const app = getAppByFiber(fiber);
+  app.preact?.invalidated.add(fiber.id);
+
   currentFiber = fiber;
   firstFiberRender = !fiber.data.hooks;
   fiber.data.hooks ??= [];
@@ -66,7 +69,7 @@ export const runComponent = (
   let jsxElement: JSX.Element;
   let actions: Action[] = [];
   try {
-    const { remapped } = getAppByFiber(fiber).devTools;
+    const { remapped } = app.devTools;
     const component =
       // HMR, the freshest version
       remapped?.get(fiber.component) ??

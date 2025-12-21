@@ -61,11 +61,16 @@ export const toFiberChildren = (fiber: FiberNode): FiberNode[] => {
 };
 
 /**
- * Return `true` when the given fiber:
+ * Returns `true` when the given fiber:
  * - was removed
  * - was abandoned (its content moved to another node)
  */
 export const isFiberDead = (fiber: FiberNode) => fiber.id < 0;
+
+/**
+ * Returns `true` if the given fiber is THE root of the whole fiber tree.
+ */
+export const isRootFiber = (fiber: FiberNode): boolean => fiber.tag === 'root';
 
 /**
  * Returns a new fiber node that is identical to the given one, besides it

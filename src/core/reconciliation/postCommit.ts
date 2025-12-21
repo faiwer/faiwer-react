@@ -12,6 +12,8 @@ import { traverseFiberTree } from '../actions/helpers';
  * - or move the app to the idle stage
  */
 export function postCommit(app: App, depth: number) {
+  app.preact?.api.afterRender();
+
   if (app.testMode) {
     traverseFiberTree(app.root, (fiber) => {
       if (fiber.element !== containerSym) {

@@ -1,3 +1,4 @@
+import type { PreactAdapter } from 'faiwer-react/core/preact/types';
 import type { ReactComponent } from './component';
 import type { ReactDevTools } from './devTools';
 import type { FiberNode, JsxSource } from './fiber';
@@ -88,6 +89,7 @@ export type App = {
     /** Map<old component, the freshest HMR version of it> */
     remapped: null | WeakMap<ReactComponent, ReactComponent>;
   };
+  preact: PreactAdapter | null;
 };
 
 export type AppOptions = {
@@ -102,6 +104,10 @@ export type AppOptions = {
    * JSX into something that browser dev tools can properly handle.
    */
   transformSource?: (source: JsxSource) => JsxSource;
+  /**
+   * Experimental Preact DevTools support. `false` by default.
+   */
+  preactDevTools?: boolean;
 };
 
 export type AppRoot = {
