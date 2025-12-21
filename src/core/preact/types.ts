@@ -73,6 +73,9 @@ export type PreactVNode = {
  *   API hooks that must be called during the render cycle.
  */
 export type PreactOptions = {
+  /** Should be called once on app mount. vNode is `app.root.children[0].
+   * `Element` is the DOM node where the app is mounted. */
+  _root: (vNode: unknown, element: Element) => void;
   /** Called when a new VNode is created. */
   vnode: (vNode: unknown) => void;
   /** Called at the end of each render. */

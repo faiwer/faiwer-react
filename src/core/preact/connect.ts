@@ -7,6 +7,7 @@ import {
 import {
   PreactVNodeFields as F,
   PreactFragmentComponent,
+  type PreactAdapter,
   type PreactAPI,
   type PreactDevTools,
   type PreactOptions,
@@ -32,25 +33,36 @@ export const tryConnectPreactDevTools = (app: App): void => {
   const invalidated = new Set([app.root.id]);
   app.preact = {
     global: globalHook,
-    api: createPreactApi(app, invalidated),
+    api: {} as unknown as PreactAPI,
     invalidated,
+    userRootVNode: null,
   };
+  createPreactApi(app, invalidated);
 };
 
-const createPreactApi = (app: App, invalidated: Set<number>): PreactAPI => {
-  return {
-    afterRender: afterRenderHook.bind(null, app.root, invalidated),
+const createPreactApi = (app: App, invalidated: Set<number>): void => {
+  Object.assign(app.preact!.api, {
+    afterRender: afterRenderHook.bind(null, app.preact!, app.root, invalidated),
     unmount: unmountHook,
-  };
+  });
 };
 
-const afterRenderHook = (rootFiber: FiberNode, invalidated: Set<number>) => {
+const afterRenderHook = (
+  adapter: PreactAdapter,
+  rootFiber: FiberNode,
+  invalidated: Set<number>,
+) => {
+  if (!adapter.userRootVNode) {
+    adapter.userRootVNode = fiberToVNode(rootFiber.children[0], 0, false);
+    hooks._root(adapter.userRootVNode, rootFiber.element as Element);
+  }
+
   /** Root of what have been rerendered. On the 1st render is the root node. */
   const topNodes = new Set<PreactVNode>();
 
   // Traverse the whole fiber tree from the root. Consider every node to be
   // intact unless `invalidated` has it or one of its parents.
-  iteratee(invalidated, topNodes, rootFiber, 0, true);
+  iteratee(invalidated, topNodes, adapter.userRootVNode, rootFiber, 0, true);
 
   // Top nodes is filled with the top-level rerendered nodes. Inform Preact
   // DevTools about them. It'll traverse through the vnode tree and send a
@@ -70,6 +82,7 @@ const iteratee = (
   // Generic arguments
   invalidated: Set<number>,
   topNodes: Set<PreactVNode>,
+  userRootVNode: PreactVNode,
   // Fiber arguments
   fiber: FiberNode,
   idx: number,
@@ -84,7 +97,13 @@ const iteratee = (
   }
 
   // It might be a new node or the previously created node depending on the context.
-  const vnode = fiberToVNode(fiber, idx, !skip);
+  const vnode =
+    fiber.id === userRootVNode[F.id]
+      ? // It's createRoot().render(userRootVNode). So it never changes. It's
+        // cached after `hooks._root` call on the dev tools side. Thus we'd better
+        // cache it too.
+        userRootVNode
+      : fiberToVNode(fiber, idx, !skip);
   // Container-nodes must refer to their 1st real DOM child.
   vnode[F.element] ??= find1stDomElement(fiber);
 
@@ -115,6 +134,7 @@ const iteratee = (
       const childVNode: PreactVNode | null = iteratee(
         invalidated,
         topNodes,
+        userRootVNode,
         childFiber,
         idx,
         skip,
