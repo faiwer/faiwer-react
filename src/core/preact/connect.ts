@@ -19,62 +19,53 @@ export const tryConnectPreactDevTools = (app: App): void => {
   const globalHook =
     (window as { __PREACT_DEVTOOLS__?: PreactDevTools }).__PREACT_DEVTOOLS__ ??
     null;
-  if (!globalHook || preactAttached) return;
+  if (!globalHook) return;
 
-  preactAttached = true;
-  const options = {} as unknown as PreactOptions;
-  globalHook.attachPreact('10.28.0', options, {
-    Fragment: PreactFragmentComponent,
-  });
+  if (!hooks._commit) {
+    globalHook.attachPreact('10.28.0', hooks, {
+      Fragment: PreactFragmentComponent,
+    });
+  }
 
   const invalidated = new Set([app.root.id]);
   app.preact = {
     global: globalHook,
-    api: createPreactApi(app, options, invalidated),
+    api: createPreactApi(app, invalidated),
     invalidated,
   };
 };
 
-const createPreactApi = (
-  app: App,
-  options: PreactOptions,
-  invalidated: Set<number>,
-): PreactAPI => {
+const createPreactApi = (app: App, invalidated: Set<number>): PreactAPI => {
   return {
-    afterRender: afterRenderHook.bind(null, app.root, invalidated, options),
-    unmount: unmountHook.bind(null, options),
+    afterRender: afterRenderHook.bind(null, app.root, invalidated),
+    unmount: unmountHook,
   };
 };
 
-const afterRenderHook = (
-  rootFiber: FiberNode,
-  invalidated: Set<number>,
-  options: PreactOptions,
-) => {
+const afterRenderHook = (rootFiber: FiberNode, invalidated: Set<number>) => {
   /** Root of what have been rerendered. On the 1st render is the root node. */
   const topNodes = new Set<PreactVNode>();
 
   // Traverse the whole fiber tree from the root. Consider every node to be
   // intact unless `invalidated` has it or one of its parents.
-  iteratee(options, invalidated, topNodes, rootFiber, 0, true);
+  iteratee(invalidated, topNodes, rootFiber, 0, true);
 
   // Top nodes is filled with the top-level rerendered nodes. Inform Preact
   // DevTools about them. It'll traverse through the vnode tree and send a
   // message to the Chrome DevTools app.
   for (const vnode of topNodes) {
-    options._commit(vnode, []);
+    hooks._commit(vnode, []);
   }
   invalidated.clear();
 };
 
-const unmountHook = (options: PreactOptions, fiber: FiberNode): void => {
-  options.unmount(fiberToVNode(fiber, 0, false));
+const unmountHook = (fiber: FiberNode): void => {
+  hooks.unmount(fiberToVNode(fiber, 0, false));
 };
 
 /** Handle a single fiber node. */
 const iteratee = (
   // Generic arguments
-  options: PreactOptions,
   invalidated: Set<number>,
   topNodes: Set<PreactVNode>,
   // Fiber arguments
@@ -103,19 +94,18 @@ const iteratee = (
   }
 
   if (!skip) {
-    options.vnode(vnode);
-    options._diff(vnode);
+    hooks.vnode(vnode);
+    hooks._diff(vnode);
   }
 
   if (isContainerFiber(fiber)) {
     if (!skip) {
-      options._render(vnode);
+      hooks._render(vnode);
     }
     vnode[F.children].length = 0;
 
     for (const [idx, childFiber] of fiber.children.entries()) {
       const childVNode: PreactVNode | null = iteratee(
-        options,
         invalidated,
         topNodes,
         childFiber,
@@ -135,7 +125,7 @@ const iteratee = (
   }
 
   if (!skip) {
-    options.diffed(vnode);
+    hooks.diffed(vnode);
   }
   return vnode;
 };
@@ -189,4 +179,5 @@ const isJsxElementNode = (node: unknown): node is ElementNode =>
   'type' in node &&
   typeof node.type === 'string';
 
-let preactAttached = false;
+/** Preact hooks. Preact fills this object with methods in the `attachPreact` call. */
+const hooks = {} as unknown as PreactOptions;
