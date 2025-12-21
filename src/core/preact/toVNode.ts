@@ -64,6 +64,7 @@ const createVNode = (fiber: FiberNode, idx: number): PreactVNode => {
     [F.flags]: 0, // Not used.
     [F.id]: fiber.id,
     __source: fiber.source ?? undefined,
+    registered: false,
   };
 };
 

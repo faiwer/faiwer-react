@@ -62,6 +62,8 @@ export type PreactVNode = {
   [F.id]: number;
   __self?: object;
   __source?: { columnNumber: number; fileName: string; lineNumber: number };
+  /** Our fields. */
+  registered: boolean;
 };
 
 /**

@@ -24,6 +24,8 @@ export const tryConnectPreactDevTools = (app: App): void => {
   if (!hooks._commit) {
     globalHook.attachPreact('10.28.0', hooks, {
       Fragment: PreactFragmentComponent,
+      // It's also possible to pass the Component class here, but since the lib
+      // doesn't support components directly it doesn't make sense.
     });
   }
 
@@ -76,6 +78,8 @@ const iteratee = (
   skip: boolean,
 ): PreactVNode | null => {
   if (fiber.type === 'null') {
+    // Unlike React Preact doesn't create a vnode object for the null values.
+    // It uses `null` instead.
     return null;
   }
 
@@ -94,7 +98,10 @@ const iteratee = (
   }
 
   if (!skip) {
-    hooks.vnode(vnode);
+    if (!vnode.registered) {
+      hooks.vnode(vnode);
+      vnode.registered = true;
+    }
     hooks._diff(vnode);
   }
 
