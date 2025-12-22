@@ -6,15 +6,18 @@ import {
 } from 'faiwer-react/types';
 import {
   PreactVNodeFields as F,
+  PREACT_VERSION,
   PreactFragmentComponent,
   type PreactAdapter,
   type PreactAPI,
   type PreactDevTools,
   type PreactOptions,
+  type PreactRenderer,
   type PreactVNode,
 } from './types';
 import { fiberToVNode } from './toVNode';
 import { isContainerFiber } from '../reconciliation/typeGuards';
+import { patchedPreactRendererInspect } from './inspect';
 
 export const tryConnectPreactDevTools = (app: App): void => {
   const globalHook =
@@ -22,13 +25,14 @@ export const tryConnectPreactDevTools = (app: App): void => {
     null;
   if (!globalHook) return;
 
-  if (!hooks._commit) {
-    globalHook.attachPreact('10.28.0', hooks, {
-      Fragment: PreactFragmentComponent,
-      // It's also possible to pass the Component class here, but since the lib
-      // doesn't support components directly it doesn't make sense.
-    });
-  }
+  const rendererId = globalHook.attachPreact(PREACT_VERSION, hooks, {
+    Fragment: PreactFragmentComponent,
+    // It's also possible to pass the Component class here, but since the lib
+    // doesn't support components directly it doesn't make sense.
+  });
+
+  const renderer = globalHook.renderers.get(rendererId)!;
+  patchRenderer(app, renderer);
 
   const invalidated = new Set([app.root.id]);
   app.preact = {
@@ -36,6 +40,7 @@ export const tryConnectPreactDevTools = (app: App): void => {
     api: {} as unknown as PreactAPI,
     invalidated,
     userRootVNode: null,
+    renderer,
   };
   createPreactApi(app, invalidated);
 };
@@ -208,3 +213,9 @@ const isJsxElementNode = (node: unknown): node is ElementNode =>
 
 /** Preact hooks. Preact fills this object with methods in the `attachPreact` call. */
 const hooks = {} as unknown as PreactOptions;
+
+const patchRenderer = (app: App, renderer: PreactRenderer): void => {
+  // It's easier to wrap this method than support its internals. Can be broken
+  // with new Preact DevTools releases though.
+  renderer.inspect = patchedPreactRendererInspect.bind(null, app, renderer);
+};

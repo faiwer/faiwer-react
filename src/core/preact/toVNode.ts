@@ -39,7 +39,7 @@ export const fiberToVNode = (
  * Created a node Preact VNode from scratch based on the given fiber node.
  */
 const createVNode = (fiber: FiberNode, idx: number): PreactVNode => {
-  const props = getProps(fiber);
+  const props = getPreactProps(fiber);
   const component = getComponent(fiber);
 
   return {
@@ -103,11 +103,11 @@ const updateVNode = (
   vnode: PreactVNode,
   idx: number,
 ): void => {
-  vnode.props = getProps(fiber);
+  vnode.props = getPreactProps(fiber);
   vnode[F.index] = idx;
   const compCtx = vnode[F.compContext];
   if (compCtx) {
-    compCtx.props = getProps(fiber);
+    compCtx.props = getPreactProps(fiber);
   }
 };
 
@@ -140,7 +140,7 @@ const getComponent = (fiber: FiberNode): ReactComponent<any> | null => {
 /**
  * Returns `PreactVNode.props` + `__c.props`.
  */
-const getProps = (fiber: FiberNode): UnknownProps => {
+export const getPreactProps = (fiber: FiberNode): UnknownProps => {
   if (fiber.role === 'context' || fiber.type === 'component') {
     return fiber.props;
   }

@@ -199,4 +199,22 @@ export const traverseFiberTree = (
   return true;
 };
 
+/**
+ * Do not use this method anywhere where performance matters. O(n).
+ */
+export const findFiberById = (
+  root: FiberNode,
+  id: number,
+): FiberNode | null => {
+  let result: FiberNode | null = null;
+  traverseFiberTree(root, (fiber) => {
+    if (fiber.id === id) {
+      result = fiber;
+      return false; // Early exit.
+    }
+  });
+
+  return result;
+};
+
 export const SKIP_CHILDREN = 'SKIP_CHILDREN';

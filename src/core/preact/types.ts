@@ -93,16 +93,80 @@ export type PreactRendererConfig = {
   Fragment: typeof PreactFragmentComponent;
 };
 
+/** Preact DevTools support was build based on this Preact codebase version. */
+export const PREACT_VERSION = '10.28.0';
+
 /** window.__PREACT_DEVTOOLS__ */
 export type PreactDevTools = {
+  renderers: Map<number, PreactRenderer>;
   /** A hook that should be called once per app. Automatically created a new
    * Preact-renderer and registers it. */
   attachPreact: (
-    version: string, // "10.28.0"
+    version: typeof PREACT_VERSION,
     options: PreactOptions,
     rendererConfig: PreactRendererConfig,
   ) => number;
 };
+
+export type PreactRenderer = {
+  getVNodeById: (id: number) => PreactVNode | null;
+  /** Called on a tree node selection. */
+  inspect: (id: number) => PreactInspection;
+};
+
+/** A hook representation. Or sub-value of a hook value. */
+export interface PreactHookInspection {
+  /** Unique ID. */
+  id: string;
+  /** IDs of subhooks. */
+  children: string[];
+  /** The hierarhcy level. */
+  depth: number;
+  /** Hook name to display. */
+  name: unknown;
+  /** When `true` the `.value` can be temporarily edited. */
+  editable: boolean;
+  /**
+   * - `typeof` is it's a field of a hook's value.
+   * - `undefined` for regular hooks.
+   * - `object` for the root pseudo-hook
+   */
+  type: string;
+  meta: null | { index: number; type: string };
+  /** An order within the parent hook or the component. */
+  index?: number;
+  /** The value of the hook. May be null. */
+  value: unknown;
+}
+
+/**
+ * A component representation for the selected tree node.
+ */
+export interface PreactInspection {
+  context: null;
+  canSuspend: boolean;
+  key: FiberNode['key'] | null;
+  hooks: PreactHookInspection[];
+  /** Long DevTools' ID, not VNode.id */
+  id: number;
+  name: string; // Not used.
+  props: UnknownProps;
+  state: null; // Probably for class components.
+  signals: null;
+  type: number;
+  suspended: boolean;
+  version: typeof PREACT_VERSION;
+}
+
+export enum PreactVNodeType {
+  FN_COMPONENT = 3,
+  // Since we don't use them it's better to comment them
+  // MEMO = 5,
+  // FORWARD_REF = 4,
+  // SUSPENCE = 6,
+  // PORTAL = 9,
+  // ELEMENT = 1,
+}
 
 /**
  * App['preact']
@@ -114,6 +178,11 @@ export type PreactAdapter = {
   global: PreactDevTools;
   /** Fiber IDs of nodes invalidated within the last render. */
   invalidated: Set<number>;
+  /** createRoot().render(_this_). */
+  userRootVNode: PreactVNode | null;
+  /** A banch of helper methods on the page side created by the Preact DevTools
+   * extension */
+  renderer: PreactRenderer;
 };
 
 /** A middleware layer over the Preact DevTools API. */
