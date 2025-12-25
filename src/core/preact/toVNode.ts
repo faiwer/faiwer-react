@@ -142,7 +142,7 @@ const getComponent = (fiber: FiberNode): ReactComponent<any> | null => {
  */
 export const getPreactProps = (fiber: FiberNode): UnknownProps => {
   if (fiber.role === 'context' || fiber.type === 'component') {
-    return fiber.props;
+    return { ...fiber.props };
   }
 
   if (fiber.role === 'portal') {

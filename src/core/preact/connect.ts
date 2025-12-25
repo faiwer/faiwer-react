@@ -1,9 +1,4 @@
-import {
-  containerSym,
-  type App,
-  type ElementNode,
-  type FiberNode,
-} from 'faiwer-react/types';
+import { containerSym, type App, type FiberNode } from 'faiwer-react/types';
 import {
   PreactVNodeFields as F,
   PREACT_VERSION,
@@ -18,6 +13,7 @@ import {
 import { fiberToVNode } from './toVNode';
 import { isContainerFiber } from '../reconciliation/typeGuards';
 import { patchedPreactRendererInspect } from './inspect';
+import { isJsxElementNode } from '../reconciliation/fibers';
 
 export const tryConnectPreactDevTools = (app: App): void => {
   const globalHook =
@@ -204,12 +200,6 @@ const tryConvertComponentChildren = (vnode: PreactVNode): void => {
     props.children = Array.isArray(props.children) ? children : children[0];
   }
 };
-
-const isJsxElementNode = (node: unknown): node is ElementNode =>
-  !!node &&
-  typeof node === 'object' &&
-  'type' in node &&
-  typeof node.type === 'string';
 
 /** Preact hooks. Preact fills this object with methods in the `attachPreact` call. */
 const hooks = {} as unknown as PreactOptions;

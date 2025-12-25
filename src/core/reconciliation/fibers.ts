@@ -1,4 +1,4 @@
-import type { FiberNode } from 'faiwer-react/types';
+import type { ElementNode, FiberNode } from 'faiwer-react/types';
 import { nullthrowsForFiber } from './errors/ReactError';
 
 /**
@@ -118,3 +118,15 @@ export const cloneFiber = (node: FiberNode): FiberNode => {
       };
   }
 };
+
+export const isJsxElementNode = (node: unknown): node is ElementNode =>
+  !!node &&
+  typeof node === 'object' &&
+  'type' in node &&
+  (typeof node.type === 'string' ||
+    typeof node.type === 'function' ||
+    node.type instanceof Node) &&
+  'props' in node &&
+  `key` in node &&
+  'children' in node &&
+  'source' in node;
