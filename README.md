@@ -28,6 +28,7 @@ A few stats:
 - Portals
 - Fragments
 - Hot Module Replacement
+- Preact Dev Tools (partially)
 
 ## Installation
 
@@ -58,11 +59,44 @@ const container = document.getElementById('root');
 createRoot(container).render(<App />);
 ```
 
+To show your app in the Preact DevTools:
+
+```tsx
+import { preactDevTools } from 'react/debug';
+// …
+createRoot(container).render(
+  <App />,
+  import.meta.env.DEV ? { preactDevTools } : undefined
+```
+
+The 2nd argument also supports:
+
+```tsx
+{
+  // If `true` the lib will make more checks and add the `__fiber` field for each
+  // generated DOM Node to simplify debugging
+  testMode: boolean,
+  // A hook to improve local error stack traces. Provide a method that converts
+  // __filename into an internal URL that your DevTools can handle.
+  // E.g., this worked out for Vite:
+  transformSource: source => ({
+    ...source,
+    fileName: source.fileName.replace(/^.+\/src/, location.origin),
+  }),
+  // And this worked out for Webpack:
+  transformSource: source => ({
+    ...source,
+    fileName: source.fileName.replace(
+      /^.+\/src/,
+      'webpack://your-project-package-name/src'
+    ),
+  }),
+```
+
 ## TODO
 
-- Preact Devtools?
 - JSX: Math namespace
-- Lazy
+- `<Lazy/>`
 - Make all hooks pure
 - Resolve "TODO: add a test" comments
 - leverage `isStaticChildren` in `jsx()`

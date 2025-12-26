@@ -15,7 +15,6 @@ import { createFiberNode, toFiberChildren } from './fibers';
 import { Queue } from './queue';
 import { ReactError } from './errors/ReactError';
 import { createAppDevTools, prepareHMR } from './devTools';
-import { tryConnectPreactDevTools } from '../preact/connect';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
@@ -57,14 +56,12 @@ export const mount = (
 
   app.root.element = container;
 
-  if (options.preactDevTools) {
-    try {
-      tryConnectPreactDevTools(app);
-    } catch (error: unknown) {
-      console.error(
-        new Error(`Could not connect Preact Dev Tools`, { cause: error }),
-      );
-    }
+  try {
+    options.preactDevTools?.(app);
+  } catch (error: unknown) {
+    console.error(
+      new Error(`Could not connect Preact Dev Tools`, { cause: error }),
+    );
   }
 
   const actions: Action[] = [];

@@ -16,7 +16,7 @@ import { patchedPreactRendererInspect } from './inspect';
 import { isJsxElementNode } from '../reconciliation/fibers';
 import { patchedPreactRendererUpdate } from './update';
 
-export const tryConnectPreactDevTools = (app: App): void => {
+export const preactDevTools = (app: App): void => {
   const globalHook =
     (window as { __PREACT_DEVTOOLS__?: PreactDevTools }).__PREACT_DEVTOOLS__ ??
     null;

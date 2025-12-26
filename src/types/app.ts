@@ -105,9 +105,9 @@ export type AppOptions = {
    */
   transformSource?: (source: JsxSource) => JsxSource;
   /**
-   * Experimental Preact DevTools support. `false` by default.
+   * Experimental Preact DevTools support. `undefined` by default.
    */
-  preactDevTools?: boolean;
+  preactDevTools?: (app: App) => void;
 };
 
 export type AppRoot = {
