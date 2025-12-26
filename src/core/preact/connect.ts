@@ -14,6 +14,7 @@ import { fiberToVNode } from './toVNode';
 import { isContainerFiber } from '../reconciliation/typeGuards';
 import { patchedPreactRendererInspect } from './inspect';
 import { isJsxElementNode } from '../reconciliation/fibers';
+import { patchedPreactRendererUpdate } from './update';
 
 export const tryConnectPreactDevTools = (app: App): void => {
   const globalHook =
@@ -205,7 +206,8 @@ const tryConvertComponentChildren = (vnode: PreactVNode): void => {
 const hooks = {} as unknown as PreactOptions;
 
 const patchRenderer = (app: App, renderer: PreactRenderer): void => {
-  // It's easier to wrap this method than support its internals. Can be broken
-  // with new Preact DevTools releases though.
+  // It's easier to wrap these methods than support their internals. Can be
+  // broken with new Preact DevTools releases though.
   renderer.inspect = patchedPreactRendererInspect.bind(null, app, renderer);
+  renderer.update = patchedPreactRendererUpdate.bind(null, app, renderer);
 };

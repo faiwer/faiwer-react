@@ -28,9 +28,9 @@ import { isJsxElementNode } from '../reconciliation/fibers';
 export const patchedPreactRendererInspect = (
   app: App,
   renderer: PreactRenderer,
-  devToolsId: number,
+  devToolsNodeId: number,
 ): PreactInspection => {
-  const vnode = nullthrows(renderer.getVNodeById(devToolsId));
+  const vnode = nullthrows(renderer.getVNodeById(devToolsNodeId));
   // prettier-ignore
   const fiber = nullthrows(findFiberById(app.root, vnode.__v)) as
     // Preact DevTools renders only "components".
@@ -41,7 +41,7 @@ export const patchedPreactRendererInspect = (
   return {
     canSuspend: false,
     key: fiber.key,
-    id: devToolsId,
+    id: devToolsNodeId,
     state: null, // This lib doesn't support class components directly.
     signals: null,
     suspended: false,

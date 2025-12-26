@@ -112,6 +112,8 @@ export type PreactRenderer = {
   getVNodeById: (id: number) => PreactVNode | null;
   /** Called on a tree node selection. */
   inspect: (id: number) => PreactInspection;
+  /** Called on manual props/context/state changes for the selected tree node. */
+  update: (id: number, type: string, path: string[], value: unknown) => void;
 };
 
 /** A hook representation. Or sub-value of a hook value. */
