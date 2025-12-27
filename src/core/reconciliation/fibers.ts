@@ -129,4 +129,5 @@ export const isJsxElementNode = (node: unknown): node is ElementNode =>
   'props' in node &&
   `key` in node &&
   'children' in node &&
-  'source' in node;
+  'source' in node &&
+  !('role' in node);

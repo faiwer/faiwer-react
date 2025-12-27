@@ -14,7 +14,8 @@ import type { Action } from 'faiwer-react/types/actions';
 import { createFiberNode, toFiberChildren } from './fibers';
 import { Queue } from './queue';
 import { ReactError } from './errors/ReactError';
-import { createAppDevTools, prepareHMR } from './devTools';
+import { prepareHMR } from '../devTools/hmr';
+import { createAppDevTools } from '../devTools/devTools';
 
 /**
  * Mounts an app (`jsxElement`) to the given DOM node (`container`). Returns
@@ -46,9 +47,12 @@ export const mount = (
     preact: null,
   }));
 
-  if (app.devTools.global) {
+  if (app.devTools?.hooks.inject) {
     try {
+      const { devTools } = app;
       prepareHMR(app);
+      const id = (devTools.id = devTools.hooks.inject!(devTools.renderer));
+      devTools.hooks.renderers?.set(id, devTools.renderer);
     } catch (error: unknown) {
       console.error(error);
     }

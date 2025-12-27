@@ -69,7 +69,7 @@ export const runComponent = (
   let jsxElement: JSX.Element;
   let actions: Action[] = [];
   try {
-    const { remapped } = app.devTools;
+    const remapped = app.devTools?.remapped;
     const component =
       // HMR, the freshest version
       remapped?.get(fiber.component) ??

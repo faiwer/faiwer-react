@@ -1,18 +1,19 @@
+import { expectHtmlFull, mount } from '../helpers';
+import { ReactComponent, useState } from 'faiwer-react';
 import type {
   HMRFamily,
-  ReactDevTools,
-  ReactRenderer,
-} from 'faiwer-react/types/devTools';
-import { expectHtmlFull, mount } from '../helpers';
-import { ReactComponent, useState, type InternalRoot } from 'faiwer-react';
+  RAppRoot,
+  RDevToolsHook,
+  RRenderer,
+} from 'faiwer-react/core/devTools/types';
 import { act } from 'faiwer-react/testing';
 
 describe('HMR', () => {
   const onCommitFiberRoot = jest.fn();
   const inject = jest.fn().mockImplementation(() => 1);
   const map = new Map<ReactComponent<any>, HMRFamily>();
-  const internalRoot = null as unknown as InternalRoot;
-  const renderers = new Map<number, ReactRenderer>();
+  const internalRoot = null as unknown as RAppRoot;
+  const renderers = new Map<number, RRenderer>();
 
   const refreshHandler = (comp: ReactComponent): null | HMRFamily =>
     map.get(comp) ?? null;
@@ -23,7 +24,7 @@ describe('HMR', () => {
 
     (
       window as unknown as {
-        __REACT_DEVTOOLS_GLOBAL_HOOK__: Partial<ReactDevTools>;
+        __REACT_DEVTOOLS_GLOBAL_HOOK__: Partial<RDevToolsHook>;
       }
     ).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
       renderers,
@@ -53,10 +54,10 @@ describe('HMR', () => {
     const family: HMRFamily = { current: SimpleV2 };
     for (const Comp of [SimpleV1, SimpleV2]) map.set(Comp, family);
     const renderer = renderers.get(1)!;
-    renderer.setRefreshHandler(refreshHandler);
+    renderer.setRefreshHandler!(refreshHandler);
 
     await act(() => {
-      renderer.scheduleRefresh(internalRoot, {
+      renderer.scheduleRefresh!(internalRoot, {
         staleFamilies: new Set(),
         updatedFamilies: new Set([family]),
       });
@@ -73,10 +74,10 @@ describe('HMR', () => {
     const family: HMRFamily = { current: V2 };
     for (const Comp of [V1, V2]) map.set(Comp, family);
     const renderer = renderers.get(1)!;
-    renderer.setRefreshHandler(refreshHandler);
+    renderer.setRefreshHandler!(refreshHandler);
 
     await act(() => {
-      renderer.scheduleRefresh(internalRoot, {
+      renderer.scheduleRefresh!(internalRoot, {
         staleFamilies: new Set(),
         updatedFamilies: new Set([family]),
       });
@@ -95,10 +96,10 @@ describe('HMR', () => {
       const family: HMRFamily = { current: V2 };
       for (const Comp of [V1, V2]) map.set(Comp, family);
       const renderer = renderers.get(1)!;
-      renderer.setRefreshHandler(refreshHandler);
+      renderer.setRefreshHandler!(refreshHandler);
 
       await act(() => {
-        renderer.scheduleRefresh(internalRoot, {
+        renderer.scheduleRefresh!(internalRoot, {
           updatedFamilies: new Set(),
           staleFamilies: new Set([family]),
         });
