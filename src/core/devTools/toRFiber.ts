@@ -15,21 +15,15 @@ import {
  * Converts FiberNode into RFiber. It's using cache internally.
  */
 export const fiberToRFiber = (fiber: FiberNode, index: number): RFiber => {
-  let result: RFiber | null = cache.get(fiber) ?? null;
-  if (result && result.id === fiber.id) {
-    updateRFiber(result, fiber, index);
-    return result;
-  }
-
   const isRoot = isRootFiber(fiber);
   const elementType: RElementType = getElementType(fiber, isRoot);
   const props = getProps(fiber, isRoot);
 
-  result = {
+  const result: RFiber = {
     id: fiber.id,
     index,
     tag: getFiberTag(fiber, isRoot),
-    key: fiber.key ? String(fiber.key) : null,
+    key: fiber.key !== null ? String(fiber.key) : null,
     elementType,
     type: elementType,
     stateNode: getStateNode(fiber, isRoot),
@@ -65,7 +59,6 @@ export const fiberToRFiber = (fiber: FiberNode, index: number): RFiber => {
     },
   });
 
-  cache.set(fiber, result);
   return result;
 };
 
@@ -152,15 +145,3 @@ const getProps = (fiber: FiberNode, isRoot: boolean): RFiberProps => {
       return nullDummyText.textContent;
   }
 };
-
-const updateRFiber = (
-  rFiber: RFiber,
-  fiber: FiberNode,
-  index: number,
-): void => {
-  const isRoot = isRootFiber(fiber);
-  rFiber.memoizedProps = rFiber.pendingProps = getProps(fiber, isRoot);
-  rFiber.index = index;
-};
-
-const cache = new WeakMap<FiberNode, RFiber>();

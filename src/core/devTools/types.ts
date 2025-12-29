@@ -1,4 +1,5 @@
 import type {
+  App,
   ElementType,
   FiberNode,
   ReactComponent,
@@ -203,4 +204,6 @@ export type AppDevTools = {
   remapped: null | WeakMap<ReactComponent, ReactComponent>;
   /** The app's renderer object. Partly filled by us, partly by the Chrome extension. */
   renderer: RRenderer;
+  /** A hook to be called in applyActions. */
+  onCommit: (app: App) => void;
 };
