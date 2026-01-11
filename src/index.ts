@@ -10,7 +10,7 @@ export { Children } from './core/Children';
 
 export function memo<T>(Comp: T, isEq?: unknown): T {
   if (isEq) {
-    throw new Error(`Custom "isEqual" for memo is not supported`);
+    console.warn(`Custom "isEqual" for memo is not supported`);
   }
 
   return Comp; // Components are already memoized by default.
