@@ -133,3 +133,6 @@ const runEffect = (item: UseEffectItem): void => {
     }
   };
 };
+
+// Isn't supported. Provide a fallback.
+export const useInsertionEffect = useEffect;

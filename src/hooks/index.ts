@@ -1,9 +1,10 @@
 export { useCallback } from './useCallback';
 export { createContext, useContext } from './useContext';
-export { useEffect, useLayoutEffect } from './useEffect';
+export { useEffect, useLayoutEffect, useInsertionEffect } from './useEffect';
 export { useStableCallback } from './useStableCallback';
 export { useId } from './useId';
 export { useMemo } from './useMemo';
-export { useRef, forwardRef } from './useRef';
+export { useRef, forwardRef, useImperativeHandle } from './useRef';
 export { useState } from './useState';
 export { useError } from './useError';
+export { useReducer } from './useReducer';
