@@ -1,4 +1,5 @@
 import {
+  createElement,
   createRoot,
   useEffect,
   ElementNode,
@@ -170,6 +171,14 @@ describe('Mounting: Components & fragments', () => {
     const Custom: ReactComponent<{ children: (v: number) => number }> =
       ({ children }) => children(3); // prettier-ignore
     expectHtml(mount(<Custom>{(v) => v ** 2}</Custom>)).toBe('9');
+  });
+
+  it(`supports components with non-JSX children: Legacy`, () => {
+    const Custom: ReactComponent<{ children: (v: number) => number }> =
+      ({ children }) => children(3); // prettier-ignore
+    expectHtml(
+      mount(createElement(Custom, { children: (v: number) => v ** 2 })),
+    ).toBe('9');
   });
 });
 

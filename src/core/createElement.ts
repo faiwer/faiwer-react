@@ -133,7 +133,7 @@ export function createElement(
   const { key, ...props } = propsRaw ?? {};
   return createElementNew(
     type,
-    { ...props, children: props.children ?? children },
+    { ...props, children: children.length > 0 ? children : props.children },
     key as ReactKey | undefined,
   );
 }
