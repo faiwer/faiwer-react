@@ -48,7 +48,12 @@ export const jsxElementToFiberNode = (
   }
 
   // Any null-like value, i.e. it doesn't render a tag or a text node.
-  if (jsxElement === null || jsxElement === undefined || jsxElement === false) {
+  if (
+    jsxElement === null ||
+    jsxElement === undefined ||
+    jsxElement === false ||
+    jsxElement === true
+  ) {
     const nullFiber: NullFiberNode = {
       ...createFiberNode(parent),
       type: 'null',
