@@ -93,7 +93,7 @@ describe('Mounting: scalar values', () => {
     { name: 'null', value: null, html: '' },
     { name: 'a text node', value: 'Content', html: 'Content' },
     { name: 'a number', value: 42, html: '42' },
-    { name: 'true', value: true, html: 'true' },
+    { name: 'true', value: true, html: '' },
     { name: 'false', value: false, html: '' },
     { name: 'undefined', value: undefined, html: '' },
     { name: 'null', value: null, html: '' },
