@@ -19,6 +19,10 @@ export function memo<T>(Comp: T, isEq?: unknown): T {
 /** <Fragment/> */
 export { FRAGMENT_TAG as Fragment } from '~/core/reconciliation/fibers';
 
+export const version = '19.0.0';
+// It's the lib's behavior by default.
+export const unstable_batchedUpdates = (fn: () => void) => fn();
+
 import * as typesE from './types';
 import * as reactTypesE from './types/react';
 import * as hooksE from './hooks/index';
@@ -41,4 +45,6 @@ export default {
   isValidElement,
   Children,
   PureComponent: classComponentE.Component,
+  version,
+  unstable_batchedUpdates,
 };
