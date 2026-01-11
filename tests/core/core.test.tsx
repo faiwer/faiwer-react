@@ -1,5 +1,6 @@
 import {
   createElement,
+  cloneElement,
   createRoot,
   useEffect,
   ElementNode,
@@ -179,6 +180,51 @@ describe('Mounting: Components & fragments', () => {
     expectHtml(
       mount(createElement(Custom, { children: (v: number) => v ** 2 })),
     ).toBe('9');
+  });
+});
+
+describe('cloneElement', () => {
+  const expectSource = expect.objectContaining({
+    columnNumber: expect.any(Number),
+    lineNumber: expect.any(Number),
+    fileName: expect.any(String),
+  });
+
+  it('returns a valid JSX element when a scalar node is provided', () => {
+    const result = cloneElement(42 as unknown as ElementNode);
+    expect(result).toEqual({
+      type: expect.any(Function),
+      props: {},
+      key: null,
+      children: [],
+      source: null,
+    });
+    // Should render as null (InvalidNode component)
+    expectHtml(mount(result)).toBe('');
+  });
+
+  it('overrides props when new props are provided', () => {
+    const original = (<div className="original" id="test" />) as ElementNode;
+    const cloned = cloneElement(original, { className: 'cloned' });
+    expect(cloned).toEqual({
+      type: 'div',
+      props: { className: 'cloned', id: 'test' },
+      key: null,
+      children: [],
+      source: expectSource,
+    });
+  });
+
+  it('preserves props when no new props are provided', () => {
+    const original = (<div className="original" id="test" />) as ElementNode;
+    const cloned = cloneElement(original);
+    expect(cloned).toEqual({
+      type: 'div',
+      props: { className: 'original', id: 'test' },
+      key: null,
+      children: [],
+      source: expectSource,
+    });
   });
 });
 

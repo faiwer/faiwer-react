@@ -137,3 +137,42 @@ export function createElement(
     key as ReactKey | undefined,
   );
 }
+
+const InvalidNode = () => null;
+
+/**
+ * Clones the given JSX.Element.
+ */
+export const cloneElement = (
+  element: ElementNode,
+  props?: UnknownProps,
+  ...children: JSX.Element[]
+): ElementNode => {
+  if (!element || typeof element !== 'object') {
+    // Original React doesn't throw an error here. It returns an invalidated
+    // element. We don't have such a thing, thus we return a fake null component.
+    return createElementNew(InvalidNode, {}, null, false, null, false);
+  }
+
+  return createElementNew(
+    element.type,
+    {
+      ...element.props,
+      ...props,
+      children:
+        children.length > 0
+          ? // New children are provided. Use them as is.
+            children
+          : // The `children` was given as a prop. Might be a function. Preserve
+            // it as is.
+            (element.props.children ??
+              // Otherwise just shallowly clone the children array. React
+              // doesn't run it recursively.
+              [...element.children]),
+    },
+    element.key,
+    false,
+    element.source,
+    false,
+  );
+};
