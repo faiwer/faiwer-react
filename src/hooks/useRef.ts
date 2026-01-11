@@ -18,7 +18,7 @@ export function useRef<T>(initialValue?: T): RefObject<T> {
     'ref',
     (): UseRefItem => ({
       type: 'ref',
-      value: { current: initialValue ?? undefined },
+      value: { current: initialValue },
     }),
   );
 
