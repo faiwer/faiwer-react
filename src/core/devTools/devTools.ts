@@ -29,6 +29,11 @@ const createRRenderer = (): RRenderer => {
   };
 };
 
+const requestIdleCallback =
+  globalThis.requestIdleCallback ??
+  // for Jest test
+  ((fn: () => void) => setTimeout(fn, 0));
+
 const onCommit = (app: App): void => {
   const { devTools } = app;
 
