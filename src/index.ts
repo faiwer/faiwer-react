@@ -32,19 +32,27 @@ import * as classComponentE from '~/core/classComponent';
 import * as mocksE from './mocks';
 import { isValidElement } from './core/reconciliation/typeGuards';
 import { Children } from './core/Children';
+import { FRAGMENT_TAG } from '~/core/reconciliation/fibers';
 
 // Some modular systems require this "default export".
+//
+// Keep this object in sync with the named exports above. Internal helpers from
+// `~/core/classComponent` (`isComponentClass`, `convertClassComponentToFC`)
+// must NOT be spread in here — only `Component` and `PureComponent` are part of
+// the public API.
 export default {
   ...typesE,
   ...reactTypesE,
   ...hooksE,
   ...createRootE,
   ...createElementE,
-  ...classComponentE,
   ...mocksE,
   isValidElement,
   Children,
+  Component: classComponentE.Component,
   PureComponent: classComponentE.Component,
+  Fragment: FRAGMENT_TAG,
+  memo,
   version,
   unstable_batchedUpdates,
 };
