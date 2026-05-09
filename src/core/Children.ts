@@ -1,19 +1,19 @@
 import type { ElementNode, ScalarNode } from 'faiwer-react/types';
 
 type Children = {
-  count: (children: JSX.Element[]) => number;
+  count: (children: JSX.Element) => number;
   only: (children: JSX.Element) => asserts children is ElementNode | ScalarNode;
   forEach: (
-    children: JSX.Element[],
+    children: JSX.Element,
     fn: (child: ElementNode | ScalarNode) => void,
     objThis?: unknown,
   ) => void;
   map: <T>(
-    chidlren: JSX.Element[],
+    children: JSX.Element,
     fn: (child: ElementNode | ScalarNode) => T,
     objThis?: unknown,
   ) => T[];
-  toArray: (children: JSX.Element[]) => Array<ElementNode | ScalarNode>;
+  toArray: (children: JSX.Element) => Array<ElementNode | ScalarNode>;
 };
 
 export const Children: Children = {
@@ -22,6 +22,15 @@ export const Children: Children = {
   },
 
   forEach: (children, fn, objThis): void => {
+    if (!Array.isArray(children)) {
+      if (children === undefined || children === null) {
+        return; // React.Children treats them as "no children".
+      }
+
+      fn.call(objThis, children);
+      return;
+    }
+
     for (const child of children) {
       if (Array.isArray(child)) {
         Children.forEach(child, fn, objThis);
@@ -32,13 +41,13 @@ export const Children: Children = {
   },
 
   map: <T>(
-    chidlren: JSX.Element[],
+    children: JSX.Element,
     fn: (child: ElementNode | ScalarNode) => T,
     objThis?: unknown,
   ): T[] => {
     const result: T[] = [];
     Children.forEach(
-      chidlren,
+      children,
       (child) => {
         result.push(fn.call(objThis, child));
       },
@@ -48,10 +57,6 @@ export const Children: Children = {
   },
 
   only(children) {
-    if (!Array.isArray(children)) {
-      children = [children];
-    }
-
     const items = Children.toArray(children);
     if (items.length !== 1) {
       throw new Error(`Found ${items.length} children. Expected only one`);
