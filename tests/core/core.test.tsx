@@ -226,6 +226,100 @@ describe('cloneElement', () => {
       source: expectSource,
     });
   });
+
+  it('clones a `<>...</>` fragment, preserving its children', () => {
+    const original = (
+      <>
+        <span>a</span>
+        <span>b</span>
+      </>
+    ) as ElementNode;
+    const cloned = cloneElement(original);
+    expect(cloned).toEqual({
+      type: original.type,
+      props: {},
+      key: null,
+      children: [...original.children],
+      // `<>...</>` does not carry a JSX source location (the compiler omits it
+      // for shorthand fragments), so the clone propagates that as-is.
+      source: original.source,
+    });
+    expectHtml(mount(cloned)).toBe('<span>a</span><span>b</span>');
+  });
+
+  it('clones a `<Fragment/>` with mixed scalar / element children', () => {
+    const original = (
+      <Fragment>
+        <span>x</span>
+        text
+        {42}
+      </Fragment>
+    ) as ElementNode;
+    const cloned = cloneElement(original);
+    expect(cloned).toEqual({
+      type: original.type,
+      props: {},
+      key: null,
+      children: [...original.children],
+      source: expectSource,
+    });
+    expectHtml(mount(cloned)).toBe('<span>x</span>text42');
+  });
+
+  it('keeps the fragment `key` when cloning', () => {
+    const original = (
+      <Fragment key="custom">
+        <span>a</span>
+      </Fragment>
+    ) as ElementNode;
+    const cloned = cloneElement(original);
+    expect(cloned.key).toBe('custom');
+    expect(cloned.type).toBe(original.type);
+  });
+
+  it('replaces fragment children when new ones are passed', () => {
+    const original = (
+      <Fragment>
+        <span>old</span>
+      </Fragment>
+    ) as ElementNode;
+    const cloned = cloneElement(
+      original,
+      undefined,
+      <span>new</span>,
+      <p>extra</p>,
+    );
+    expectHtml(mount(cloned)).toBe('<span>new</span><p>extra</p>');
+  });
+
+  it('clones an `[]`-fragment by treating it as a one-element wrapper', () => {
+    // Some libraries (e.g. antd) tends to blindly clone `children` as is. In
+    // our case there's a possibility of a single-child array ([<A/>]).
+    const inner = (<div className="orig" />) as ElementNode;
+    const cloned = cloneElement([inner] as unknown as ElementNode, {
+      className: 'cloned',
+    });
+    expect(cloned).toEqual({
+      type: 'div',
+      props: { className: 'cloned' },
+      key: null,
+      children: [],
+      source: expectSource,
+    });
+    expectHtml(mount(cloned)).toBe('<div class="cloned"></div>');
+  });
+
+  it('falls back to an invalid node for an empty array', () => {
+    const result = cloneElement([] as unknown as ElementNode);
+    expect(result).toEqual({
+      type: expect.any(Function),
+      props: {},
+      key: null,
+      children: [],
+      source: null,
+    });
+    expectHtml(mount(result)).toBe('');
+  });
 });
 
 describe('createRoot', () => {

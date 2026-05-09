@@ -148,6 +148,21 @@ export const cloneElement = (
   props?: UnknownProps,
   ...children: JSX.Element[]
 ): ElementNode => {
+  if (Array.isArray(element) && element.length < 2) {
+    // [] is a valid fragment in this library. Like in the original React. The
+    // difference is that the original React supports and uses it occacionally.
+    // E.g., here in cloneElement() for any []-array it returns an empty
+    // Symbol(react.transitional.element) (as a fallback). It drops any content
+    // (unless another content is given via arguments). 
+    //
+    // We could do the same, but it would break some libraries, like antd. They
+    // tend to blindly clone `props.children` as is. The original React often
+    // treats a single child as is, not wrapping it in an array. Whereas we
+    // always wrap it in an array (for simplicity). Thus, we get the difference:
+    // clone(<A/>) vs clone([<A/>]) (our case).
+    element = element[0];
+  }
+
   if (!element || typeof element !== 'object') {
     // Original React doesn't throw an error here. It returns an invalidated
     // element. We don't have such a thing, thus we return a fake null component.
