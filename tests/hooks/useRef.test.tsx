@@ -254,6 +254,26 @@ describe('Hooks: refs', () => {
       expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);
     });
   }
+
+  describe('forwardRef: displayName', () => {
+    it('preserves the inner function name', () => {
+      const Wrapped = forwardRef(function Inner(
+        _props: {},
+        _ref?: Ref<unknown>,
+      ) {
+        return null;
+      });
+      expect(Wrapped.displayName).toBe('Inner');
+    });
+
+    it('prefers an explicit `displayName` over the function name', () => {
+      const Inner = (_props: {}, _ref?: Ref<unknown>) => null;
+      Inner.displayName = 'Custom';
+
+      const Wrapped = forwardRef(Inner);
+      expect(Wrapped.displayName).toBe('Custom');
+    });
+  });
 });
 
 describe('useImperativeHandle', () => {

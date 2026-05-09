@@ -26,11 +26,18 @@ export function useRef<T>(initialValue?: T): RefObject<T> {
 }
 
 export const forwardRef = <Props extends UnknownProps, R>(
-  Component: (props: Props, ref?: Ref<R>) => JSX.Element,
+  Component: ((props: Props, ref?: Ref<R>) => JSX.Element) & {
+    displayName?: string;
+  },
 ): ReactComponent<Props & { ref?: Ref<R> }> => {
-  return function ForwardRef({ ref, ...props }: Props & { ref?: Ref<R> }) {
+  const ForwardRef: ReactComponent<Props & { ref?: Ref<R> }> = function ({
+    ref,
+    ...props
+  }: Props & { ref?: Ref<R> }) {
     return Component(props as unknown as Props, ref);
   };
+  ForwardRef.displayName = Component.displayName ?? Component.name;
+  return ForwardRef;
 };
 
 export const useImperativeHandle = <T>(
