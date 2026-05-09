@@ -206,7 +206,7 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
         throw new ReactError(fiber, `!--empty fibers can't have child nodes`);
       }
 
-      if (isAutoContainer(fiber) && !isAutoContainer(fiber.children[0])) {
+      if (!isAutoContainer(fiber.children[0])) {
         (fiber as FiberNode).element = getFirstContainerElement(fiber);
       }
 

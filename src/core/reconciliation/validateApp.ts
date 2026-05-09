@@ -1,5 +1,5 @@
 import { type App, type FiberNode } from 'faiwer-react/types';
-import { FAKE_CONTAINER_TAG } from './fibers';
+import { FAKE_CONTAINER_TAG, isRootFiber } from './fibers';
 import { nullthrowsForFiber, ReactError } from './errors/ReactError';
 import {
   isEmptyContainer,
@@ -27,6 +27,13 @@ export const validateApp = (app: App): void => {
 const validateTree = (node: FiberNode, path = ''): void => {
   // Each rendered node must be associated with at least one real DOM node.
   nullthrowsForFiber(node, node.element, `${path}.element`);
+  if (
+    node.element instanceof Node &&
+    !node.element.parentElement &&
+    !isRootFiber(node)
+  ) {
+    throw new ReactError(node, `${path}.element is a detached DOM node`);
+  }
 
   if (node.type === 'tag') {
     if (!node.tag) {
