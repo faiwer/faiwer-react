@@ -2,6 +2,7 @@
 import {
   Component,
   createContext,
+  createElement,
   type RefObject,
   type UnknownProps,
 } from 'faiwer-react';
@@ -298,6 +299,34 @@ describe('Class components', () => {
           `Next year I'll be 45 years old</div>`,
       );
     });
+  });
+
+  it('supports class components with function children (render prop) — JSX form', () => {
+    // <Custom>{fn}</Custom> compiles to jsx(Custom, { children: fn }) — fn is
+    // passed as a *named* prop, never goes through rest-spread, so this works.
+    class Custom extends Component<{ children: (v: number) => number }> {
+      render() {
+        return this.props.children(3);
+      }
+    }
+    expectHtml(mount(<Custom>{(v) => v ** 2}</Custom>)).toBe('9');
+  });
+
+  it('supports class components with function children (render prop) — legacy createElement form', () => {
+    // antd-style: `createElement(Custom, props, fn)` collects `fn` into the
+    // rest `...children`, so the legacy `createElement` ends up setting
+    // `props.children = [fn]` (an array wrapping the function). The class
+    // then tries `this.props.children(3)` on an array and crashes.
+    class Custom extends Component<{ children: (v: number) => number }> {
+      render() {
+        return this.props.children(3);
+      }
+    }
+    expectHtml(
+      mount(createElement(Custom, null!, 
+        // @ts-ignore Class component are difficult to type properly.
+        (v: number) => Number(v) ** 2)),
+    ).toBe('9');
   });
 
   it.todo('shouldComponentUpdate');

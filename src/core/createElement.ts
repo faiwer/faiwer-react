@@ -131,9 +131,22 @@ export function createElement(
   ...children: JSX.Element[]
 ): ElementNode {
   const { key, ...props } = propsRaw ?? {};
+  // Match React's legacy `createElement` normalization for rest-spread
+  // children:
+  // - 0: rest children → fall back to whatever was passed via `props.children`
+  // - 1: rest child    → use that child directly (NOT wrapped in an array),
+  //                     so consumers like `props.children()` (render props)
+  //                     keep working.
+  // - 2+: rest children → use the array as-is.
+  const normalizedChildren =
+    children.length === 0
+      ? props.children
+      : children.length === 1
+        ? children[0]
+        : children;
   return createElementNew(
     type,
-    { ...props, children: children.length > 0 ? children : props.children },
+    { ...props, children: normalizedChildren },
     key as ReactKey | undefined,
   );
 }
