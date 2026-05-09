@@ -8,3 +8,4 @@ export { useRef, forwardRef, useImperativeHandle } from './useRef';
 export { useState } from './useState';
 export { useError } from './useError';
 export { useReducer } from './useReducer';
+export { useDebugValue } from './useDebugValue';
