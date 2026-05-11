@@ -29,6 +29,48 @@ describe('styles', () => {
     expectHtml(root).toBe(`<div style="z-index: 5;"></div>`);
   });
 
+  it('appends px to numeric values for length-like properties', () => {
+    const root = mount(
+      <div
+        style={{
+          left: 245,
+          top: 'auto',
+          width: 100,
+          height: 100,
+          zIndex: 1070,
+          opacity: 0.5,
+        }}
+      />,
+    );
+    const div = root.querySelector('div')!;
+    expect(div.style.left).toBe('245px');
+    expect(div.style.top).toBe('auto');
+    expect(div.style.width).toBe('100px');
+    expect(div.style.height).toBe('100px');
+    expect(div.style.zIndex).toBe('1070');
+    expect(div.style.opacity).toBe('0.5');
+  });
+
+  it('updates a numeric length on re-render', async () => {
+    const aligned = useStateX<boolean>();
+    const Comp = () => (
+      <div
+        style={{
+          position: 'fixed',
+          left: aligned.use(false) ? 245 : '-1000vw',
+          top: 50,
+        }}
+      />
+    );
+
+    const root = mount(<Comp />);
+    expect(root.querySelector('div')!.style.left).toBe('-1000vw');
+    expect(root.querySelector('div')!.style.top).toBe('50px');
+
+    await act(() => aligned.set(true));
+    expect(root.querySelector('div')!.style.left).toBe('245px');
+  });
+
   it('supports CSS-variables', () => {
     const root = mount(
       <>

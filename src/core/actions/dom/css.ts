@@ -34,11 +34,12 @@ export const setTagStyles = (
     }
 
     for (const [key, value] of Object.entries(newStyles)) {
+      const normalized = normalizeStyleValue(key, value);
       if (key.includes('-')) {
-        elementStyle.setProperty(key, value as string);
+        elementStyle.setProperty(key, normalized as string);
       } else if (key in elementStyle) {
         // @ts-ignore It's wrongly typed as read-only.
-        elementStyle[key as keyof TagStyles] = value;
+        elementStyle[key as keyof TagStyles] = normalized;
       }
     }
   } else {
@@ -63,3 +64,83 @@ const strToStyles = (css: string): TagStyles => {
 };
 
 const cssDummy = document.createElement('x-css-dummy');
+
+/**
+ * CSS properties that take a unitless number in vanilla CSS — assigning a
+ * numeric value to any other length-ish property via the CSSOM gets silently
+ * rejected (the setter coerces the number to a string and the browser fails to
+ * parse it as a length). React appends `px` to numeric values for any property
+ * not in this allowlist; we mirror that behaviour.
+ *
+ * Kept in sync with React's `isUnitlessNumber` set.
+ */
+const UNITLESS_NUMBERS = new Set<string>([
+  'animationIterationCount',
+  'aspectRatio',
+  'borderImageOutset',
+  'borderImageSlice',
+  'borderImageWidth',
+  'boxFlex',
+  'boxFlexGroup',
+  'boxOrdinalGroup',
+  'columnCount',
+  'columns',
+  'flex',
+  'flexGrow',
+  'flexPositive',
+  'flexShrink',
+  'flexNegative',
+  'flexOrder',
+  'gridArea',
+  'gridRow',
+  'gridRowEnd',
+  'gridRowSpan',
+  'gridRowStart',
+  'gridColumn',
+  'gridColumnEnd',
+  'gridColumnSpan',
+  'gridColumnStart',
+  'fontWeight',
+  'lineClamp',
+  'lineHeight',
+  'opacity',
+  'order',
+  'orphans',
+  'scale',
+  'tabSize',
+  'widows',
+  'zIndex',
+  'zoom',
+  'fillOpacity',
+  'floodOpacity',
+  'stopOpacity',
+  'strokeDasharray',
+  'strokeDashoffset',
+  'strokeMiterlimit',
+  'strokeOpacity',
+  'strokeWidth',
+]);
+
+/**
+ * Appends `px` to numeric CSS values unless:
+ * - the property is unitless (e.g. `zIndex`, `opacity`),
+ * - the value is `0` (CSS treats `0` and `0px` as equivalent — match React and
+ *   emit the shorter form),
+ * - the property is a CSS custom property (`--foo`), where the author controls
+ *   the unit semantics.
+ *
+ * Non-numeric values are returned unchanged.
+ */
+const normalizeStyleValue = (key: string, value: unknown): unknown => {
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value === 0 ||
+    key.startsWith('--') ||
+    UNITLESS_NUMBERS.has(key)
+  ) {
+    return value;
+  }
+
+  return `${value}px`;
+};
