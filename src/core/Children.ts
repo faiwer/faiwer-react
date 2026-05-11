@@ -2,7 +2,7 @@ import type { ElementNode, ScalarNode } from 'faiwer-react/types';
 
 type Children = {
   count: (children: JSX.Element) => number;
-  only: (children: JSX.Element) => asserts children is ElementNode | ScalarNode;
+  only: (children: JSX.Element) => ElementNode | ScalarNode;
   forEach: (
     children: JSX.Element,
     fn: (child: ElementNode | ScalarNode) => void,
@@ -61,6 +61,8 @@ export const Children: Children = {
     if (items.length !== 1) {
       throw new Error(`Found ${items.length} children. Expected only one`);
     }
+
+    return items[0];
   },
 
   toArray: (children) => {

@@ -153,6 +153,18 @@ describe('Children', () => {
   });
 
   describe('only', () => {
+    it('returns the only child (single value)', () => {
+      const node = <Component />;
+      expect(Children.only(node)).toBe(node);
+      expect(Children.only(42)).toBe(42);
+    });
+
+    it('returns the only child (one-item array — unwraps it)', () => {
+      const node = <Component />;
+      expect(Children.only([node])).toBe(node);
+      expect(Children.only([42])).toBe(42);
+    });
+
     it('passes through a single element / scalar', () => {
       Children.only(1);
       Children.only(<Component />);
