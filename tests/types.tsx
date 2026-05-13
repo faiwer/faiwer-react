@@ -141,3 +141,44 @@ declare let F7: React.ComponentType<{ id: number }>;
 <F7 id={1} />;
 // @ts-expect-error
 <F7 />;
+
+// React.HTMLProps — should accept any HTML attribute available on the element
+// plus a `ref` and the JSX extras (`style`, `children`, …). This is the shape
+// libraries like AntD / rc-component rely on as the public prop bag for
+// "anything that goes onto a <div>/<input>/<textarea>".
+declare let _F8: React.HTMLProps<HTMLDivElement>;
+_F8 = { className: 'x' };
+_F8 = { tabIndex: 1 };
+_F8 = { onClick: (e) => e.target.tagName };
+_F8 = { ref: (node) => node?.tagName };
+_F8 = { style: { color: 'red' } };
+_F8 = { children: <Blank /> };
+_F8 = { key: 'k' };
+// @ts-expect-error className must be a string
+_F8 = { className: 123 };
+
+declare let _F9: React.HTMLProps<HTMLInputElement>;
+_F9 = { value: 'hello' };
+_F9 = { defaultChecked: true };
+// @ts-expect-error value can't be boolean on <input>
+_F9 = { value: true };
+
+// React.HTMLProps with the upstream default (HTMLElement) — bare usage.
+declare let _F10: React.HTMLProps;
+_F10 = { className: 'x', tabIndex: 1 };
+
+// React.DetailedHTMLProps — value shape of each `JSX.IntrinsicElements` entry.
+declare let _F11: React.DetailedHTMLProps<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  HTMLInputElement
+>;
+_F11 = { value: 'x', ref: (n) => n?.tagName, key: 'k' };
+
+// React.ClassAttributes — just the ref/key bag.
+declare let _F12: React.ClassAttributes<HTMLDivElement>;
+_F12 = { ref: (n) => n?.tagName };
+_F12 = { key: 'k' };
+
+// React.AllHTMLAttributes — the all-attrs bag without the ref/key extras.
+declare let _F13: React.AllHTMLAttributes<HTMLDivElement>;
+_F13 = { className: 'x', tabIndex: 1 };

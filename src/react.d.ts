@@ -26,6 +26,10 @@ declare global {
       ns.TextareaHTMLAttributes<T>;
     type InputHTMLAttributes<T extends Element> = ns.InputHTMLAttributes<T>;
     type RefAttributes<T extends Element> = ns.RefAttributes<T>;
+    type ClassAttributes<T extends Element> = ns.ClassAttributes<T>;
+    type AllHTMLAttributes<T extends Element> = ns.AllHTMLAttributes<T>;
+    type HTMLProps<T extends Element = HTMLElement> = ns.HTMLProps<T>;
+    type DetailedHTMLProps<E, T extends Element> = ns.DetailedHTMLProps<E, T>;
 
     // Events
     type SyntheticEvent<
