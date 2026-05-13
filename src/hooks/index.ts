@@ -4,7 +4,7 @@ export { useEffect, useLayoutEffect, useInsertionEffect } from './useEffect';
 export { useStableCallback } from './useStableCallback';
 export { useId } from './useId';
 export { useMemo } from './useMemo';
-export { useRef, forwardRef, useImperativeHandle } from './useRef';
+export { useRef, createRef, forwardRef, useImperativeHandle } from './useRef';
 export { useState } from './useState';
 export { useError } from './useError';
 export { useReducer } from './useReducer';

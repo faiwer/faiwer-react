@@ -25,6 +25,18 @@ export function useRef<T>(initialValue?: T): RefObject<T> {
   return item.value as RefObject<T>;
 }
 
+/**
+ * Class-component / outside-of-render ref factory. Mirrors React's `createRef`:
+ * returns a fresh `{ current: null }` box that callers can mutate and pass into
+ * `ref={…}`. Unlike `useRef` it does NOT preserve identity across renders —
+ * each call returns a new object — so it's only appropriate for class
+ * components, module-level refs, or imperative code paths (the AntD /
+ * rc-component family uses it in a few places).
+ */
+export const createRef = <T = unknown>(): RefObject<T | null> => ({
+  current: null,
+});
+
 export const forwardRef = <Props extends UnknownProps, R>(
   Component: ((props: Props, ref?: Ref<R>) => JSX.Element) & {
     displayName?: string;

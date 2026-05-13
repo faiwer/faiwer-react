@@ -7,6 +7,7 @@ import {
   type Ref,
   forwardRef,
   useState,
+  createRef,
 } from '~/index';
 import { act } from '~/testing';
 
@@ -254,6 +255,28 @@ describe('Hooks: refs', () => {
       expect(mode === 'fn' ? onRef.mock.lastCall?.[0] : ref.current).toBe(42);
     });
   }
+
+  describe('createRef', () => {
+    it('returns a fresh { current: null } ref object', () => {
+      const ref = createRef<HTMLDivElement>();
+      expect(ref).toEqual({ current: null });
+      // Each call returns a distinct object (unlike useRef inside a component).
+      expect(createRef()).not.toBe(ref);
+    });
+
+    it('can be attached to a tag ref and receives the node', () => {
+      const ref = createRef<HTMLDivElement>();
+      const root = mount(<div ref={ref} data-x="1" />);
+      expect(ref.current).toBe(root.querySelector('[data-x="1"]'));
+      expect(ref.current?.tagName).toBe('DIV');
+    });
+
+    it('is exported on the default-export object too', () => {
+      const React = require('~/index').default;
+      expect(typeof React.createRef).toBe('function');
+      expect(React.createRef()).toEqual({ current: null });
+    });
+  });
 
   describe('forwardRef: displayName', () => {
     it('preserves the inner function name', () => {
