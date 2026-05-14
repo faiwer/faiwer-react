@@ -36,7 +36,7 @@ export const runEffects = (app: App, mode: EffectMode) => {
     try {
       fn(fiber);
     } catch (errorRaw: unknown) {
-      if (mode === 'refsMount' || mode === 'refsUnmount') {
+      if (isRefEffectMode(mode)) {
         fiber.ref = null; // Don't run the ref-destructor for this fiber.
       }
 
@@ -76,7 +76,8 @@ const cancelSetEffects = (app: App, fibers: Set<number>) => {
   for (const group of [
     app.effects.layout,
     app.effects.normal,
-    app.effects.refsMount,
+    app.effects.domRefsMount,
+    app.effects.imperativeHandlesMount,
   ]) {
     for (const effect of group) {
       if (fibers.has(effect.fiber.id)) {
@@ -85,3 +86,8 @@ const cancelSetEffects = (app: App, fibers: Set<number>) => {
     }
   }
 };
+
+const isRefEffectMode = (mode: EffectMode): boolean =>
+  mode === 'refsUnmount' ||
+  mode === 'domRefsMount' ||
+  mode === 'imperativeHandlesMount';

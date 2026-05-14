@@ -78,9 +78,12 @@ export type EffectHandler = (
 export type EffectMode =
   // <input/>.value restoration
   | 'afterActions'
-  // <div ref={onRef}/>
+  // <div ref={onRef}/> unmount.
   | 'refsUnmount'
-  | 'refsMount'
+  // <div ref={onRef}/> mount.
+  | 'domRefsMount'
+  // useImperativeHandle(ref, factory).
+  | 'imperativeHandlesMount'
   // useLayoutEffect(fn);
   | 'layout'
   // useEffect();

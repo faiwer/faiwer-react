@@ -33,8 +33,9 @@ export const mount = (
     root: createRootFiber(appId),
     effects: {
       afterActions: [],
-      refsMount: [],
       refsUnmount: [],
+      domRefsMount: [],
+      imperativeHandlesMount: [],
       layout: [],
       normal: [],
     },
@@ -91,8 +92,9 @@ export const mount = (
   return function destroyApp(): void {
     app.invalidatedComponents = new Queue();
     app.effects.afterActions = [];
-    app.effects.refsMount = [];
     app.effects.refsUnmount = [];
+    app.effects.domRefsMount = [];
+    app.effects.imperativeHandlesMount = [];
     app.effects.layout = [];
     app.effects.normal = [];
 

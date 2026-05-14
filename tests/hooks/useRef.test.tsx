@@ -368,6 +368,24 @@ describe('useImperativeHandle', () => {
     });
   }
 
+  it('publishes imperative handles after DOM refs are assigned', () => {
+    type Handle = {
+      popupElement: HTMLDivElement | null;
+    };
+
+    const Comp = ({ ref }: { ref: Ref<Handle> }) => {
+      const popupRef = useRef<HTMLDivElement | null>(null);
+      useImperativeHandle(ref, () => ({ popupElement: popupRef.current }));
+      return <div ref={popupRef}>popup</div>;
+    };
+
+    const ref: RefObject<Handle | null> = { current: null };
+    const root = mount(<Comp ref={ref} />);
+
+    expectHtml(root).toBe('<div>popup</div>');
+    expect(ref.current?.popupElement).toBe(root.querySelector('div'));
+  });
+
   it('resets the handle every render if no deps given', async () => {
     const [ref, onSet] = genReactiveRef<number>();
 

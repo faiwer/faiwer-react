@@ -58,7 +58,7 @@ export const useImperativeHandle = <T>(
   deps?: unknown[],
 ): void => {
   useBaseEffect(
-    'refsMount',
+    'imperativeHandlesMount',
     () => {
       if (!ref) return;
 

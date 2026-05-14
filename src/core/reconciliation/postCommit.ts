@@ -30,11 +30,13 @@ export function postCommit(app: App, depth: number) {
   if (
     app.effects.layout.length > 0 ||
     app.effects.refsUnmount.length > 0 ||
-    app.effects.refsMount.length > 0
+    app.effects.domRefsMount.length > 0 ||
+    app.effects.imperativeHandlesMount.length > 0
   ) {
     app.state = 'refEffects';
     runEffects(app, 'refsUnmount');
-    runEffects(app, 'refsMount');
+    runEffects(app, 'domRefsMount');
+    runEffects(app, 'imperativeHandlesMount');
 
     app.state = 'layoutEffects';
     runEffects(app, 'layout');
