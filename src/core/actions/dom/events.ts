@@ -48,6 +48,9 @@ export const setEventHandler = (
       handler: value,
       capture,
       wrapper: (event: Event) => {
+        // 3rd party code doesn't know that we pass a real event object here.
+        // They expect { nativeEvent: Event }. So give them that.
+        ensureNativeEvent(event);
         // Original React doesn't support stopping propagation on `false` return.
         events[name]!.handler?.(event);
       },
@@ -56,5 +59,11 @@ export const setEventHandler = (
   } else {
     // The tag is already listening to this event. Just update the internal ref.
     events[name].handler = value;
+  }
+};
+
+const ensureNativeEvent = <E extends Event>(event: E): void => {
+  if (!('nativeEvent' in event)) {
+    (event as E & { nativeEvent: E }).nativeEvent = event;
   }
 };

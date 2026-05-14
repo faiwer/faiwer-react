@@ -27,6 +27,41 @@ describe('Events', () => {
     expect(onclick).toHaveBeenCalledWith(event);
   });
 
+  it('adds nativeEvent to native events before calling handlers', () => {
+    const onclick = jest.fn();
+    const root = mount(<button onClick={onclick}>Click</button>);
+    const event = new CustomEvent('click');
+
+    root.querySelector('button')!.dispatchEvent(event);
+
+    expect(onclick).toHaveBeenCalledTimes(1);
+    expect({ ...event }).toEqual(
+      expect.objectContaining({
+        nativeEvent: event,
+      }),
+    );
+    expect(onclick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: event,
+      }),
+    );
+  });
+
+  it('adds nativeEvent to mapped onChange events', () => {
+    const onChange = jest.fn();
+    const root = mount(<input onChange={onChange} />);
+    const event = new InputEvent('input');
+
+    root.querySelector('input')!.dispatchEvent(event);
+
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        nativeEvent: event,
+      }),
+    );
+  });
+
   for (const mode of ['undefined', 'absent prop']) {
     it(`unsets tag event handlers. mode: ${mode}`, async () => {
       const onclick = jest.fn();
