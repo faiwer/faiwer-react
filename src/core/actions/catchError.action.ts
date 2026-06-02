@@ -19,7 +19,11 @@ import { ReactError } from '../reconciliation/errors/ReactError';
  */
 export function catchErrorAction(
   fiber: FiberNode,
-  { error }: Pick<CatchErrorAction, 'error'>,
+  {
+    error,
+    // If called from the "removeAction" action.
+    skipUnmount,
+  }: Pick<CatchErrorAction, 'error'> & { skipUnmount?: boolean },
 ) {
   scheduleEffect(
     fiber,
@@ -56,10 +60,10 @@ export function catchErrorAction(
         'afterActions',
       );
     },
-    'normal',
+    'normalMount',
   );
 
-  if (fiber.element) {
+  if (!skipUnmount && fiber.element) {
     killChildrenOnError(fiber);
   }
   // else: fiber.children === [nullNode].

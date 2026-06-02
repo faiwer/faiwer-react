@@ -80,6 +80,62 @@ describe('Hooks: refs', () => {
     expect(node3!.parentElement?.tagName).toBe('ROOT');
   });
 
+  it('attaches child host refs before parent host refs', () => {
+    const calls: string[] = [];
+
+    const Comp = () => (
+      <div ref={() => calls.push('parent')}>
+        <span ref={() => calls.push('child')} />
+      </div>
+    );
+
+    mount(<Comp />);
+
+    expect(calls).toEqual(['child', 'parent']);
+  });
+
+  it('detaches parent host refs before child host refs', async () => {
+    const calls: string[] = [];
+    const show = useStateX<boolean>();
+
+    const Comp = () =>
+      show.use(true) && (
+        <div ref={(node) => !node && calls.push('parent')}>
+          <span ref={(node) => !node && calls.push('child')} />
+        </div>
+      );
+
+    mount(<Comp />);
+    expect(calls).toEqual([]);
+
+    await act(() => show.set(false));
+
+    expect(calls).toEqual(['parent', 'child']);
+  });
+
+  it('detaches the old ref before attaching the new ref', async () => {
+    const calls: string[] = [];
+    const useFirstRef = useStateX<boolean>();
+    const oldRef = (node: HTMLDivElement | null) => {
+      calls.push(`old:${node ? 'node' : 'null'}`);
+    };
+    const newRef = (node: HTMLDivElement | null) => {
+      calls.push(`new:${node ? 'node' : 'null'}`);
+    };
+
+    const Comp = () => (
+      <div ref={useFirstRef.use(true) ? oldRef : newRef}>content</div>
+    );
+
+    mount(<Comp />);
+    expect(calls).toEqual(['old:node']);
+
+    calls.length = 0;
+    await act(() => useFirstRef.set(false));
+
+    expect(calls).toEqual(['old:null', 'new:node']);
+  });
+
   it('reassigns ref when the ref handlers are changed', async () => {
     type State = [RefSetter<HTMLDivElement>, RefObject<HTMLDivElement | null>];
     const onRefs = useStateX<State>();
@@ -384,6 +440,29 @@ describe('useImperativeHandle', () => {
 
     expectHtml(root).toBe('<div>popup</div>');
     expect(ref.current?.popupElement).toBe(root.querySelector('div'));
+  });
+
+  it('publishes child imperative handles before parent imperative handles', () => {
+    type ChildHandle = { childValue: string };
+    type ParentHandle = { childValue: string };
+
+    const Child = ({ ref }: { ref: Ref<ChildHandle> }) => {
+      useImperativeHandle(ref, () => ({ childValue: 'ready' }));
+      return <div>child</div>;
+    };
+
+    const Parent = ({ ref }: { ref: Ref<ParentHandle> }) => {
+      const childRef = useRef<ChildHandle | null>(null);
+      useImperativeHandle(ref, () => ({
+        childValue: childRef.current!.childValue,
+      }));
+      return <Child ref={childRef} />;
+    };
+
+    const ref: RefObject<ParentHandle | null> = { current: null };
+    mount(<Parent ref={ref} />);
+
+    expect(ref.current?.childValue).toBe('ready');
   });
 
   it('resets the handle every render if no deps given', async () => {

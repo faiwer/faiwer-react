@@ -1,6 +1,5 @@
 import {
   useState,
-  type EffectMode,
   type StateSetter,
   useEffect as useNormalEffect,
   useLayoutEffect,
@@ -9,7 +8,9 @@ import { act } from '~/testing';
 import { useRerender, wait, waitFor, useStateX } from '../helpers';
 import { expectHtml, mount, stripComments } from '../helpers';
 
-for (const mode of ['normal', 'layout'] as EffectMode[]) {
+type TestEffectMode = 'normal' | 'layout';
+
+for (const mode of ['normal', 'layout'] as TestEffectMode[]) {
   const useModeEffect = mode === 'layout' ? useLayoutEffect : useNormalEffect;
 
   describe(`Hooks: useEffect, mode: ${mode}`, () => {
@@ -26,6 +27,67 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
       expect(count).toBe(mode === 'layout' ? 1 : 0);
 
       await waitFor(() => expect(count).toBe(1));
+    });
+
+    it('runs child effects before parent effects on mount', async () => {
+      const calls: string[] = [];
+
+      const Child = () => {
+        useModeEffect(() => {
+          calls.push('child');
+        }, []);
+        return null;
+      };
+
+      const Parent = () => {
+        useModeEffect(() => {
+          calls.push('parent');
+        }, []);
+        return <Child />;
+      };
+
+      mount(<Parent />);
+
+      if (mode === 'normal') {
+        expect(calls).toEqual([]);
+      }
+
+      await waitFor(() => {
+        expect(calls).toEqual(['child', 'parent']);
+      });
+    });
+
+    it('runs sibling effects in tree order before parent effects on mount', async () => {
+      const calls: string[] = [];
+
+      const Child = ({ name }: { name: string }) => {
+        useModeEffect(() => {
+          calls.push(name);
+        }, []);
+        return null;
+      };
+
+      const Parent = () => {
+        useModeEffect(() => {
+          calls.push('parent');
+        }, []);
+        return (
+          <>
+            <Child name="first" />
+            <Child name="second" />
+          </>
+        );
+      };
+
+      mount(<Parent />);
+
+      if (mode === 'normal') {
+        expect(calls).toEqual([]);
+      }
+
+      await waitFor(() => {
+        expect(calls).toEqual(['first', 'second', 'parent']);
+      });
     });
 
     it('runs a destructor', async () => {
@@ -81,6 +143,139 @@ for (const mode of ['normal', 'layout'] as EffectMode[]) {
 
       await act(() => show.set(false));
       await waitFor(() => expect(onEffectUnmount).toHaveBeenCalledTimes(1));
+    });
+
+    it('runs parent cleanups before child cleanups on unmount', async () => {
+      const calls: string[] = [];
+      const show = useStateX<boolean>();
+
+      const Child = () => {
+        useModeEffect(() => {
+          return () => calls.push('child');
+        }, []);
+        return null;
+      };
+
+      const Parent = () => {
+        useModeEffect(() => {
+          return () => calls.push('parent');
+        }, []);
+        return <Child />;
+      };
+
+      const Comp = () => show.use(true) && <Parent />;
+
+      mount(<Comp />);
+      expect(calls).toEqual([]);
+
+      await act(() => show.set(false));
+      await waitFor(() => {
+        expect(calls).toEqual(['parent', 'child']);
+      });
+    });
+
+    it('runs sibling cleanups in tree order after parent cleanups on unmount', async () => {
+      const calls: string[] = [];
+      const show = useStateX<boolean>();
+
+      const Child = ({ name }: { name: string }) => {
+        useModeEffect(() => {
+          return () => calls.push(name);
+        }, []);
+        return null;
+      };
+
+      const Parent = () => {
+        useModeEffect(() => {
+          return () => calls.push('parent');
+        }, []);
+        return (
+          <>
+            <Child name="first" />
+            <Child name="second" />
+          </>
+        );
+      };
+
+      const Comp = () => show.use(true) && <Parent />;
+
+      mount(<Comp />);
+      expect(calls).toEqual([]);
+
+      await act(() => show.set(false));
+      await waitFor(() => {
+        expect(calls).toEqual(['parent', 'first', 'second']);
+      });
+    });
+
+    it('orders unmount cleanups around host ref detaches', async () => {
+      const calls: string[] = [];
+      const show = useStateX<boolean>();
+
+      const Comp = () =>
+        show.use(true) && (
+          <div ref={(node) => !node && calls.push('ref')}>
+            <Child />
+          </div>
+        );
+
+      const Child = () => {
+        useModeEffect(() => {
+          return () => calls.push('cleanup');
+        }, []);
+        return null;
+      };
+
+      mount(<Comp />);
+      expect(calls).toEqual([]);
+
+      await act(() => show.set(false));
+      await waitFor(() => {
+        expect(calls).toEqual(
+          // Different order for different effect modes.
+          mode === 'layout' ? ['cleanup', 'ref'] : ['ref', 'cleanup'],
+        );
+      });
+    });
+
+    it('runs update cleanups and setups child-first', async () => {
+      const calls: string[] = [];
+      let setValue: StateSetter<number>;
+
+      const Child = ({ currentValue }: { currentValue: number }) => {
+        useModeEffect(() => {
+          calls.push(`child:${currentValue}:setup`);
+          return () => calls.push(`child:${currentValue}:cleanup`);
+        }, [currentValue]);
+        return null;
+      };
+
+      const Parent = () => {
+        const [currentValue, setCurrentValue] = useState(0);
+        setValue = setCurrentValue;
+
+        useModeEffect(() => {
+          calls.push(`parent:${currentValue}:setup`);
+          return () => calls.push(`parent:${currentValue}:cleanup`);
+        }, [currentValue]);
+        return <Child currentValue={currentValue} />;
+      };
+
+      mount(<Parent />);
+      await waitFor(() => {
+        expect(calls).toEqual(['child:0:setup', 'parent:0:setup']);
+      });
+
+      calls.length = 0;
+      await act(() => setValue(1));
+      await waitFor(() => {
+        expect(calls).toEqual([
+          'child:0:cleanup',
+          'parent:0:cleanup',
+          'child:1:setup',
+          'parent:1:setup',
+        ]);
+      });
     });
 
     it('provides a signal', async () => {

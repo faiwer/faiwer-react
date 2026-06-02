@@ -54,7 +54,6 @@ type UpdateAction =
 // Remove actions
 export type RemoveAction = CommonAction & {
   type: 'Remove';
-  immediate?: boolean;
   last?: boolean;
 };
 export type RelayoutAction = CommonAction & {

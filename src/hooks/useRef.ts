@@ -59,6 +59,7 @@ export const useImperativeHandle = <T>(
 ): void => {
   useBaseEffect(
     'imperativeHandlesMount',
+    'imperativeHandlesUnmount',
     () => {
       if (!ref) return;
 

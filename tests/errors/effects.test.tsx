@@ -14,10 +14,12 @@ import {
   genSwitch,
   goodie,
   interceptConsole,
+  onErrorX,
   Throw,
 } from './fixtures';
 import { useEffect, useLayoutEffect, useState, type Ref } from 'faiwer-react';
 import { useImperativeHandle } from 'faiwer-react/hooks/useRef';
+import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
 describe('Errors: Effects', () => {
   it('drops effects on error on app mount', async () => {
@@ -132,10 +134,10 @@ describe('Errors: Effects', () => {
 
     await expectDidCatchX(root);
     expect(beforeFn.mock.calls.map((c) => c[0]).join(',')).toEqual(
-      `render,layout:e,normal:e,ref:e`,
+      `render,layout:e,ref:e,normal:e`,
     );
     expect(afterFn.mock.calls.map((c) => c[0]).join(',')).toEqual(
-      `layout:e,normal:e,ref:e`,
+      `layout:e,ref:e,normal:e`,
     );
   });
 
@@ -432,14 +434,14 @@ describe('Errors: Effects', () => {
         expect(goodie.normal.mount).toHaveBeenCalledTimes(2); // only 1st render
         expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
 
-        expect(goodie.layout.mount).toHaveBeenCalledTimes(3); // Only 1 <Goodie/>
-        expect(goodie.layout.unmount).toHaveBeenCalledTimes(3);
+        expect(goodie.layout.mount).toHaveBeenCalledTimes(2); // Only 1st render.
+        expect(goodie.layout.unmount).toHaveBeenCalledTimes(2);
         // Refs are called before layout hooks. So both <Goodie/>s get it twice.
         expect(goodie.ref.mount).toHaveBeenCalledTimes(4);
         expect(goodie.ref.unmount).toHaveBeenCalledTimes(4);
       } else if (mode === 'normal') {
-        expect(goodie.normal.mount).toHaveBeenCalledTimes(3); // only one <Goodie/>
-        expect(goodie.normal.unmount).toHaveBeenCalledTimes(3);
+        expect(goodie.normal.mount).toHaveBeenCalledTimes(2); // Only 1st render.
+        expect(goodie.normal.unmount).toHaveBeenCalledTimes(2);
         // Refs & layout effects are called before normal hooks.
         expect(goodie.layout.mount).toHaveBeenCalledTimes(4);
         expect(goodie.layout.unmount).toHaveBeenCalledTimes(4);
@@ -459,6 +461,53 @@ describe('Errors: Effects', () => {
       }
     });
   }
+
+  it('continues reporting normal cleanup errors through parent and child unmount', async () => {
+    const show = useStateX<boolean>();
+
+    const Child = () => {
+      useEffect(() => {
+        return () => {
+          throw new Error('child normal cleanup error');
+        };
+      }, []);
+      return <div>child</div>;
+    };
+
+    const Parent = () => {
+      useEffect(() => {
+        return () => {
+          throw new Error('parent normal cleanup error');
+        };
+      }, []);
+      return (
+        <div>
+          parent
+          <Child />
+        </div>
+      );
+    };
+
+    const Comp = () => (
+      <ErrorBoundaryX>{show.use(true) && <Parent />}</ErrorBoundaryX>
+    );
+
+    const root = mount(<Comp />);
+
+    expectHtmlFull(root).toBe('<div>parent<div>child</div></div>');
+
+    await act(() => show.set(false));
+
+    await waitFor(() => {
+      const [call1, call2] = onErrorX.mock.calls;
+      const [error1, error2] = [call1[0], call2[0]] as [ReactError, ReactError];
+
+      expect(onErrorX.mock.calls).toHaveLength(2);
+      // Parent "unmount" error is reported first.
+      expect(error1.cause).toEqual(new Error('parent normal cleanup error'));
+      expect(error2.cause).toEqual(new Error('child normal cleanup error'));
+    });
+  });
 
   for (const mode of ['mount', 'rerender']) {
     it(`catches errors in useImperativeHandle: ${mode}`, async () => {

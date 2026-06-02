@@ -133,13 +133,22 @@ export const getFiberDomNodes = (fiber: FiberNode): DomNode[] => {
  * When a node leaves the DOM tree, we need to update all associated ref
  * objects and ref handlers.
  */
-export const unsetRef = (fiber: TagFiberNode, immediate: boolean): void => {
+export const unsetRef = (
+  fiber: TagFiberNode,
+  collect?: (effect: { fiber: TagFiberNode; fn: () => void }) => void,
+): void => {
   const { ref } = fiber;
 
   if (typeof ref === 'function') {
-    if (immediate) {
-      ref(null);
-      // TODO: add a test ^.
+    if (collect) {
+      // Fiber removal. It runs the unsetRef handlers all at once in the right
+      // order.
+      collect({
+        fiber,
+        fn: () => {
+          ref(null);
+        },
+      });
     } else {
       // It can be a setter (e.g., <div onRef={setContainer}/>). Since we
       // shouldn't allow invalidating components during commit phase we need

@@ -31,7 +31,7 @@ export function setRefAction(
     // in such a case.
     !dontUnsetRef
   ) {
-    unsetRef(fiber, false);
+    unsetRef(fiber);
   }
 
   // Run effects only when the DOM node is already mounted to a real DOM node.

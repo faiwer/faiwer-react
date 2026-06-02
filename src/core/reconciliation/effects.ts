@@ -4,6 +4,7 @@ import { ReactError } from './errors/ReactError';
 import { findClosestErrorBoundary } from 'faiwer-react/hooks/useError';
 import { traverseFiberTree } from '../actions/helpers';
 import { catchErrorAction } from '../actions/catchError.action';
+import { getFiberLevel } from './fibers';
 
 /**
  * Adds to a planner the given effect.
@@ -25,8 +26,12 @@ export const scheduleEffect = (
  */
 export const runEffects = (app: App, mode: EffectMode) => {
   const effects = app.effects[mode];
+  app.effects[mode] = [];
 
-  for (const { fn, fiber, cancelled } of effects) {
+  const comparator = getEffectsComparator(mode);
+  const effectsToRun = comparator ? [...effects].sort(comparator) : effects;
+
+  for (const { fn, fiber, cancelled } of effectsToRun) {
     if (cancelled) {
       // Another component within the same error boundary children group failed
       // during running one of its effects.
@@ -40,23 +45,37 @@ export const runEffects = (app: App, mode: EffectMode) => {
         fiber.ref = null; // Don't run the ref-destructor for this fiber.
       }
 
-      const error = new ReactError(
-        fiber,
-        `Error during running effect. ${String(errorRaw)}`,
-      );
-      error.cause = errorRaw;
-
-      const boundary = findClosestErrorBoundary(fiber);
-      if (!boundary) {
-        throw error;
-      }
-
-      cancelSetEffects(app, collectBoundaryChildren(boundary));
-      catchErrorAction(boundary, { error });
+      reportEffectError(app, fiber, errorRaw, { activeEffects: effectsToRun });
     }
   }
 
-  app.effects[mode] = [];
+};
+
+export const reportEffectError = (
+  app: App,
+  fiber: FiberNode,
+  errorRaw: unknown,
+  {
+    activeEffects = [],
+    skipUnmount = false,
+  }: {
+    activeEffects?: QueuedEffect[];
+    skipUnmount?: boolean;
+  } = {},
+): void => {
+  const error = new ReactError(
+    fiber,
+    `Error during running effect. ${String(errorRaw)}`,
+  );
+  error.cause = errorRaw;
+
+  const boundary = findClosestErrorBoundary(fiber);
+  if (!boundary) {
+    throw error;
+  }
+
+  cancelSetEffects(app, collectBoundaryChildren(boundary), activeEffects);
+  catchErrorAction(boundary, { error, skipUnmount });
 };
 
 /** Return IDs of all given error boundary fiber children. */
@@ -72,11 +91,19 @@ const collectBoundaryChildren = (boundary: FiberNode): Set<number> => {
 };
 
 /** Cancels all effects that aren't destructors for given set of fibers. */
-const cancelSetEffects = (app: App, fibers: Set<number>) => {
+const cancelSetEffects = (
+  app: App,
+  fibers: Set<number>,
+  activeEffects: QueuedEffect[],
+) => {
   for (const group of [
-    app.effects.layout,
-    app.effects.normal,
+    activeEffects,
+    app.effects.layoutUnmount,
+    app.effects.layoutMount,
+    app.effects.normalUnmount,
+    app.effects.normalMount,
     app.effects.domRefsMount,
+    app.effects.imperativeHandlesUnmount,
     app.effects.imperativeHandlesMount,
   ]) {
     for (const effect of group) {
@@ -90,4 +117,34 @@ const cancelSetEffects = (app: App, fibers: Set<number>) => {
 const isRefEffectMode = (mode: EffectMode): boolean =>
   mode === 'refsUnmount' ||
   mode === 'domRefsMount' ||
+  mode === 'imperativeHandlesUnmount' ||
   mode === 'imperativeHandlesMount';
+
+type QueuedEffect = App['effects'][EffectMode][number];
+
+const parentFirst = (a: QueuedEffect, b: QueuedEffect): number =>
+  getFiberLevel(a.fiber) - getFiberLevel(b.fiber);
+
+const childFirst = (a: QueuedEffect, b: QueuedEffect): number =>
+  getFiberLevel(b.fiber) - getFiberLevel(a.fiber);
+
+const getEffectsComparator = (
+  mode: EffectMode,
+): ((a: QueuedEffect, b: QueuedEffect) => number) | null => {
+  switch (mode) {
+    case 'refsUnmount':
+      return parentFirst;
+
+    case 'imperativeHandlesUnmount':
+    case 'layoutUnmount':
+    case 'normalUnmount':
+    case 'domRefsMount':
+    case 'imperativeHandlesMount':
+    case 'layoutMount':
+    case 'normalMount':
+      return childFirst;
+
+    case 'afterActions':
+      return null;
+  }
+};

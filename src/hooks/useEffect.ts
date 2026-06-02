@@ -3,31 +3,31 @@ import {
   isFirstFiberRender,
 } from '~/core/components';
 import {
-  type EffectMode,
+  type ComponentFiberNode,
+} from '../types';
+import {
+  type EffectMountMode,
+  type EffectUnmountMode,
   type EffectHandler,
   type UseEffectItem,
-} from '../types';
+} from '../types/hooks';
 import { checkDeps, getNextHookOrCreate, saveDeps } from './helpers';
 
 export function useBaseEffect(
-  mode: EffectMode,
+  setupMode: EffectMountMode,
+  cleanupMode: EffectUnmountMode,
   fn: EffectHandler,
   deps?: unknown[],
 ) {
   const item = getNextHookOrCreate('effect', (fiber): UseEffectItem => {
     const item: UseEffectItem = {
       type: 'effect',
-      mode,
+      mode: setupMode,
       fn,
       destructor: null,
       deps: deps ? saveDeps(deps) : null,
     };
-    fiber.data.actions.push({
-      type: 'ScheduleEffect',
-      fiber,
-      mode,
-      fn: () => runEffect(item),
-    });
+    scheduleEffectSetup(fiber, setupMode, item);
     return item;
   });
 
@@ -35,12 +35,8 @@ export function useBaseEffect(
 
   if (!isFirstFiberRender() && (!deps || !checkDeps(item.deps!, deps))) {
     const fiber = getCurrentComponentFiber();
-    fiber.data.actions.push({
-      type: 'ScheduleEffect',
-      fiber,
-      mode,
-      fn: () => runEffect(item),
-    });
+    scheduleEffectCleanup(fiber, cleanupMode, item);
+    scheduleEffectSetup(fiber, setupMode, item);
     item.deps = deps ? saveDeps(deps) : null;
   }
 }
@@ -82,7 +78,7 @@ export const useEffect = (
    * render. */
   deps?: unknown[],
 ) => {
-  useBaseEffect('normal', fn, deps);
+  useBaseEffect('normalMount', 'normalUnmount', fn, deps);
 };
 
 /**
@@ -112,17 +108,46 @@ export const useLayoutEffect = (
    * render. */
   deps?: unknown[],
 ) => {
-  useBaseEffect('layout', fn, deps);
+  useBaseEffect('layoutMount', 'layoutUnmount', fn, deps);
 };
 
-const runEffect = (item: UseEffectItem): void => {
+const scheduleEffectSetup = (
+  fiber: ComponentFiberNode,
+  mode: EffectMountMode,
+  item: UseEffectItem,
+): void => {
+  fiber.data.actions.push({
+    type: 'ScheduleEffect',
+    fiber,
+    mode,
+    fn: () => setupEffect(item),
+  });
+};
+
+const scheduleEffectCleanup = (
+  fiber: ComponentFiberNode,
+  mode: EffectUnmountMode,
+  item: UseEffectItem,
+): void => {
+  fiber.data.actions.push({
+    type: 'ScheduleEffect',
+    fiber,
+    mode,
+    fn: () => cleanupEffect(item),
+  });
+};
+
+// Exported because it's called directly in the "removeAction" action.
+export const cleanupEffect = (item: UseEffectItem): void => {
   const destructor = item.destructor;
   // Clear it before running to avoid double-calling in the case of an error.
   // "Remove" action would try to call it again, because it calls all fiber's
   // hook destructors.
   item.destructor = null;
   destructor?.();
+};
 
+const setupEffect = (item: UseEffectItem): void => {
   const controller = new AbortController();
   const result = item.fn(controller.signal);
 

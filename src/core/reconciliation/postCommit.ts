@@ -28,27 +28,34 @@ export function postCommit(app: App, depth: number) {
   // Run "ref" and "layout" effects. They must be run in the same microtask
   // queue as the commit phase.
   if (
-    app.effects.layout.length > 0 ||
+    app.effects.layoutUnmount.length > 0 ||
+    app.effects.layoutMount.length > 0 ||
     app.effects.refsUnmount.length > 0 ||
     app.effects.domRefsMount.length > 0 ||
+    app.effects.imperativeHandlesUnmount.length > 0 ||
     app.effects.imperativeHandlesMount.length > 0
   ) {
     app.state = 'refEffects';
     runEffects(app, 'refsUnmount');
     runEffects(app, 'domRefsMount');
+    runEffects(app, 'imperativeHandlesUnmount');
     runEffects(app, 'imperativeHandlesMount');
 
     app.state = 'layoutEffects';
-    runEffects(app, 'layout');
+    runEffects(app, 'layoutUnmount');
+    runEffects(app, 'layoutMount');
 
     if (!app.invalidatedComponents.isEmpty()) {
       // 1+ component was invalidated in an effect
-      if (app.effects.normal.length > 0) {
+      if (
+        app.effects.normalUnmount.length > 0 ||
+        app.effects.normalMount.length > 0
+      ) {
         // Layout effect component invalidations should be applied within the
         // same microtask queue, so we need to run the scheduled normal effects
         // right away.
         app.state = 'effects';
-        runEffects(app, 'normal');
+        runNormalEffects(app);
       }
 
       app.state = 'scheduled';
@@ -57,14 +64,23 @@ export function postCommit(app: App, depth: number) {
     }
   }
 
-  if (app.effects.normal.length === 0) {
+  if (
+    app.effects.normalUnmount.length === 0 &&
+    app.effects.normalMount.length === 0
+  ) {
     app.state = 'idle';
     return;
   }
 
   app.state = 'effects';
   setTimeout(() => {
-    runEffects(app, 'normal');
+    if (app.state === 'killed') {
+      // The app was .unmount()ed in the meantime. Not the best flow, but better
+      // than running effects on the dead app.
+      return;
+    }
+
+    runNormalEffects(app);
 
     if (!app.invalidatedComponents.isEmpty()) {
       app.state = 'scheduled';
@@ -75,3 +91,13 @@ export function postCommit(app: App, depth: number) {
     app.state = 'idle';
   }, 0);
 }
+
+const runNormalEffects = (app: App): void => {
+  while (
+    app.effects.normalUnmount.length > 0 ||
+    app.effects.normalMount.length > 0
+  ) {
+    runEffects(app, 'normalUnmount');
+    runEffects(app, 'normalMount');
+  }
+};

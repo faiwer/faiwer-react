@@ -23,7 +23,7 @@ export type UseRefItem<T = unknown> = {
 
 export type UseEffectItem = {
   type: 'effect';
-  mode: EffectMode;
+  mode: EffectMountMode;
   fn: EffectHandler;
   destructor: null | (() => void);
   deps: HookDeps | null;
@@ -82,12 +82,28 @@ export type EffectMode =
   | 'refsUnmount'
   // <div ref={onRef}/> mount.
   | 'domRefsMount'
-  // useImperativeHandle(ref, factory).
+  // useImperativeHandle(ref, factory) cleanup.
+  | 'imperativeHandlesUnmount'
+  // useImperativeHandle(ref, factory) setup.
   | 'imperativeHandlesMount'
-  // useLayoutEffect(fn);
-  | 'layout'
-  // useEffect();
-  | 'normal';
+  // useLayoutEffect(fn) cleanup.
+  | 'layoutUnmount'
+  // useLayoutEffect(fn) setup.
+  | 'layoutMount'
+  // useEffect() cleanup.
+  | 'normalUnmount'
+  // useEffect() setup.
+  | 'normalMount';
+
+export type EffectMountMode =
+  | 'imperativeHandlesMount'
+  | 'layoutMount'
+  | 'normalMount';
+
+export type EffectUnmountMode =
+  | 'imperativeHandlesUnmount'
+  | 'layoutUnmount'
+  | 'normalUnmount';
 
 export type Reducer<TState, TAction> = (
   state: TState,

@@ -35,9 +35,12 @@ export const mount = (
       afterActions: [],
       refsUnmount: [],
       domRefsMount: [],
+      imperativeHandlesUnmount: [],
       imperativeHandlesMount: [],
-      layout: [],
-      normal: [],
+      layoutUnmount: [],
+      layoutMount: [],
+      normalUnmount: [],
+      normalMount: [],
     },
     invalidatedComponents: new Queue(),
     state: 'render',
@@ -94,11 +97,14 @@ export const mount = (
     app.effects.afterActions = [];
     app.effects.refsUnmount = [];
     app.effects.domRefsMount = [];
+    app.effects.imperativeHandlesUnmount = [];
     app.effects.imperativeHandlesMount = [];
-    app.effects.layout = [];
-    app.effects.normal = [];
+    app.effects.layoutUnmount = [];
+    app.effects.layoutMount = [];
+    app.effects.normalUnmount = [];
+    app.effects.normalMount = [];
 
-    applyActions(app, [{ type: 'Remove', fiber: app.root, immediate: true }]);
+    applyActions(app, [{ type: 'Remove', fiber: app.root }]);
 
     app.state = 'killed';
     removeApp(app.id);

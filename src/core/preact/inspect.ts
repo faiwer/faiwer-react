@@ -92,7 +92,7 @@ const getHookInfo = (
   idx: number,
 ): PreactHookInspection[] => {
   const hookType =
-    hook.type === 'effect' && hook.mode === 'layout'
+    hook.type === 'effect' && hook.mode === 'layoutMount'
       ? 'layoutEffect'
       : hook.type;
   const type = 'use' + hookType[0].toUpperCase() + hookType.slice(1);
