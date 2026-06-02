@@ -227,6 +227,37 @@ describe('cloneElement', () => {
     });
   });
 
+  it('does not synthesize component children when cloning JSX elements', () => {
+    const Button: ReactComponent<{ icon: string }> = () => null;
+    const original = (<Button icon="plus" />) as ElementNode;
+    const cloned = cloneElement(original, {});
+
+    expect(Object.hasOwn(cloned.props, 'children')).toBe(false);
+    expect(cloned.props.children).toBe(undefined);
+  });
+
+  it('does not synthesize component children when cloning legacy createElement elements', () => {
+    const Button: ReactComponent<{ icon: string }> = () => null;
+    const original = createElement(Button, { icon: 'plus' });
+    const cloned = cloneElement(original, {});
+
+    expect(cloned.props.children).toBe(undefined);
+    expect(Array.isArray(cloned.props.children)).toBe(false);
+  });
+
+  for (const [children, expectedChildren] of [
+    [undefined, []],
+    [null, [null]],
+  ] as const) {
+    it(`replaces tag children with explicit ${children}`, () => {
+      const original = (<div>old</div>) as ElementNode;
+      const cloned = cloneElement(original, { children });
+
+      expect(cloned.children).toEqual(expectedChildren);
+      expectHtml(mount(cloned)).toBe('<div></div>');
+    });
+  }
+
   it('clones a `<>...</>` fragment, preserving its children', () => {
     const original = (
       <>

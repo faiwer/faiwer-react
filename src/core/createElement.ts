@@ -166,7 +166,7 @@ export const cloneElement = (
     // difference is that the original React supports and uses it occacionally.
     // E.g., here in cloneElement() for any []-array it returns an empty
     // Symbol(react.transitional.element) (as a fallback). It drops any content
-    // (unless another content is given via arguments). 
+    // (unless another content is given via arguments).
     //
     // We could do the same, but it would break some libraries, like antd. They
     // tend to blindly clone `props.children` as is. The original React often
@@ -182,22 +182,25 @@ export const cloneElement = (
     return createElementNew(InvalidNode, {}, null, false, null, false);
   }
 
+  const nextProps: UnknownProps = { ...element.props, ...props };
+  if (children.length > 0) {
+    // New children are provided. Use them as is.
+    nextProps.children = children;
+  } else if (
+    // Not a component node (a tag node, a portal node or a context provider).
+    typeof element.type !== 'function' &&
+    // The caller had no intention to replace the children. Preserve as is.
+    !Object.hasOwn(nextProps, 'children')
+  ) {
+    nextProps.children = [...element.children];
+  }
+  // else the `children` was given as a prop. Might be a function. Preserve as 
+  // is. Otherwise it can break some libraries that tend to use cloneElement
+  // for internal shenanigans.
+
   return createElementNew(
     element.type,
-    {
-      ...element.props,
-      ...props,
-      children:
-        children.length > 0
-          ? // New children are provided. Use them as is.
-            children
-          : // The `children` was given as a prop. Might be a function. Preserve
-            // it as is.
-            (element.props.children ??
-              // Otherwise just shallowly clone the children array. React
-              // doesn't run it recursively.
-              [...element.children]),
-    },
+    nextProps,
     element.key,
     false,
     element.source,
