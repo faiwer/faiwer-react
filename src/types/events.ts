@@ -15,7 +15,7 @@ export type EventHandler<T extends Element, E extends Event> = (
 type EventByName<E extends string> =
   E extends `onpaste` | 'oncopy' | 'oncut'
     ? Ensure<ClipboardEvent, 'clipboardData'>
-  : E extends `ondrag${string}` ? DragEvent
+  : E extends `ondrag${string}` | 'ondrop' ? DragEvent
   : E extends `mouse${string}` ? MouseEvent
   : E extends `onkey${string}` ? KeyboardEvent
   : E extends `ontouch${string}` ? TouchEvent
@@ -24,7 +24,7 @@ type EventByName<E extends string> =
 
 // prettier-ignore
 type DomEventHandlerX<T extends Element, E extends string> =
-  E extends `ondrag${string}` ? EventHandler<T, DragEvent>
+  E extends `ondrag${string}` | 'ondrop' ? EventHandler<T, DragEvent>
   : E extends `onmouse${string}` ? EventHandler<T, MouseEvent>
   : E extends `onkey${string}` ? EventHandler<T, KeyboardEvent>
   : E extends `onfocus` | `onblur` ? EventHandler<T, FocusEvent>

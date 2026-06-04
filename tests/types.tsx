@@ -94,6 +94,8 @@ FC_L.displayName = 'AnotherName';
 <div onClick={(event) => event.target.tagName} />;
 <div onClickCapture={(event) => event.target.tagName} />;
 <input onPaste={(event) => event.clipboardData.items} />;
+<div onDrop={(event) => event.dataTransfer?.files} />;
+<div onDropCapture={(event) => event.dataTransfer?.files} />;
 
 //
 // React. Compatibility
@@ -150,6 +152,7 @@ declare let _F8: React.HTMLProps<HTMLDivElement>;
 _F8 = { className: 'x' };
 _F8 = { tabIndex: 1 };
 _F8 = { onClick: (e) => e.target.tagName };
+_F8 = { onDrop: (e) => e.dataTransfer?.files };
 _F8 = { ref: (node) => node?.tagName };
 _F8 = { style: { color: 'red' } };
 _F8 = { children: <Blank /> };
