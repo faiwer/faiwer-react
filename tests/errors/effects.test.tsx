@@ -17,7 +17,13 @@ import {
   onErrorX,
   Throw,
 } from './fixtures';
-import { useEffect, useLayoutEffect, useState, type Ref } from 'faiwer-react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type Ref,
+} from 'faiwer-react';
 import { useImperativeHandle } from 'faiwer-react/hooks/useRef';
 import { ReactError } from 'faiwer-react/core/reconciliation/errors/ReactError';
 
@@ -225,6 +231,29 @@ describe('Errors: Effects', () => {
     // It's the same with refs.
     expect(goodie.ref.mount).toHaveBeenCalledTimes(2);
     expect(goodie.ref.unmount).toHaveBeenCalledTimes(2);
+  });
+
+  it('reports hooks used outside render with a clear error', async () => {
+    const Bad = () => {
+      useEffect(() => {
+        useRef(null);
+      }, []);
+      return 42;
+    };
+
+    const root = mount(
+      <ErrorBoundaryX>
+        <Bad />
+      </ErrorBoundaryX>,
+    );
+    expectHtmlFull(root).toBe('42');
+
+    await expectDidCatchX(root);
+    expect((onErrorX.mock.calls[0][0] as ReactError).cause).toEqual(
+      expect.objectContaining({
+        message: 'Hooks cannot be used outside of components',
+      }),
+    );
   });
 
   it(`catches errors in ref effects: mode=mount`, async () => {

@@ -1,4 +1,3 @@
-import { nullthrows } from '~/utils';
 import {
   type HookStateItem,
   type FiberNode,
@@ -23,7 +22,11 @@ let currentFiber: ComponentFiberNode | null;
  * run this function outside of the render phase.
  */
 export const getCurrentComponentFiber = (): ComponentFiberNode =>
-  nullthrows(currentFiber);
+  currentFiber ?? failHookOutsideComponent();
+
+const failHookOutsideComponent = (): never => {
+  throw new Error(`Hooks cannot be used outside of components`);
+};
 
 /**
  * The app of the component that is being rendered right now. Don't run this
