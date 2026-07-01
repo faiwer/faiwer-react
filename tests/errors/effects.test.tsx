@@ -19,6 +19,7 @@ import {
 } from './fixtures';
 import {
   useEffect,
+  useError,
   useLayoutEffect,
   useRef,
   useState,
@@ -535,6 +536,66 @@ describe('Errors: Effects', () => {
       // Parent "unmount" error is reported first.
       expect(error1.cause).toEqual(new Error('parent normal cleanup error'));
       expect(error2.cause).toEqual(new Error('child normal cleanup error'));
+    });
+  });
+
+  it('reports cleanup errors when the closest error boundary is itself unmounting', async () => {
+    const show = useStateX<boolean>();
+    const innerCaught = jest.fn();
+    const outerCaught = jest.fn();
+
+    const Boundary = ({
+      onCatch,
+      children,
+    }: {
+      onCatch: (err: unknown) => void;
+      children: JSX.Element;
+    }) => {
+      const [error, setError] = useState<ReactError | null>(null);
+      useError((err) => {
+        onCatch(err);
+        setError(err as ReactError);
+      });
+      return error ? <code>caught</code> : children;
+    };
+
+    const Child = () => {
+      useEffect(
+        () => () => {
+          throw new Error('cleanup during unmount');
+        },
+        [],
+      );
+      return <div>child</div>;
+    };
+
+    // The INNER boundary lives inside the subtree that gets removed together
+    // with <Child/>. When <Child/>'s destructor throws during unmount, the
+    // inner boundary is being emptied in the same removeAction, so it must NOT
+    // be the one that "catches" — the surviving OUTER boundary has to.
+    const Comp = () => (
+      <Boundary onCatch={outerCaught}>
+        {show.use(true) && (
+          <Boundary onCatch={innerCaught}>
+            <Child />
+          </Boundary>
+        )}
+      </Boundary>
+    );
+
+    const root = mount(<Comp />);
+    expectHtmlFull(root).toBe('<div>child</div>');
+
+    await act(() => show.set(false));
+
+    await waitFor(() => {
+      // The inner boundary is unmounting with <Child/>, so it can't catch.
+      expect(innerCaught).toHaveBeenCalledTimes(0);
+      // The surviving outer boundary catches the real cleanup error.
+      expect(outerCaught).toHaveBeenCalledTimes(1);
+      expect((outerCaught.mock.calls[0][0] as ReactError).cause).toEqual(
+        new Error('cleanup during unmount'),
+      );
     });
   });
 

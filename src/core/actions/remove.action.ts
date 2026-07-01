@@ -5,7 +5,7 @@ import {
   type FiberNode,
   type TagFiberNode,
 } from 'faiwer-react/types';
-import { emptyFiberNode, unsetRef } from './helpers';
+import { emptyFiberNode, traverseFiberTree, unsetRef } from './helpers';
 import type { RemoveAction } from 'faiwer-react/types/actions';
 import { ReactError } from '../reconciliation/errors/ReactError';
 import { buildComment } from '../reconciliation/comments';
@@ -23,6 +23,14 @@ export function removeAction(
   { last }: Pick<RemoveAction, 'last'> = {},
 ) {
   const app = getAppByFiber(fiber);
+
+  traverseFiberTree(fiber, f => {
+    if (f.type === 'component' && f.data?.isErrorBoundary) {
+      // Avoid catching the error with this boundary, because it's being removed.
+      f.data.isErrorBoundary = false;
+    }
+  });
+
   // Gather all ref unmount functions to run them on time in the right order.
   // We shouldn't use the default "refsUnmount" scheduler because we remove the
   // fiber and all its children in one jump synchronously.
