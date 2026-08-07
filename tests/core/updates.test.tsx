@@ -553,4 +553,46 @@ describe('Updates', () => {
     await act(() => mode.set('context'));
     expectHtml(root).toBe('22');
   });
+
+  // A single-child wrapper whose only child transitions from a single DOM node
+  // into an auto-container (2+ nodes) must itself become an auto-container.
+  // Otherwise the wrapper keeps pointing at the old, now-detached child node.
+  //
+  // The old child (`<i>x</i>`) is intentionally a different tag from the new
+  // first child (`<b>1</b>`) so the reconciler cannot reuse the node: it is
+  // genuinely removed, which is what strands the ancestor.
+  it('promotes single-child wrappers when the child becomes an auto-container', async () => {
+    const two = useStateX<boolean>();
+
+    const Child = ({ two }: { two: boolean }) =>
+      two ? (
+        <>
+          <b>1</b>
+          <b>2</b>
+        </>
+      ) : (
+        <i>x</i>
+      );
+
+    const Parent = ({ two }: { two: boolean }) => <Child two={two} />;
+    const GrandParent = ({ two }: { two: boolean }) => <Parent two={two} />;
+
+    const Root = () => {
+      const [renderTwoChildren] = two.useState(false);
+      return (
+        <div>
+          <GrandParent two={renderTwoChildren} />
+        </div>
+      );
+    };
+
+    const root = mount(<Root />);
+    expectHtml(root).toBe('<div><i>x</i></div>');
+
+    await act(() => two.set(true));
+    expectHtml(root).toBe('<div><b>1</b><b>2</b></div>');
+
+    await act(() => two.set(false));
+    expectHtml(root).toBe('<div><i>x</i></div>');
+  });
 });

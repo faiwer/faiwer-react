@@ -192,7 +192,7 @@ const getAnchor = (fiber: FiberNode): [Element, Node | null] => {
 };
 
 export const tryFixContainerType = (fiber: FiberNode): void => {
-  // Handle the node itself.
+  // Handle the node itself. The node is NOT a tag node, and it IS a container.
   switch (fiber.children.length) {
     case 0: {
       if (!isEmptyContainer(fiber)) {
@@ -205,11 +205,15 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
       if (isEmptyContainer(fiber)) {
         throw new ReactError(fiber, `!--empty fibers can't have child nodes`);
       }
-
-      if (!isAutoContainer(fiber.children[0])) {
-        (fiber as FiberNode).element = getFirstContainerElement(fiber);
-      }
-
+      
+      // `fiber` is a non-tag container. Thus, possible scenarios are:
+      // - the only child is a DOM node (a tag, !--empty, !--null, etc.). 
+      // - … is a containerSym (e.g. a component or a fragment). Thus, it has
+      //   at least 2+ grandchildren DOM nodes in a subtree)
+      //
+      // In both cases, the container should refer to the same DOM node or
+      // be a containerSym too.
+      fiber.element = fiber.children[0].element;
       break;
     }
 
