@@ -10,6 +10,7 @@ import { act } from '~/testing';
 import { expectHtml, mount, useRerender, useStateX } from '../helpers';
 import { waitFor } from '../helpers';
 import { Fragment } from 'faiwer-react/jsx-runtime';
+import { nullthrows } from 'faiwer-react/utils';
 
 describe('Updates', () => {
   for (const mode of ['fragment', 'tag']) {
@@ -148,6 +149,29 @@ describe('Updates', () => {
       }
     }
   }
+
+  it('keeps focus when a fragment grows a sibling after a focused input', async () => {
+    const invalid = useStateX<boolean>();
+    const Comp = () => (
+      <>
+        <input />
+        {invalid.use(false) ? <div>validation error</div> : null}
+      </>
+    );
+
+    const root = mount(<Comp />);
+    document.body.appendChild(root); // Rely on jsDom focus logic.
+
+    const input = nullthrows(root.querySelector('input'));
+    input.focus();
+    expect(document.activeElement).toBe(input);
+
+    await act(() => invalid.set(true));
+
+    expect(document.activeElement).toBe(input);
+    expectHtml(root).toBe('<input><div>validation error</div>');
+    root.remove();
+  });
 
   for (const inlined of [true, false]) {
     for (const container of ['tag', 'fragment']) {

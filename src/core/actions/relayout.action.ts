@@ -124,7 +124,16 @@ const repositionFiberWhenNeeded = (
   prev: Node | null,
 ): Node => {
   const nodes = getFiberDomNodes(fiber);
-  if (nodes[0].previousSibling !== prev) {
+  const alreadyInPlace =
+    // If `container` is a fragment or a component that is the 1st child of its
+    // parent, `prev` will be the first child's own node. We should avoid
+    // "moving" this node, not only because it's already in the correct
+    // position, but also because it would destroy its state (including focus).
+    nodes[0] === prev ||
+    // No changes. The node is already in the correct position.
+    nodes[0].previousSibling === prev;
+
+  if (!alreadyInPlace) {
     for (const n of nodes) {
       if (!prev) {
         // Couldn't find a way to test this, because even without this move the
@@ -205,9 +214,9 @@ export const tryFixContainerType = (fiber: FiberNode): void => {
       if (isEmptyContainer(fiber)) {
         throw new ReactError(fiber, `!--empty fibers can't have child nodes`);
       }
-      
+
       // `fiber` is a non-tag container. Thus, possible scenarios are:
-      // - the only child is a DOM node (a tag, !--empty, !--null, etc.). 
+      // - the only child is a DOM node (a tag, !--empty, !--null, etc.).
       // - … is a containerSym (e.g. a component or a fragment). Thus, it has
       //   at least 2+ grandchildren DOM nodes in a subtree)
       //
