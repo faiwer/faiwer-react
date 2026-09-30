@@ -185,3 +185,24 @@ _F12 = { key: 'k' };
 // React.AllHTMLAttributes — the all-attrs bag without the ref/key extras.
 declare let _F13: React.AllHTMLAttributes<HTMLDivElement>;
 _F13 = { className: 'x', tabIndex: 1 };
+
+// Callback ref on a component whose props extend InputHTMLAttributes and whose
+// ref is an imperative handle.
+type InputHandle = { focus(): void };
+
+const _inputAttrsHaveNoRef: 'ref' extends keyof React.InputHTMLAttributes<HTMLInputElement>
+  ? never
+  : true = true;
+
+declare const Field: (
+  props: React.InputHTMLAttributes<HTMLInputElement> &
+    React.RefAttributes<InputHandle>,
+) => JSX.Element;
+
+<Field
+  ref={(handle) => {
+    handle?.focus();
+    // @ts-expect-error the ref value is the handle, not the DOM node
+    handle?.tagName;
+  }}
+/>;

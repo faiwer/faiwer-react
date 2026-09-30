@@ -46,11 +46,17 @@ export type ReactEventHandler<T extends Element = Element> =
 //
 
 export type HTMLAttributes<T extends Element> = TagNativeProps<T>;
+// Attribute bags third-party props extend. `ref` is not part of them: intrinsic
+// `<input>` / `<textarea>` take it from `TagProps` via `JSX.IntrinsicElements`,
+// and components take it from `RefAttributes`. `Omit` keeps the input overrides
+// (`value?: string | number`, `defaultValue`, `defaultChecked`).
 export type TextareaHTMLAttributes<T extends Element = HTMLTextAreaElement> =
-  TagProps<T>;
-export type InputHTMLAttributes<T extends Element = HTMLInputElement> =
-  TagProps<T>;
-export type RefAttributes<T extends Element> =
+  Omit<TagProps<T>, 'ref'>;
+export type InputHTMLAttributes<T extends Element = HTMLInputElement> = Omit<
+  TagProps<T>,
+  'ref'
+>;
+export type RefAttributes<T> =
   & { ref?: Ref<T>; }
   & ElementCommonAttrs; // prettier-ignore
 
@@ -61,7 +67,7 @@ export type RefAttributes<T extends Element> =
  * floating-ui) reach for it as a generic parameter constraint, so we expose
  * the same shape.
  */
-export type ClassAttributes<T extends Element> = RefAttributes<T>;
+export type ClassAttributes<T> = RefAttributes<T>;
 
 /**
  * Mirrors `React.AllHTMLAttributes<T>` from @types/react. Upstream's version is
