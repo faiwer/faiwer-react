@@ -55,7 +55,7 @@ export const useState = <T>(
             : valueOrFn
         ) as T;
 
-        if (item.state === v) return;
+        if (Object.is(item.state, v)) return;
         item.state = v;
         invalidateFiber(fiber);
       },

@@ -6,6 +6,7 @@ export { useId } from './useId';
 export { useMemo } from './useMemo';
 export { useRef, createRef, forwardRef, useImperativeHandle } from './useRef';
 export { useState } from './useState';
+export { useSyncExternalStore } from './useSyncExternalStore';
 export { useError } from './useError';
 export { useReducer } from './useReducer';
 export { useDebugValue } from './useDebugValue';

@@ -17,6 +17,7 @@ A few stats:
 - Class components (limited)
 - Hooks:
   - `useState`
+  - `useSyncExternalStore`
   - `useRef`
   - `useMemo`, `useCallback`
   - `useStableCallback` (a better version of `useEffectEvent`)

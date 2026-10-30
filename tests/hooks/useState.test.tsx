@@ -67,4 +67,39 @@ describe('Hooks: useState', () => {
     expectHtml(root).toBe('8');
     expect(prev!).toBe(square);
   });
+
+  it('does not re-render when setting NaN over NaN', async () => {
+    let renders = 0;
+    let updateState: StateSetter<number>;
+    const Comp = () => {
+      renders += 1;
+      const [state, setState] = useState(NaN);
+      updateState = setState;
+      return String(state);
+    };
+
+    mount(<Comp />);
+    expect(renders).toBe(1);
+
+    await act(() => updateState(NaN));
+    expect(renders).toBe(1);
+  });
+
+  it('re-renders when setting -0 over 0', async () => {
+    let renders = 0;
+    let updateState: StateSetter<number>;
+    const Comp = () => {
+      renders += 1;
+      const [state, setState] = useState(0);
+      updateState = setState;
+      return Object.is(state, -0) ? '-0' : String(state);
+    };
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('0');
+
+    await act(() => updateState(-0));
+    expect(renders).toBe(2);
+    expectHtml(root).toBe('-0');
+  });
 });
