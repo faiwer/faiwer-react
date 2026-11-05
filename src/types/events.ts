@@ -11,7 +11,7 @@ export type EventHandler<T extends Element, E extends Event> = (
   event: PatchEvent<T, E>,
 ) => void;
 
-// prettier-ignore
+// oxfmt-ignore
 type EventByName<E extends string> =
   E extends `onpaste` | 'oncopy' | 'oncut'
     ? Ensure<ClipboardEvent, 'clipboardData'>
@@ -22,7 +22,7 @@ type EventByName<E extends string> =
   : E extends `onwheel` ? WheelEvent
   : Event;
 
-// prettier-ignore
+// oxfmt-ignore
 type DomEventHandlerX<T extends Element, E extends string> =
   E extends `ondrag${string}` | 'ondrop' ? EventHandler<T, DragEvent>
   : E extends `onmouse${string}` ? EventHandler<T, MouseEvent>
@@ -36,7 +36,7 @@ type DomEventHandlerX<T extends Element, E extends string> =
   : E extends `onload` | `onerror` | `onabort` ? EventHandler<T, ProgressEvent>
   : EventHandler<T, EventByName<E>>;
 
-// prettier-ignore
+// oxfmt-ignore
 type ToCamelCase<T extends string> = T extends `onmouse${infer Rest}`
   ? `onMouse${Capitalize<Rest>}`
   : T extends `onfullscreen${infer Rest}` ? `onFullscreen${Capitalize<Rest>}`

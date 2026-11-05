@@ -31,7 +31,7 @@ export const patchedPreactRendererInspect = (
   devToolsNodeId: number,
 ): PreactInspection => {
   const vnode = nullthrows(renderer.getVNodeById(devToolsNodeId));
-  // prettier-ignore
+  // oxfmt-ignore
   const fiber = nullthrows(findFiberById(app.root, vnode.__v)) as
     // Preact DevTools renders only "components".
     | ComponentFiberNode

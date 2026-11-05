@@ -2,9 +2,7 @@ import {
   getCurrentComponentFiber,
   isFirstFiberRender,
 } from '~/core/components';
-import {
-  type ComponentFiberNode,
-} from '../types';
+import { type ComponentFiberNode } from '../types';
 import {
   type EffectMountMode,
   type EffectUnmountMode,

@@ -68,7 +68,7 @@ export const useStateX = <T>(): UseStateX<T> => {
       return [state, setState];
     },
     use: (init: T | (() => T)) => result.useState(init)[0],
-    set: () => { throw `setter is still empty`; }, // prettier-ignore
+    set: () => { throw `setter is still empty`; }, // oxfmt-ignore
   };
   return result;
 };

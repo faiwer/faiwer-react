@@ -76,7 +76,7 @@ type PropertiesOnly<T extends Element> = {
           : K;
 }[keyof RemoveIndexSignature<T>];
 
-// prettier-ignore
+// oxfmt-ignore
 export type TagNativeProps<T extends Element> =
   & { className?: string } // Wrongly typed in SVGElement
   & RemapAttrs<Partial<Omit<Pick<T, PropertiesOnly<T>>, GeneralRemove>>>

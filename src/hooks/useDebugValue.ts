@@ -6,6 +6,9 @@
  * Preact / React DevTools support, but we don't expose hooks to it, so this
  * stub does nothing.
  */
-export function useDebugValue<T>(_value: T, _format?: (value: T) => unknown): void {
+export function useDebugValue<T>(
+  _value: T,
+  _format?: (value: T) => unknown,
+): void {
   // intentionally empty
 }

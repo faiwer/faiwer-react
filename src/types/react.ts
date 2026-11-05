@@ -29,17 +29,17 @@ export type SyntheticEvent<
 > = PatchEvent<T, E>;
 export type ClipboardEvent<T extends Element = Element> =
   & SyntheticEvent<T>
-  & { clipboardData: DataTransfer; }; // prettier-ignore
+  & { clipboardData: DataTransfer; }; // oxfmt-ignore
 export type FormEvent<T extends Element = Element> = SyntheticEvent<T>;
 export type ChangeEvent<T extends Element = Element> =
   & Omit<SyntheticEvent<T>, 'target'>
-  & { target: EventTarget & T; }; // prettier-ignore
+  & { target: EventTarget & T; }; // oxfmt-ignore
 export type ChangeEventHandler<T extends Element = Element> =
-  EventHandler<T, Event>; // prettier-ignore
+  EventHandler<T, Event>; // oxfmt-ignore
 export type KeyboardEvent<T extends Element = Element> =
-  PatchEvent<T, globalThis.KeyboardEvent>; // prettier-ignore
+  PatchEvent<T, globalThis.KeyboardEvent>; // oxfmt-ignore
 export type ReactEventHandler<T extends Element = Element> =
-  EventHandler<T, Event>; // prettier-ignore
+  EventHandler<T, Event>; // oxfmt-ignore
 
 //
 // Attributes
@@ -58,7 +58,7 @@ export type InputHTMLAttributes<T extends Element = HTMLInputElement> = Omit<
 >;
 export type RefAttributes<T> =
   & { ref?: Ref<T>; }
-  & ElementCommonAttrs; // prettier-ignore
+  & ElementCommonAttrs; // oxfmt-ignore
 
 /**
  * Mirrors `React.ClassAttributes<T>` from @types/react. Upstream defines it as

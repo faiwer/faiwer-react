@@ -35,7 +35,7 @@ export function createElementNew(
    * What to render. Can be a tag (string), a component (function),
    * or a portal target (HTMLElement).
    */
-  // prettier-ignore
+  // oxfmt-ignore
   type:
     // <ctx.Provider/>, basically an object like { __ctx: context }
     | ReactContextProvider
@@ -120,7 +120,7 @@ export function createPortal(
  * built with this signature.
  */
 export function createElement(
-  // prettier-ignore
+  // oxfmt-ignore
   type: // <ctx.Provider/>, basically an object like { __ctx: context }
     | ReactContextProvider
     // A tag-string or a component
@@ -194,7 +194,7 @@ export const cloneElement = (
   ) {
     nextProps.children = [...element.children];
   }
-  // else the `children` was given as a prop. Might be a function. Preserve as 
+  // else the `children` was given as a prop. Might be a function. Preserve as
   // is. Otherwise it can break some libraries that tend to use cloneElement
   // for internal shenanigans.
 

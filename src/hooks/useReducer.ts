@@ -45,12 +45,9 @@ export function useReducer<S, A>(
   const [state, setState] = useState<S>(() =>
     initializer ? initializer(initialArg) : initialArg,
   );
-  const [dispatch] = useState(
-    (): Dispatch<A> =>
-      (action: A): void => {
-        setState((prevSt) => reducer(prevSt, action));
-      },
-  );
+  const [dispatch] = useState((): Dispatch<A> => (action: A): void => {
+    setState((prevSt) => reducer(prevSt, action));
+  });
 
   return [state, dispatch];
 }

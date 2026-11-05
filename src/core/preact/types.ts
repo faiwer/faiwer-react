@@ -17,7 +17,7 @@ export const PreactVNodeFields = {
 } as const;
 const F = PreactVNodeFields;
 
-// prettier-ignore
+// oxfmt-ignore
 export function PreactFragmentComponent({ children }: { children: JSX.Element; }) {
   return children;
 }

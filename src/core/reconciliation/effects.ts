@@ -48,7 +48,6 @@ export const runEffects = (app: App, mode: EffectMode) => {
       reportEffectError(app, fiber, errorRaw, { activeEffects: effectsToRun });
     }
   }
-
 };
 
 export const reportEffectError = (

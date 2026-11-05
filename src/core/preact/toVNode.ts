@@ -169,7 +169,7 @@ const ctxCache = new WeakMap<Context<unknown>, AnyReactComponent>();
 const getContextComp = (ctx: Context<unknown>): AnyReactComponent => {
   let component: AnyReactComponent | undefined = ctxCache.get(ctx);
   if (!component) {
-    component = function FragmentDummy() { return null; }; // prettier-ignore
+    component = function FragmentDummy() { return null; }; // oxfmt-ignore
     component.displayName = (ctx.displayName || 'Provider') + '.Provider';
     ctxCache.set(ctx, component);
   }
@@ -181,7 +181,7 @@ const portalCache = new WeakMap<PortalFiberNode, AnyReactComponent>();
 const getPortalComp = (fiber: PortalFiberNode): AnyReactComponent => {
   let component: ReactComponent | undefined = portalCache.get(fiber);
   if (!component) {
-    component = function PortalDummy() { return null; }; // prettier-ignore
+    component = function PortalDummy() { return null; }; // oxfmt-ignore
     component.displayName = `Portal`;
     portalCache.set(fiber, component);
   }

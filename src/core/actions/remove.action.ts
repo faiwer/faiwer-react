@@ -1,6 +1,5 @@
 import {
   type App,
-  type ComponentFiberNode,
   type EffectMountMode,
   type FiberNode,
   type TagFiberNode,
@@ -24,7 +23,7 @@ export function removeAction(
 ) {
   const app = getAppByFiber(fiber);
 
-  traverseFiberTree(fiber, f => {
+  traverseFiberTree(fiber, (f) => {
     if (f.type === 'component' && f.data?.isErrorBoundary) {
       // Avoid catching the error with this boundary, because it's being removed.
       f.data.isErrorBoundary = false;

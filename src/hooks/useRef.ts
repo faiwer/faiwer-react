@@ -14,13 +14,10 @@ export function useRef<T>(
   initialValue: T | undefined,
 ): RefObject<T | undefined>;
 export function useRef<T>(initialValue?: T): RefObject<T> {
-  const item = getNextHookOrCreate(
-    'ref',
-    (): UseRefItem => ({
-      type: 'ref',
-      value: { current: initialValue },
-    }),
-  );
+  const item = getNextHookOrCreate('ref', (): UseRefItem => ({
+    type: 'ref',
+    value: { current: initialValue },
+  }));
 
   return item.value as RefObject<T>;
 }

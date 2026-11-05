@@ -1,6 +1,6 @@
 {
   "name": "@faiwer/react",
-  "version": "19.0.14",
+  "version": "19.0.15",
   "description": "A hobby project. A naive and simplified React implementation",
   "keywords": [
     "react",
@@ -72,7 +72,7 @@
     "lint": "oxlint .",
     "type-check": "npx tsgo --noEmit -p tsconfig.json",
     "type-check-watch": "find ./src -type f ! -path '*/node_modules/*' | entr -r sh -c 'printf \"\\033c\"; npx tsgo --noEmit -p tsconfig.json'",
-    "prettify": "npx prettier --write '{src,tests}/**/*.{ts,tsx,md}'"
+    "prettify": "oxfmt '{src,tests}/**/*.{ts,tsx,md}'"
   },
   "author": "Stepan Zubashev",
   "license": "ISC",
@@ -85,13 +85,13 @@
     "jest": "^30.2.0",
     "jest-environment-jsdom": "^30.2.0",
     "lint-staged": "^16.2.6",
+    "oxfmt": "^0.76.0",
     "oxlint": "^1.16.0",
-    "prettier": "^3.6.2",
     "tsc-alias": "^1.8.16"
   },
   "lint-staged": {
     "**/*.{ts,tsx,md}": [
-      "prettier --write"
+      "oxfmt --no-error-on-unmatched-pattern"
     ],
     "**/*.{ts,tsx}": [
       "oxlint --deny-warnings"

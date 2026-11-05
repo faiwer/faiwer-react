@@ -323,9 +323,14 @@ describe('Class components', () => {
       }
     }
     expectHtml(
-      mount(createElement(Custom, null!, 
-        // @ts-ignore Class component are difficult to type properly.
-        (v: number) => Number(v) ** 2)),
+      mount(
+        createElement(
+          Custom,
+          null!,
+          // @ts-ignore Class component are difficult to type properly.
+          (v: number) => Number(v) ** 2,
+        ),
+      ),
     ).toBe('9');
   });
 

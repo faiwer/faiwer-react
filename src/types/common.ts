@@ -2,13 +2,15 @@
 // [K: number] inside. We must filter them out, otherwise it breaks complex
 // types like PropertiesOnly.
 export type RemoveIndexSignature<T> = {
-  [K in keyof T as string extends K
-    ? never
-    : number extends K
+  [
+    K in keyof T as string extends K
       ? never
-      : typeof Symbol.iterator extends K
+      : number extends K
         ? never
-        : K]: T[K];
+        : typeof Symbol.iterator extends K
+          ? never
+          : K
+  ]: T[K];
 };
 
 export type RemapKeys<T, KeyMap extends Record<keyof any, keyof any>> = {
@@ -17,7 +19,7 @@ export type RemapKeys<T, KeyMap extends Record<keyof any, keyof any>> = {
 
 export type Ensure<T, K extends keyof T> =
   & Exclude<T, K>
-  & { [Key in K]: NonNullable<T[K]> }; // prettier-ignore
+  & { [Key in K]: NonNullable<T[K]> }; // oxfmt-ignore
 
 export type ReplaceIn<T, M> = {
   [K in keyof T]: K extends keyof M ? M[K] : T[K];

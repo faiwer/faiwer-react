@@ -22,14 +22,11 @@ export function useMemo<T>(
    * these values change, the function will be re-executed. */
   deps: unknown[],
 ): T {
-  const item = getNextHookOrCreate(
-    'memo',
-    (): UseMemoItem => ({
-      type: 'memo',
-      value: fn(),
-      deps: saveDeps(deps),
-    }),
-  );
+  const item = getNextHookOrCreate('memo', (): UseMemoItem => ({
+    type: 'memo',
+    value: fn(),
+    deps: saveDeps(deps),
+  }));
 
   if (!isFirstFiberRender() && !checkDeps(item.deps, deps)) {
     item.value = fn();

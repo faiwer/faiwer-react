@@ -22,8 +22,8 @@ describe('Updates', () => {
 
         const Comp = () => {
           const removedValue = removed.use(false);
-          const content: JSX.Element[] = items.map(
-            (el): JSX.Element => (removedValue && el === pos ? null : el),
+          const content: JSX.Element[] = items.map((el): JSX.Element =>
+            removedValue && el === pos ? null : el,
           );
 
           return mode === 'fragment' ? content : <div>{content}</div>;
