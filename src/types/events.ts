@@ -47,6 +47,7 @@ type ToCamelCase<T extends string> = T extends `onmouse${infer Rest}`
   : T extends `onanimation${infer Rest}` ? `onAnimation${Capitalize<Rest>}`
   : T extends `ontransition${infer Rest}` ? `onTransition${Capitalize<Rest>}`
   : T extends `oncanplay${infer Rest}` ? `onCanPlay${Capitalize<Rest>}`
+  : T extends `oncontext${infer Rest}` ? `onContext${Capitalize<Rest>}`
   : T extends `on${infer Rest}` ? `on${Capitalize<Rest>}`
   : T; // fallback
 

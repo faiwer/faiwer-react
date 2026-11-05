@@ -109,6 +109,9 @@ FC_L.displayName = 'AnotherName';
 <input onPaste={(event) => event.clipboardData.items} />;
 <div onDrop={(event) => event.dataTransfer?.files} />;
 <div onDropCapture={(event) => event.dataTransfer?.files} />;
+<div onContextMenu={(event) => event.type.length} />;
+// @ts-expect-error
+<div onContextmenu={(event) => event.type.length} />;
 
 //
 // React. Compatibility
