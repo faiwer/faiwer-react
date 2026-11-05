@@ -4,7 +4,7 @@ import { isEventName } from './helpers';
 import { setSvgAttribute } from './dom/svg';
 import { setTagStyles } from './dom/css';
 import { setEventHandler } from './dom/events';
-import { setHtmlAttribute } from './dom/attributes';
+import { OVERLOADED_BOOL_ATTRS, setHtmlAttribute } from './dom/attributes';
 import { changeControlValue, setValueAttr } from './dom/value';
 import {
   nullthrowsForFiber,
@@ -52,6 +52,13 @@ export function setAttrAction(
     setTagStyles(fiber, value);
   } else if (name === 'dangerouslySetInnerHTML' && isSetHtml(value)) {
     element.innerHTML = value.__html;
+  } else if (
+    element instanceof HTMLElement &&
+    OVERLOADED_BOOL_ATTRS.has(name)
+  ) {
+    // `String(true)` is `"true"`, but the flag form is stored as `""`.
+    // Comparing those would skip `download="true"` → `download={true}`.
+    setHtmlAttribute(element, name, value);
   } else if (value == null) {
     element.removeAttribute(name);
   } else {

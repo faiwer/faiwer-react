@@ -5,6 +5,13 @@ export const setHtmlAttribute = (
   name: string,
   value: TagAttrValue,
 ) => {
+  // A flag (`download`, `download={true}`) and a filename (`download="1.txt"`)
+  // are both valid. `true` is the flag; any other present value is the filename.
+  if (OVERLOADED_BOOL_ATTRS.has(name)) {
+    setOverloadedBoolAttr(element, name, value);
+    return;
+  }
+
   if (BOOL_ATTRS.has(name)) {
     if (value) {
       element.setAttribute(name, '');
@@ -20,6 +27,36 @@ export const setHtmlAttribute = (
   }
 
   element.setAttribute(name === 'className' ? 'class' : name, String(value));
+};
+
+/**
+ * Boolean attributes that also accept a string. `true` renders the attribute
+ * with an empty value, `false` / `null` remove it, and any other value is
+ * written through (`download="notes.txt"`, `capture="user"`).
+ */
+export const OVERLOADED_BOOL_ATTRS = new Set(['capture', 'download']);
+
+const setOverloadedBoolAttr = (
+  element: HTMLElement,
+  name: string,
+  value: TagAttrValue,
+) => {
+  if (value === true) {
+    if (element.getAttribute(name) !== '') {
+      element.setAttribute(name, '');
+    }
+    return;
+  }
+
+  if (value === false || value == null) {
+    element.removeAttribute(name);
+    return;
+  }
+
+  const strValue = String(value);
+  if (strValue !== element.getAttribute(name)) {
+    element.setAttribute(name, strValue);
+  }
 };
 
 export const BOOL_ATTRS = new Set([
@@ -57,7 +94,5 @@ export const BOOL_ATTRS = new Set([
   'scoped',
   'seamless',
   'itemScope',
-  'capture',
-  'download',
   'inert',
 ]);

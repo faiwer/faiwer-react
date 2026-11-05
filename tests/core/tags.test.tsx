@@ -111,6 +111,89 @@ describe('Tags', () => {
     `<input>`,
   );
 
+  // `download` / `capture` are overloaded booleans: a flag, or a flag with a
+  // value. A filename must survive; only a real boolean is the flag.
+  itRenders(
+    'keeps a download filename',
+    <a href="/files/abc.npe?decode=true" download="notes.txt" />,
+    `<a href="/files/abc.npe?decode=true" download="notes.txt"></a>`,
+  );
+
+  itRenders(
+    'renders download={true} as a valueless flag',
+    <a href="/files/abc" download={true} />,
+    `<a href="/files/abc" download=""></a>`,
+  );
+
+  itRenders(
+    'renders a bare download as a valueless flag',
+    <a href="/files/abc" download />,
+    `<a href="/files/abc" download=""></a>`,
+  );
+
+  itRenders(
+    'keeps an empty download string',
+    <a href="/files/abc" download="" />,
+    `<a href="/files/abc" download=""></a>`,
+  );
+
+  itRenders(
+    'omits download={false}',
+    <a href="/files/abc" download={false} />,
+    `<a href="/files/abc"></a>`,
+  );
+
+  itRenders(
+    'keeps a capture device hint',
+    <input type="file" capture="user" />,
+    `<input type="file" capture="user">`,
+  );
+
+  itRenders(
+    'renders capture={true} as a valueless flag',
+    <input type="file" capture />,
+    `<input type="file" capture="">`,
+  );
+
+  itRenders(
+    'omits capture={false}',
+    <input type="file" capture={false} />,
+    `<input type="file">`,
+  );
+
+  it('updates download between a filename, a flag, and absent', async () => {
+    const download = useStateX<string | boolean | undefined>();
+    const Comp = () => (
+      <a href="/files/abc" download={download.use('notes.txt')}>
+        x
+      </a>
+    );
+
+    const root = mount(<Comp />);
+    expectHtml(root).toBe('<a href="/files/abc" download="notes.txt">x</a>');
+
+    await act(() => download.set(true));
+    expectHtml(root).toBe('<a href="/files/abc" download="">x</a>');
+
+    await act(() => download.set('1.txt'));
+    expectHtml(root).toBe('<a href="/files/abc" download="1.txt">x</a>');
+
+    await act(() => download.set(false));
+    expectHtml(root).toBe('<a href="/files/abc">x</a>');
+
+    await act(() => download.set('notes.txt'));
+    expectHtml(root).toBe('<a href="/files/abc" download="notes.txt">x</a>');
+
+    await act(() => download.set(undefined));
+    expectHtml(root).toBe('<a href="/files/abc">x</a>');
+
+    // `String(true) === "true"`, but the flag must still replace that filename.
+    await act(() => download.set('true'));
+    expectHtml(root).toBe('<a href="/files/abc" download="true">x</a>');
+    await act(() => download.set(true));
+    expectHtml(root).toBe('<a href="/files/abc" download="">x</a>');
+  });
+
   it(`dangerouslySetInnerHTML sets arbitrary HTML`, async () => {
     const html = useStateX<string>();
     const Comp = () => (

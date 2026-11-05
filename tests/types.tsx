@@ -74,6 +74,19 @@ FC_L.displayName = 'AnotherName';
 <div autofocus />;
 <div autoFocus />;
 <div autoFocus={true} />;
+<a download="1.txt" />;
+<a download="" />;
+<a download />;
+<a download={true} />;
+<a download={false} />;
+// @ts-expect-error a filename is a string
+<a download={1} />;
+<input capture="user" />;
+<input capture="environment" />;
+<input capture />;
+<input capture={false} />;
+// @ts-expect-error capture is a keyword or a boolean
+<input capture={1} />;
 // overrides
 <input value="string" />;
 <input value={42} />;

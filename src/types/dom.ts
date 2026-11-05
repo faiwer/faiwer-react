@@ -19,22 +19,24 @@ export type TagAttrValue =
   | TagStyles;
 
 type Overrides<T extends Element, O> = T extends
-  | HTMLInputElement
-  | HTMLTextAreaElement
-  ? ReplaceIn<
-      O,
-      { value?: string | number } & {
-        defaultValue?: string | number;
-        defaultChecked?: boolean;
-      }
-    >
-  : T extends HTMLSelectElement
-    ? ReplaceIn<O, { value?: string | number | Array<number | string> }> & {
-        defaultValue?: string | number | Array<string | number>;
-      }
-    : T extends HTMLOptionElement
-      ? ReplaceIn<O, { value?: string | number }>
-      : O;
+  | HTMLAnchorElement
+  | HTMLAreaElement
+  ? ReplaceIn<O, { download?: string | boolean }>
+  : T extends HTMLInputElement | HTMLTextAreaElement
+    ? ReplaceIn<
+        O,
+        { value?: string | number; capture?: string | boolean } & {
+          defaultValue?: string | number;
+          defaultChecked?: boolean;
+        }
+      >
+    : T extends HTMLSelectElement
+      ? ReplaceIn<O, { value?: string | number | Array<number | string> }> & {
+          defaultValue?: string | number | Array<string | number>;
+        }
+      : T extends HTMLOptionElement
+        ? ReplaceIn<O, { value?: string | number }>
+        : O;
 
 // prettier-ignore
 export type TagProps<T extends Element = HTMLElement> =
