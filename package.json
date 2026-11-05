@@ -1,6 +1,6 @@
 {
   "name": "@faiwer/react",
-  "version": "19.0.12",
+  "version": "19.0.14",
   "description": "A hobby project. A naive and simplified React implementation",
   "keywords": [
     "react",
@@ -29,7 +29,8 @@
       "debug": ["./dist/debug.d.ts"],
       "jsx-runtime": ["./dist/jsx-runtime.d.ts"],
       "jsx-dev-runtime": ["./dist/jsx-dev-runtime.d.ts"],
-      "jsx": ["./dist/jsx.d.ts"]
+      "jsx": ["./dist/jsx.d.ts"],
+      "testing": ["./dist/testing.d.ts"]
     }
   },
   "sideEffects": ["dist/core/reconciliation/app.js"],
@@ -56,6 +57,10 @@
     "./debug": {
       "types": "./dist/debug.d.ts",
       "default": "./dist/debug.js"
+    },
+    "./testing": {
+      "types": "./dist/testing.d.ts",
+      "default": "./dist/testing.js"
     }
   },
   "scripts": {
